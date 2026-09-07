@@ -1,0 +1,78 @@
+<!--
+  Shared references and deploy step for isochronous ONI mods.
+  Import at the BOTTOM of a mod csproj:  <Import Project="..\..\common\oni-mod.targets" />
+
+  Opt-in extras (set to 'true' in the mod csproj before the import):
+    ReferenceUnityUI          - UnityEngine.UI, Unity.TextMeshPro, UnityEngine.TextRenderingModule
+    ReferenceImageConversion  - UnityEngine.ImageConversionModule (loading PNG sprites)
+-->
+<Project>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GameLibsFolder)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(GameLibsFolder)\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(GameLibsFolder)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(GameLibsFolder)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GameLibsFolder)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(ReferenceUnityUI)' == 'true'">
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(GameLibsFolder)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(GameLibsFolder)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(GameLibsFolder)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(ReferenceImageConversion)' == 'true'">
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(GameLibsFolder)\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="mod.yaml" CopyToOutputDirectory="PreserveNewest" Condition="Exists('$(MSBuildProjectDirectory)\mod.yaml')" />
+    <None Include="mod_info.yaml" CopyToOutputDirectory="PreserveNewest" Condition="Exists('$(MSBuildProjectDirectory)\mod_info.yaml')" />
+  </ItemGroup>
+
+  <Target Name="EnsureGameLibs" BeforeTargets="ResolveAssemblyReferences"
+          Condition="!Exists('$(GameLibsFolder)\Assembly-CSharp.dll')">
+    <Error Text="Game assemblies not found at '$(GameLibsFolder)'. Set GameFolder or GameLibsFolder (MSBuild property or ONI_GAME_FOLDER environment variable)." />
+  </Target>
+
+  <Target Name="DeployToLocalMods" AfterTargets="Build" Condition="'$(ModDeployFolder)' != 'none'">
+    <ItemGroup>
+      <DeployFiles Include="$(TargetDir)$(AssemblyName).dll" />
+      <DeployFiles Include="$(TargetDir)mod.yaml" Condition="Exists('$(TargetDir)mod.yaml')" />
+      <DeployFiles Include="$(TargetDir)mod_info.yaml" Condition="Exists('$(TargetDir)mod_info.yaml')" />
+      <DeployAssets Include="$(MSBuildProjectDirectory)\assets\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DeployFiles)" DestinationFolder="$(ModDeployFolder)" />
+    <Copy SourceFiles="@(DeployAssets)" DestinationFolder="$(ModDeployFolder)\assets\%(RecursiveDir)" Condition="'@(DeployAssets)' != ''" />
+    <Message Importance="high" Text="Deployed mod to $(ModDeployFolder)" />
+  </Target>
+
+</Project>

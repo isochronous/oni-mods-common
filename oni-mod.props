@@ -1,0 +1,29 @@
+<!--
+  Shared build configuration for isochronous ONI mods.
+  Import at the TOP of a mod csproj:  <Import Project="..\..\common\oni-mod.props" />
+-->
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <!--
+    Game folder resolution, first match wins:
+      1. -p:GameFolder=... / -p:GameLibsFolder=... on the command line
+      2. ONI_GAME_FOLDER environment variable
+      3. Known Steam library locations
+  -->
+  <PropertyGroup>
+    <GameFolder Condition="'$(GameFolder)' == '' And '$(ONI_GAME_FOLDER)' != ''">$(ONI_GAME_FOLDER)</GameFolder>
+    <GameFolder Condition="'$(GameFolder)' == '' And Exists('F:\SteamLibrary\steamapps\common\OxygenNotIncluded')">F:\SteamLibrary\steamapps\common\OxygenNotIncluded</GameFolder>
+    <GameFolder Condition="'$(GameFolder)' == '' And Exists('C:\Program Files (x86)\Steam\steamapps\common\OxygenNotIncluded')">C:\Program Files (x86)\Steam\steamapps\common\OxygenNotIncluded</GameFolder>
+    <GameLibsFolder Condition="'$(GameLibsFolder)' == ''">$(GameFolder)\OxygenNotIncluded_Data\Managed</GameLibsFolder>
+    <!-- Where a successful build deploys the mod; set to 'none' to skip deployment -->
+    <ModDeployFolder Condition="'$(ModDeployFolder)' == ''">$(USERPROFILE)\Documents\Klei\OxygenNotIncluded\mods\local\$(MSBuildProjectName)</ModDeployFolder>
+  </PropertyGroup>
+
+</Project>
