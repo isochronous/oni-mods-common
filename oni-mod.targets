@@ -5,6 +5,8 @@
   Opt-in extras (set to 'true' in the mod csproj before the import):
     ReferenceUnityUI          - UnityEngine.UI, Unity.TextMeshPro, UnityEngine.TextRenderingModule
     ReferenceImageConversion  - UnityEngine.ImageConversionModule (loading PNG sprites)
+    UsePLib                   - references PeterHan.PLib from NuGet and ILRepack-merges it
+                                into the mod DLL (the deployment style PLib expects)
 -->
 <Project>
 
@@ -57,6 +59,24 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(UsePLib)' == 'true'">
+    <PackageReference Include="PLib" Version="4.25.0" />
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.40" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Merge PLib into the mod DLL so the mod ships as a single file; PLib's PRegistry
+       coordinates between mods that each embed their own copy. -->
+  <Target Name="MergePLib" AfterTargets="Build" BeforeTargets="DeployToLocalMods" Condition="'$(UsePLib)' == 'true'">
+    <ItemGroup>
+      <MergeAssemblies Include="$(TargetDir)$(AssemblyName).dll" />
+      <MergeAssemblies Include="$(TargetDir)PLib.dll" />
+    </ItemGroup>
+    <ILRepack OutputFile="$(TargetDir)$(AssemblyName).dll" InputAssemblies="@(MergeAssemblies)"
+              LibraryPath="$(GameLibsFolder);$(TargetDir)" Parallel="true" XmlDocumentation="false" />
+    <Delete Files="$(TargetDir)PLib.dll" />
+    <Message Importance="high" Text="Merged PLib into $(AssemblyName).dll" />
+  </Target>
 
   <ItemGroup>
     <None Include="mod.yaml" CopyToOutputDirectory="PreserveNewest" Condition="Exists('$(MSBuildProjectDirectory)\mod.yaml')" />
