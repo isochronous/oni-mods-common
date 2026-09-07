@@ -1,0 +1,15 @@
+C:\dev\oni-mods-common\tools\ModCheck\bin\Debug\net8.0\ModCheck.exe
+C:\dev\oni-mods-common\tools\ModCheck\bin\Debug\net8.0\ModCheck.deps.json
+C:\dev\oni-mods-common\tools\ModCheck\bin\Debug\net8.0\ModCheck.runtimeconfig.json
+C:\dev\oni-mods-common\tools\ModCheck\bin\Debug\net8.0\ModCheck.dll
+C:\dev\oni-mods-common\tools\ModCheck\bin\Debug\net8.0\ModCheck.pdb
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.GeneratedMSBuildEditorConfig.editorconfig
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.AssemblyInfoInputs.cache
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.AssemblyInfo.cs
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.csproj.CoreCompileInputs.cache
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.sourcelink.json
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.dll
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\refint\ModCheck.dll
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.pdb
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ModCheck.genruntimeconfig.cache
+C:\dev\oni-mods-common\tools\ModCheck\obj\Debug\net8.0\ref\ModCheck.dll

@@ -34,21 +34,23 @@ internal static class Program
 		};
 
 		int failures = 0;
+		int warnings = 0;
 		try
 		{
 			var asm = Assembly.LoadFrom(modDll);
 			foreach (var type in asm.GetTypes())
 			{
+				bool isDelegate = typeof(Delegate).IsAssignableFrom(type);
 				try
 				{
-					foreach (var iface in type.GetInterfaces())
-						type.GetInterfaceMap(iface);
+					if (!type.IsInterface)
+						foreach (var iface in type.GetInterfaces())
+							type.GetInterfaceMap(iface);
 					RuntimeHelpers.RunClassConstructor(type.TypeHandle);
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"FAIL type {type.FullName}: {Unwrap(ex)}");
-					failures++;
+					Report("type", type.FullName, null, ex, ref failures, ref warnings);
 					continue;
 				}
 
@@ -58,14 +60,17 @@ internal static class Program
 				{
 					if (method.IsAbstract || method.ContainsGenericParameters)
 						continue;
+					// Async delegate stubs throw PlatformNotSupportedException on
+					// CoreCLR but work on the game's Mono runtime.
+					if (isDelegate && (method.Name == "BeginInvoke" || method.Name == "EndInvoke"))
+						continue;
 					try
 					{
 						RuntimeHelpers.PrepareMethod(method.MethodHandle);
 					}
 					catch (Exception ex)
 					{
-						Console.WriteLine($"FAIL jit {type.FullName}.{method.Name}: {Unwrap(ex)}");
-						failures++;
+						Report("jit", type.FullName, method.Name, ex, ref failures, ref warnings);
 					}
 				}
 				Console.WriteLine("OK " + type.FullName);
@@ -85,8 +90,29 @@ internal static class Program
 			failures++;
 		}
 
+		if (warnings > 0)
+			Console.WriteLine($"{warnings} warning(s) — runtime-mismatch artifacts, fine in-game.");
 		Console.WriteLine(failures == 0 ? "ALL CHECKS PASSED" : $"{failures} FAILURE(S)");
 		return failures == 0 ? 0 : 1;
+	}
+
+	private static void Report(string stage, string typeName, string memberName, Exception ex, ref int failures, ref int warnings)
+	{
+		string what = memberName == null ? typeName : typeName + "." + memberName;
+		// The check host (CoreCLR, no Unity engine) cannot execute Unity native
+		// (ECall) code that the JIT tries to inline or a static constructor invokes;
+		// on the game's Mono runtime these succeed. Everything else — notably
+		// MissingMethod/MissingField/TypeLoad — is a genuine compatibility break.
+		if (Unwrap(ex).Contains("ECall methods must be packaged into a system module"))
+		{
+			Console.WriteLine($"WARN {stage} {what}: {Unwrap(ex)}");
+			warnings++;
+		}
+		else
+		{
+			Console.WriteLine($"FAIL {stage} {what}: {Unwrap(ex)}");
+			failures++;
+		}
 	}
 
 	private static MethodBase[] AllMethods(Type type, BindingFlags flags)
