@@ -1,0 +1,18 @@
+<!--
+  Imported by ILRepack.Lib.MSBuild.Task (via $(ILRepackTargetsFile)) in place of its
+  default merge-everything behavior, which cannot resolve the non-copied game refs.
+-->
+<Project>
+
+  <Target Name="MergePLib" AfterTargets="Build" BeforeTargets="DeployToLocalMods" Condition="'$(UsePLib)' == 'true'">
+    <ItemGroup>
+      <MergeAssemblies Include="$(TargetDir)$(AssemblyName).dll" />
+      <MergeAssemblies Include="$(TargetDir)PLib.dll" />
+    </ItemGroup>
+    <ILRepack OutputFile="$(TargetDir)$(AssemblyName).dll" InputAssemblies="@(MergeAssemblies)"
+              LibraryPath="$(GameLibsFolder);$(TargetDir)" Parallel="true" XmlDocumentation="false" />
+    <Delete Files="$(TargetDir)PLib.dll" />
+    <Message Importance="high" Text="Merged PLib into $(AssemblyName).dll" />
+  </Target>
+
+</Project>
