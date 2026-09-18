@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Publishes ONI mods to the Steam Workshop as LEGACY single-file items.
+
+    Oxygen Not Included has no Workshop depot ("Workshop depot not defined, legacy
+    support only" in Steam's workshop_log.txt), so the game can only download items
+    published through the old ISteamRemoteStorage API: one zip file, which Steam
+    installs as <handle>_legacy.bin and the game opens with ZipFile. Items created by
+    steamcmd's workshop_build_item are manifest-based and fail to download for every
+    subscriber ("Steam failed to download the mod"). This tool uses the legacy API.
+
+    Requires the Steam client to be running and logged in as the item's owner.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>WorkshopUpload</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Steamworks.NET" Version="2024.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="steam_appid.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
