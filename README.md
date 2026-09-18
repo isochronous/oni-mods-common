@@ -63,3 +63,13 @@ WorkshopUpload ugc-describe <itemId> --description-file f [--visibility unlisted
 ```
 
 The zip must contain `mod.yaml`, `mod_info.yaml`, the DLL, and `preview.png` at its root, the same layout Klei's own uploader produces.
+
+## Workshop preview images
+
+`tools/MakePreview/make_preview.py` (Pillow) composes the 256x256 preview used by every isochronous mod: a game sprite centred on a transparent canvas with a white caption on a translucent black band. Sprites come from the game's kanim textures, which UnityPy extracts from `OxygenNotIncluded_Data/sharedassets0.assets` (Texture2D named `<kanim>_0`, e.g. `critter_sensor_0`); keep the extracted atlases untracked since they are Klei art, and commit only the composed preview.
+
+```
+python -m pip install UnityPy Pillow
+python tools/MakePreview/make_preview.py critter_sensor_0.png preview.png --auto --no-shadow --rotate 180 --text "4-bit"
+```
+
