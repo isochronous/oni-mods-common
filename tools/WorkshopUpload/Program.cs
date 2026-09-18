@@ -71,8 +71,7 @@ internal static class Program
 			SteamRemoteStorage.GetPublishedFileDetails(new PublishedFileId_t(id), 0));
 		Console.WriteLine($"result:   {details.m_eResult}");
 		Console.WriteLine($"title:    {details.m_rgchTitle}");
-		string desc = (details.m_rgchDescription ?? "").Replace("", " ").Replace("
-", " ");
+		string desc = (details.m_rgchDescription ?? "").Replace('\r', ' ').Replace('\n', ' ');
 		Console.WriteLine("desc:     " + (desc.Length > 90 ? desc.Substring(0, 90) + "..." : desc));
 		Console.WriteLine($"file:     '{details.m_pchFileName}' size {details.m_nFileSize} handle {details.m_hFile}");
 		Console.WriteLine($"preview:  handle {details.m_hPreviewFile} size {details.m_nPreviewFileSize}");
