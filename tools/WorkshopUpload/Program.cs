@@ -107,19 +107,20 @@ internal static class Program
 	{
 		if (args.Length < 3)
 		{
-			Console.Error.WriteLine("usage: update <id> <zip> [preview] [--title T] [--description-file F] [--changenote N]");
+			Console.Error.WriteLine("usage: update <id> [zip [preview]] [--title T] [--description-file F] [--changenote N] [--visibility public|friends|unlisted|private]");
 			return 2;
 		}
 		ulong id = ulong.Parse(args[1]);
-		string zipPath = args[2];
-		string previewPath = args.Length > 3 && !args[3].StartsWith("--") ? args[3] : null;
+		string zipPath = !args[2].StartsWith("--") ? args[2] : null;
+		string previewPath = zipPath != null && args.Length > 3 && !args[3].StartsWith("--") ? args[3] : null;
 		var opts = ParseOptions(args);
 
-		string cloudZip = UploadToCloud(zipPath);
+		string cloudZip = zipPath != null ? UploadToCloud(zipPath) : null;
 		string cloudPreview = previewPath != null ? UploadToCloud(previewPath) : null;
 
 		PublishedFileUpdateHandle_t handle = SteamRemoteStorage.CreatePublishedFileUpdateRequest(new PublishedFileId_t(id));
-		Check(SteamRemoteStorage.UpdatePublishedFileFile(handle, cloudZip), "UpdatePublishedFileFile");
+		if (cloudZip != null)
+			Check(SteamRemoteStorage.UpdatePublishedFileFile(handle, cloudZip), "UpdatePublishedFileFile");
 		if (cloudPreview != null)
 			Check(SteamRemoteStorage.UpdatePublishedFilePreviewFile(handle, cloudPreview), "UpdatePublishedFilePreviewFile");
 		if (opts.TryGetValue("title", out string title))
@@ -128,6 +129,8 @@ internal static class Program
 			Check(SteamRemoteStorage.UpdatePublishedFileDescription(handle, File.ReadAllText(descFile)), "UpdatePublishedFileDescription");
 		if (opts.TryGetValue("changenote", out string note))
 			Check(SteamRemoteStorage.UpdatePublishedFileSetChangeDescription(handle, note), "UpdatePublishedFileSetChangeDescription");
+		if (opts.TryGetValue("visibility", out string vis))
+			Check(SteamRemoteStorage.UpdatePublishedFileVisibility(handle, ParseVisibility(vis)), "UpdatePublishedFileVisibility");
 
 		Console.WriteLine($"Committing update to item {id} ...");
 		var result = Await<RemoteStorageUpdatePublishedFileResult_t>(SteamRemoteStorage.CommitPublishedFileUpdate(handle));
@@ -151,14 +154,7 @@ internal static class Program
 			return 2;
 		}
 		string description = opts.TryGetValue("description-file", out string descFile) ? File.ReadAllText(descFile) : "";
-		var visibility = ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPrivate;
-		if (opts.TryGetValue("visibility", out string vis))
-			visibility = vis switch
-			{
-				"public" => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic,
-				"friends" => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityFriendsOnly,
-				_ => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPrivate,
-			};
+		var visibility = ParseVisibility(opts.TryGetValue("visibility", out string vis) ? vis : "private");
 
 		string cloudZip = UploadToCloud(args[1]);
 		string cloudPreview = UploadToCloud(args[2]);
@@ -277,7 +273,9 @@ internal static class Program
 	private static string UploadToCloud(string localPath)
 	{
 		byte[] bytes = File.ReadAllBytes(localPath);
-		string cloudName = localPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ? "mod_publish_data_file.zip" : Path.GetFileName(localPath);
+		// Same cloud names Klei's OniUploader64.exe uses (it is a native wxWidgets app driving
+		// ISteamRemoteStorage v014: FileWrite, FileShare, PublishWorkshopFile, UpdatePublishedFile).
+		string cloudName = localPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ? "mod_publish_data_file.zip" : "mod_publish_preview.png";
 		Console.WriteLine($"Uploading {cloudName} ({bytes.Length} bytes) to Steam Cloud ...");
 		if (!SteamRemoteStorage.FileWrite(cloudName, bytes, bytes.Length))
 			throw new Exception("FileWrite failed for " + cloudName + " (cloud quota or Steam Cloud disabled for this app?)");
@@ -288,6 +286,17 @@ internal static class Program
 		else
 			Console.WriteLine($"  shared as UGC handle {share.m_hFile}");
 		return cloudName;
+	}
+
+	private static ERemoteStoragePublishedFileVisibility ParseVisibility(string vis)
+	{
+		return vis switch
+		{
+			"public" => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic,
+			"friends" => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityFriendsOnly,
+			"unlisted" => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityUnlisted,
+			_ => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPrivate,
+		};
 	}
 
 	private static void Check(bool ok, string what)
