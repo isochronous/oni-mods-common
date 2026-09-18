@@ -50,13 +50,15 @@ Build with `dotnet build src/<ModName> -c Release`. A successful build deploys t
 
 **Do not use steamcmd's `workshop_build_item` for ONI mods.** The game has no Workshop depot (Steam's `workshop_log.txt` says "Workshop depot not defined, legacy support only"), so it can only download *legacy* single-file items: one zip that Steam installs as `<handle>_legacy.bin` and the game opens with `ZipFile`. A folder of loose files uploaded by steamcmd becomes a manifest-based item that Steam skips as "non-legacy", and every subscriber gets "Steam failed to download the mod".
 
-`tools/WorkshopUpload` publishes through the legacy `ISteamRemoteStorage` API instead. Build it with `dotnet build tools/WorkshopUpload -c Release`, put a `steam_api64.dll` from Steamworks SDK 1.60 or newer next to the exe (the game's own copy is too old for the Steamworks.NET wrapper), keep the Steam client running as the item owner, then:
+`tools/WorkshopUpload` publishes through the legacy `ISteamRemoteStorage` API instead, running as Klei's **Oxygen Not Included Uploader** tool (app 636750, free with the game; every working Workshop item has it as `creator_app_id`) with the game as the consumer app. Sharing cloud files under the game's own app id fails with FileNotFound, so `steam_appid.txt` must stay 636750. Build it with `dotnet build tools/WorkshopUpload -c Release`, put a `steam_api64.dll` from Steamworks SDK 1.60 or newer next to the exe (the game's own copy is too old for the Steamworks.NET wrapper), keep the Steam client running as the item owner, then:
 
 ```
 WorkshopUpload info <itemId>                                  # is it a legacy item the game can download?
 WorkshopUpload list                                           # all your items for app 457140
 WorkshopUpload update <itemId> <Mod.zip> [preview.png] [--changenote "..."]
 WorkshopUpload publish <Mod.zip> <preview.png> --title "..." [--description-file f] [--visibility public]
+WorkshopUpload download <itemId>                              # fetch with this client and show what the game would see
+WorkshopUpload cloud                                          # Steam Cloud diagnostics
 ```
 
 The zip must contain `mod.yaml`, `mod_info.yaml`, the DLL, and `preview.png` at its root, the same layout Klei's own uploader produces.

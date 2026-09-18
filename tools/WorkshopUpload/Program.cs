@@ -19,7 +19,12 @@ namespace WorkshopUpload;
 /// </summary>
 internal static class Program
 {
+	/// <summary>The game: consumer app of every item.</summary>
 	private const uint AppId = 457140;
+	/// <summary>Klei's "Oxygen Not Included Uploader" tool: the app legacy items are published from
+	/// (creator_app_id of every working item). steam_appid.txt selects it; sharing cloud files
+	/// under the game's own app id fails with FileNotFound.</summary>
+	private const uint UploaderAppId = 636750;
 
 	private static int Main(string[] args)
 	{
@@ -35,8 +40,7 @@ internal static class Program
 		}
 		try
 		{
-			if (SteamUtils.GetAppID().m_AppId != AppId)
-				Console.Error.WriteLine($"warning: running as app {SteamUtils.GetAppID().m_AppId}, expected {AppId}");
+			Console.WriteLine($"running as app {SteamUtils.GetAppID().m_AppId} (uploader is {UploaderAppId}, game is {AppId})");
 			Console.WriteLine($"Steam user: {SteamFriends.GetPersonaName()} ({SteamUser.GetSteamID()})");
 			switch (args[0])
 			{
@@ -44,6 +48,9 @@ internal static class Program
 				case "list": return List();
 				case "update": return Update(args);
 				case "publish": return Publish(args);
+				case "cloud": return Cloud();
+				case "ugc-update": return UgcUpdate(args);
+				case "download": return Download(ulong.Parse(args[1]));
 				default:
 					Console.Error.WriteLine("unknown command " + args[0]);
 					return 2;
@@ -167,16 +174,119 @@ internal static class Program
 		return Info(result.m_nPublishedFileId.m_PublishedFileId);
 	}
 
+	/// <summary>Steam Cloud diagnostics for the legacy path.</summary>
+	private static int Cloud()
+	{
+		Console.WriteLine($"cloud enabled for account: {SteamRemoteStorage.IsCloudEnabledForAccount()}");
+		Console.WriteLine($"cloud enabled for app:     {SteamRemoteStorage.IsCloudEnabledForApp()}");
+		SteamRemoteStorage.GetQuota(out ulong total, out ulong available);
+		Console.WriteLine($"quota: {available}/{total} bytes available");
+		int count = SteamRemoteStorage.GetFileCount();
+		Console.WriteLine($"files in cloud: {count}");
+		for (int i = 0; i < count; i++)
+		{
+			string name = SteamRemoteStorage.GetFileNameAndSize(i, out int size);
+			Console.WriteLine($"  {name} {size} bytes persisted={SteamRemoteStorage.FilePersisted(name)}");
+		}
+		return 0;
+	}
+
+	/// <summary>
+	/// ISteamUGC update with a content folder. Used to test whether a folder holding a
+	/// single zip is stored as a legacy-downloadable item.
+	///   ugc-update &lt;id&gt; &lt;contentFolder&gt; [preview.png] [--changenote N]
+	/// </summary>
+	private static int UgcUpdate(string[] args)
+	{
+		if (args.Length < 3)
+		{
+			Console.Error.WriteLine("usage: ugc-update <id> <contentFolder> [preview] [--changenote N]");
+			return 2;
+		}
+		ulong id = ulong.Parse(args[1]);
+		string folder = Path.GetFullPath(args[2]);
+		string previewPath = args.Length > 3 && !args[3].StartsWith("--") ? Path.GetFullPath(args[3]) : null;
+		var opts = ParseOptions(args);
+		Console.WriteLine($"content folder: {folder} ({string.Join(", ", Directory.GetFiles(folder).Select(Path.GetFileName))})");
+		UGCUpdateHandle_t handle = SteamUGC.StartItemUpdate(new AppId_t(AppId), new PublishedFileId_t(id));
+		Check(SteamUGC.SetItemContent(handle, folder), "SetItemContent");
+		if (previewPath != null)
+			Check(SteamUGC.SetItemPreview(handle, previewPath), "SetItemPreview");
+		opts.TryGetValue("changenote", out string note);
+		Console.WriteLine($"Submitting UGC update to item {id} ...");
+		var result = Await<SubmitItemUpdateResult_t>(SteamUGC.SubmitItemUpdate(handle, note ?? ""), 600);
+		Console.WriteLine("result: " + result.m_eResult + (result.m_bUserNeedsToAcceptWorkshopLegalAgreement ? " (user must accept the Workshop legal agreement)" : ""));
+		if (result.m_eResult != EResult.k_EResultOK)
+			return 1;
+		return Info(id);
+	}
+
+	/// <summary>
+	/// Downloads the item with this Steam client (owner can fetch private items) and reports
+	/// what the game would see: the install path and whether it is a single zip file.
+	/// </summary>
+	private static int Download(ulong id)
+	{
+		var fileId = new PublishedFileId_t(id);
+		EResult downloadResult = EResult.k_EResultPending;
+		bool done = false;
+		using var cb = Callback<DownloadItemResult_t>.Create(r =>
+		{
+			if (r.m_nPublishedFileId == fileId) { downloadResult = r.m_eResult; done = true; }
+		});
+		Console.WriteLine($"item state before: {(EItemState)SteamUGC.GetItemState(fileId)}");
+		if (!SteamUGC.DownloadItem(fileId, true))
+		{
+			Console.Error.WriteLine("DownloadItem returned false (invalid item or not allowed)");
+			return 1;
+		}
+		var deadline = DateTime.UtcNow.AddSeconds(180);
+		while (!done && DateTime.UtcNow < deadline)
+		{
+			SteamAPI.RunCallbacks();
+			Thread.Sleep(100);
+		}
+		Console.WriteLine($"download result: {(done ? downloadResult.ToString() : "timeout")}");
+		Console.WriteLine($"item state after:  {(EItemState)SteamUGC.GetItemState(fileId)}");
+		if (!SteamUGC.GetItemInstallInfo(fileId, out ulong size, out string path, 1024, out uint timestamp))
+		{
+			Console.WriteLine("GetItemInstallInfo: not installed");
+			return 1;
+		}
+		Console.WriteLine($"install path: {path} ({size} bytes)");
+		if (File.Exists(path))
+		{
+			Console.WriteLine("path is a FILE: the game will open it as a zip (legacy item, OK)");
+			using var zip = System.IO.Compression.ZipFile.OpenRead(path);
+			foreach (var e in zip.Entries) Console.WriteLine($"  {e.FullName} {e.Length}");
+			return 0;
+		}
+		if (Directory.Exists(path))
+		{
+			Console.WriteLine("path is a DIRECTORY: File.Exists fails in the game -> 'Steam failed to download the mod'");
+			foreach (var f in Directory.GetFiles(path, "*", SearchOption.AllDirectories)) Console.WriteLine($"  {f}");
+			return 1;
+		}
+		Console.WriteLine("path does not exist");
+		return 1;
+	}
+
 	// ---- helpers ----
 
 	/// <summary>Writes a local file into the user's Steam Cloud for this app and returns its cloud name.</summary>
 	private static string UploadToCloud(string localPath)
 	{
 		byte[] bytes = File.ReadAllBytes(localPath);
-		string cloudName = Path.GetFileName(localPath);
+		string cloudName = localPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ? "mod_publish_data_file.zip" : Path.GetFileName(localPath);
 		Console.WriteLine($"Uploading {cloudName} ({bytes.Length} bytes) to Steam Cloud ...");
 		if (!SteamRemoteStorage.FileWrite(cloudName, bytes, bytes.Length))
 			throw new Exception("FileWrite failed for " + cloudName + " (cloud quota or Steam Cloud disabled for this app?)");
+		// Legacy publishing shares the cloud file (gives it a UGC handle).
+		var share = Await<RemoteStorageFileShareResult_t>(SteamRemoteStorage.FileShare(cloudName));
+		if (share.m_eResult != EResult.k_EResultOK)
+			Console.Error.WriteLine($"  warning: FileShare failed for {cloudName}: {share.m_eResult}");
+		else
+			Console.WriteLine($"  shared as UGC handle {share.m_hFile}");
 		return cloudName;
 	}
 
