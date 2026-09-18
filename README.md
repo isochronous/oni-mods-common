@@ -59,6 +59,7 @@ WorkshopUpload update <itemId> <Mod.zip> [preview.png] [--changenote "..."]
 WorkshopUpload publish <Mod.zip> <preview.png> --title "..." [--description-file f] [--visibility public]
 WorkshopUpload download <itemId>                              # fetch with this client and show what the game would see
 WorkshopUpload cloud                                          # Steam Cloud diagnostics
+WorkshopUpload ugc-describe <itemId> --description-file f [--visibility unlisted]   # metadata-only update, works on steamcmd-made items; run with SteamAppId=457140
 ```
 
 The zip must contain `mod.yaml`, `mod_info.yaml`, the DLL, and `preview.png` at its root, the same layout Klei's own uploader produces.

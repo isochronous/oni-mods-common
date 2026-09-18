@@ -50,6 +50,7 @@ internal static class Program
 				case "publish": return Publish(args);
 				case "cloud": return Cloud();
 				case "ugc-update": return UgcUpdate(args);
+				case "ugc-describe": return UgcDescribe(args);
 				case "download": return Download(ulong.Parse(args[1]));
 				default:
 					Console.Error.WriteLine("unknown command " + args[0]);
@@ -265,6 +266,35 @@ internal static class Program
 		}
 		Console.WriteLine("path does not exist");
 		return 1;
+	}
+
+	/// <summary>
+	/// Metadata-only ISteamUGC update (no content): description, title, visibility. Works on
+	/// items created by steamcmd, which the legacy API refuses to touch. Run with the
+	/// environment variable SteamAppId=457140 so the item's own app is used.
+	///   ugc-describe &lt;id&gt; --description-file F [--title T] [--visibility public|friends|unlisted|private] [--changenote N]
+	/// </summary>
+	private static int UgcDescribe(string[] args)
+	{
+		if (args.Length < 2)
+		{
+			Console.Error.WriteLine("usage: ugc-describe <id> --description-file F [--title T] [--visibility V] [--changenote N]");
+			return 2;
+		}
+		ulong id = ulong.Parse(args[1]);
+		var opts = ParseOptions(args);
+		UGCUpdateHandle_t handle = SteamUGC.StartItemUpdate(new AppId_t(AppId), new PublishedFileId_t(id));
+		if (opts.TryGetValue("description-file", out string descFile))
+			Check(SteamUGC.SetItemDescription(handle, File.ReadAllText(descFile)), "SetItemDescription");
+		if (opts.TryGetValue("title", out string title))
+			Check(SteamUGC.SetItemTitle(handle, title), "SetItemTitle");
+		if (opts.TryGetValue("visibility", out string vis))
+			Check(SteamUGC.SetItemVisibility(handle, ParseVisibility(vis)), "SetItemVisibility");
+		opts.TryGetValue("changenote", out string note);
+		Console.WriteLine($"Submitting metadata update to item {id} ...");
+		var result = Await<SubmitItemUpdateResult_t>(SteamUGC.SubmitItemUpdate(handle, note ?? ""), 300);
+		Console.WriteLine("result: " + result.m_eResult);
+		return result.m_eResult == EResult.k_EResultOK ? 0 : 1;
 	}
 
 	// ---- helpers ----
