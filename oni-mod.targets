@@ -88,9 +88,11 @@
       <DeployFiles Include="$(TargetDir)mod.yaml" Condition="Exists('$(TargetDir)mod.yaml')" />
       <DeployFiles Include="$(TargetDir)mod_info.yaml" Condition="Exists('$(TargetDir)mod_info.yaml')" />
       <DeployAssets Include="$(MSBuildProjectDirectory)\assets\**\*" />
+      <DeployAnim Include="$(MSBuildProjectDirectory)\anim\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(DeployFiles)" DestinationFolder="$(ModDeployFolder)" />
     <Copy SourceFiles="@(DeployAssets)" DestinationFolder="$(ModDeployFolder)\assets\%(RecursiveDir)" Condition="'@(DeployAssets)' != ''" />
+    <Copy SourceFiles="@(DeployAnim)" DestinationFolder="$(ModDeployFolder)\anim\%(RecursiveDir)" Condition="'@(DeployAnim)' != ''" />
     <Message Importance="high" Text="Deployed mod to $(ModDeployFolder)" />
   </Target>
 

@@ -24,7 +24,7 @@ Then the mod csproj (at `src/<ModName>/<ModName>.csproj`) reduces to:
 </Project>
 ```
 
-Build with `dotnet build src/<ModName> -c Release`. A successful build deploys the DLL, `mod.yaml`, `mod_info.yaml`, and any `assets/` folder to `Documents\Klei\OxygenNotIncluded\mods\local\<ModName>`.
+Build with `dotnet build src/<ModName> -c Release`. A successful build deploys the DLL, `mod.yaml`, `mod_info.yaml`, and any `assets/` and `anim/` folders (custom kanims live at `anim/assets/<name>/`; see `tools/MakeKanim` for generating one from a PNG) to `Documents\Klei\OxygenNotIncluded\mods\local\<ModName>`.
 
 ## Knobs
 
