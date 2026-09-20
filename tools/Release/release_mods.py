@@ -17,8 +17,9 @@ With no repo names, looks at every folder next to oni-mods-common that holds a m
   - release.py then builds, zips, tags and creates the GitHub release with the zip attached.
 
 Mods with uncommitted changes to tracked files are skipped, never stashed or committed.
---plan only prints what would happen. The Steam Workshop is not touched; use release.py
---workshop-id or WorkshopUpload for that.
+--plan only prints what would happen. A mod whose publish/workshop-id.txt names a Steam
+Workshop item gets that item updated with the same zip right after the GitHub release
+(see release.py); --no-workshop turns that off.
 """
 import argparse
 import glob
@@ -84,6 +85,7 @@ def main():
     ap.add_argument("--root", default=os.path.abspath(os.path.join(HERE, "..", "..", "..")), help="folder holding the mod repos")
     ap.add_argument("--plan", action="store_true", help="only print what would be released")
     ap.add_argument("--bump", choices=("patch", "minor", "major"), default="patch")
+    ap.add_argument("--no-workshop", action="store_true", help="GitHub releases only")
     ap.add_argument("--bump-for", action="append", default=[], metavar="REPO=LEVEL", help="override --bump for one repo")
     a = ap.parse_args()
 
@@ -99,7 +101,11 @@ def main():
             continue
         level = levels.get(name, a.bump)
         action, detail = plan_for(repo, level)
+        id_file = os.path.join(repo, "publish", "workshop-id.txt")
+        workshop = "Workshop item " + open(id_file).read().strip() if os.path.exists(id_file) and not a.no_workshop else "no Workshop update"
         print("== %s: %s" % (name, detail))
+        if action != "skip":
+            print("  + GitHub release, " + workshop)
         if action == "skip" or a.plan:
             continue
         try:
@@ -111,7 +117,7 @@ def main():
                     replace_in(csproj, r"(<Version>)[^<]*(</Version>)", r"\g<1>" + new + r"\g<2>")
                 git(repo, "commit", "-am", "Release v" + new)
             git(repo, "push")
-            subprocess.run([sys.executable, RELEASE], cwd=repo, check=True)
+            subprocess.run([sys.executable, RELEASE] + (["--no-workshop"] if a.no_workshop else []), cwd=repo, check=True)
         except (RuntimeError, subprocess.CalledProcessError) as error:
             print("!! %s failed: %s" % (name, error))
             failures += 1

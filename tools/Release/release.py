@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a mod, package it, tag the commit and publish a GitHub release, in one step.
 
-    python common/tools/Release/release.py [--dry-run] [--notes "text"] [--workshop-id ID [--changenote "text"]]
+    python common/tools/Release/release.py [--dry-run] [--notes "text"] [--changenote "text"] [--no-workshop]
 
 Run it from the mod repo's root. The mods compile against the game's own assemblies, which
 cannot live on a CI runner, so releases are cut locally instead of by a GitHub Action.
@@ -14,7 +14,11 @@ What it does:
      and publish/preview.png scaled down to at most 512 px) and zips it to publish/<Mod>.zip.
      The zip has the mod files at its root: the layout the game and the Workshop expect.
   5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached.
-  6. With --workshop-id, also uploads the same zip and preview to that Workshop item.
+  6. If publish/workshop-id.txt holds a Steam Workshop item id, uploads the same zip, the
+     preview and publish/workshop-description.txt to that item (legacy API, via
+     tools/WorkshopUpload; Steam must be running as the item's owner). The change note
+     defaults to the version plus the subjects of the commits that changed what ships.
+     --no-workshop skips this; --workshop-id overrides the file.
 
 --dry-run stops after step 4, so it doubles as "just rebuild the zip".
 """
@@ -41,8 +45,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="build and package only")
     ap.add_argument("--notes", help="release notes (default: generated from the commits since the last tag)")
-    ap.add_argument("--workshop-id", help="also update this Steam Workshop item")
-    ap.add_argument("--changenote", help="Workshop change note (default: the release notes or the tag)")
+    ap.add_argument("--workshop-id", help="Workshop item to update (default: publish/workshop-id.txt)")
+    ap.add_argument("--no-workshop", action="store_true", help="GitHub release only")
+    ap.add_argument("--changenote", help="Workshop change note (default: version + shipped commit subjects)")
     a = ap.parse_args()
 
     projects = glob.glob(os.path.join("src", "*", "*.csproj"))
@@ -53,6 +58,12 @@ def main():
     info = open(os.path.join(project_dir, "mod_info.yaml"), encoding="utf-8").read()
     version = re.search(r"^version:\s*\"?([0-9][^\s\"]*)", info, re.M).group(1)
     tag = "v" + version
+    id_file = os.path.join("publish", "workshop-id.txt")
+    workshop_id = a.workshop_id or (open(id_file).read().strip() if os.path.exists(id_file) else None)
+    if a.no_workshop:
+        workshop_id = None
+    if workshop_id and not a.dry_run and not os.path.exists(UPLOADER):
+        sys.exit("WorkshopUpload is not built (%s); build it or pass --no-workshop" % UPLOADER)
 
     if not a.dry_run:
         if run("git", "status", "--porcelain", "--untracked-files=no", capture=True):
@@ -97,6 +108,13 @@ def main():
     if a.dry_run:
         return
 
+    previous = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
+                              text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
+    subjects = run("git", "log", "--format=%s", (previous + "..HEAD") if previous else "HEAD", "--",
+                   "src", "publish/preview.png", capture=True).splitlines()
+    subjects = [line for line in subjects if not line.startswith("Release v")]
+    changenote = a.changenote or a.notes or (tag + (": " + "; ".join(subjects[:8]) if previous and subjects else ""))
+
     asset = os.path.join("publish", "%s-%s.zip" % (mod, version))
     shutil.copy(zip_path, asset)
     try:
@@ -107,14 +125,14 @@ def main():
     finally:
         os.remove(asset)
 
-    if a.workshop_id:
-        args = [os.path.abspath(UPLOADER), "update", a.workshop_id, os.path.abspath(zip_path)]
+    if workshop_id:
+        args = [os.path.abspath(UPLOADER), "update", workshop_id, os.path.abspath(zip_path)]
         if os.path.exists(staged_preview):
             args.append(os.path.abspath(staged_preview))
         description = os.path.join("publish", "workshop-description.txt")
         if os.path.exists(description):
             args += ["--description-file", os.path.abspath(description)]
-        args += ["--changenote", a.changenote or a.notes or tag]
+        args += ["--changenote", changenote]
         subprocess.run(args, check=True, cwd=os.path.dirname(os.path.abspath(UPLOADER)))
 
 

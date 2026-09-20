@@ -58,7 +58,7 @@ python tools/Release/release_mods.py sweep-zones smart-weight-plate --bump-for s
 
 `release_mods.py` looks at every mod repo next to this one (or just the ones named). A mod is due when commits since its last `v*` tag touched `src/` or `publish/preview.png`; its version is bumped in `mod_info.yaml` and the csproj (patch unless told otherwise, and not at all if you already bumped it or it has never been released), committed as "Release vX.Y.Z" and pushed. Mods with uncommitted changes are skipped, never stashed.
 
-`release.py`, run from a mod repo's root, does one mod: Release build, `publish/content` staged from the build (DLL, yamls, `anim/`, `assets/`, preview scaled to 512 px), `publish/<Mod>.zip`, tag, and a GitHub release with `<Mod>-<version>.zip` attached. `--dry-run` stops after the zip; `--workshop-id <id>` also pushes the same zip to that Workshop item.
+`release.py`, run from a mod repo's root, does one mod: Release build, `publish/content` staged from the build (DLL, yamls, `anim/`, `assets/`, preview scaled to 512 px), `publish/<Mod>.zip`, tag, and a GitHub release with `<Mod>-<version>.zip` attached. If `publish/workshop-id.txt` holds a Steam Workshop item id, the same zip, the preview and `publish/workshop-description.txt` are then pushed to that item with `tools/WorkshopUpload` (Steam must be running), with the version and the shipped commit subjects as the change note. `--dry-run` stops after the zip; `--no-workshop` makes it a GitHub-only release.
 
 ## Publishing to the Steam Workshop
 
