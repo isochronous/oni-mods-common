@@ -73,3 +73,11 @@ python -m pip install UnityPy Pillow
 python tools/MakePreview/make_preview.py critter_sensor_0.png preview.png --auto --no-shadow --rotate 180 --text "4-bit"
 ```
 
+Buildings drawn from several parts (the fridge, for one) only have the parts in their atlas. `tools/MakePreview/render_kanim.py` (Pillow, numpy) assembles one animation frame the way the game does, from the texture plus the `<kanim>_build` and `<kanim>_anim` TextAssets, and writes a transparent PNG to feed to `make_preview.py`:
+
+```
+python tools/MakePreview/render_kanim.py fridge_0.png fridge_build.bytes fridge_anim.bytes fridge.png --anim off --scale 1 --skip sweep
+```
+
+`--list` prints the animation and symbol names; `--skip` leaves out symbols such as the sweep marker.
+
