@@ -14,11 +14,14 @@ What it does:
      and publish/preview.png scaled down to at most 512 px) and zips it to publish/<Mod>.zip.
      The zip has the mod files at its root: the layout the game and the Workshop expect.
   5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached.
-  6. If publish/workshop-id.txt holds a Steam Workshop item id, uploads the same zip, the
-     preview and publish/workshop-description.txt to that item (legacy API, via
-     tools/WorkshopUpload; Steam must be running as the item's owner). The change note
-     defaults to the version plus the subjects of the commits that changed what ships.
-     --no-workshop skips this; --workshop-id overrides the file.
+  6. If the mod is on the Steam Workshop, uploads the same zip, the preview and
+     publish/workshop-description.txt to its item (legacy API, via tools/WorkshopUpload;
+     Steam must be running as the item's owner). The item id comes from
+     publish/workshop-id.txt; when that file is missing, the mod.yaml title is looked up
+     among your published items (WorkshopUpload list) and, if found, the id is written to
+     the file and committed. A mod that is not listed is simply not on the Workshop yet.
+     The change note defaults to the version plus the subjects of the commits that changed
+     what ships. --no-workshop skips all of this; --workshop-id overrides the lookup.
 
 --dry-run stops after step 4, so it doubles as "just rebuild the zip".
 """
@@ -41,6 +44,27 @@ def run(*cmd, capture=False):
     return result.stdout.strip() if capture else None
 
 
+def find_workshop_id(repo="."):
+    """Item id from publish/workshop-id.txt, else by mod.yaml title among the user's published
+    items. Returns (id or None, how) where how is 'file', 'listed', 'unlisted' or an error text."""
+    id_file = os.path.join(repo, "publish", "workshop-id.txt")
+    if os.path.exists(id_file):
+        return open(id_file).read().strip(), "file"
+    if not os.path.exists(UPLOADER):
+        return None, "WorkshopUpload is not built"
+    yaml = glob.glob(os.path.join(repo, "src", "*", "mod.yaml"))
+    title = re.search(r"^title:\s*\"?(.*?)\"?\s*$", open(yaml[0], encoding="utf-8").read(), re.M).group(1)
+    listing = subprocess.run([os.path.abspath(UPLOADER), "list"], cwd=os.path.dirname(os.path.abspath(UPLOADER)),
+                             text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if listing.returncode:
+        return None, "WorkshopUpload list failed (is Steam running?)"
+    for line in listing.stdout.splitlines():
+        match = re.match(r"^(\d+)\s+(.*?)\s+k_ERemoteStoragePublishedFileVisibility", line)
+        if match and match.group(2).strip().lower() == title.strip().lower():
+            return match.group(1), "listed"
+    return None, "unlisted"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="build and package only")
@@ -58,12 +82,12 @@ def main():
     info = open(os.path.join(project_dir, "mod_info.yaml"), encoding="utf-8").read()
     version = re.search(r"^version:\s*\"?([0-9][^\s\"]*)", info, re.M).group(1)
     tag = "v" + version
-    id_file = os.path.join("publish", "workshop-id.txt")
-    workshop_id = a.workshop_id or (open(id_file).read().strip() if os.path.exists(id_file) else None)
-    if a.no_workshop:
-        workshop_id = None
-    if workshop_id and not a.dry_run and not os.path.exists(UPLOADER):
-        sys.exit("WorkshopUpload is not built (%s); build it or pass --no-workshop" % UPLOADER)
+    workshop_id, how = (a.workshop_id, "file") if a.workshop_id else (None, "unlisted")
+    if not a.no_workshop and not a.dry_run and not workshop_id:
+        workshop_id, how = find_workshop_id()
+        if how not in ("file", "listed", "unlisted"):
+            sys.exit("%s; fix that or pass --no-workshop" % how)
+        print("Workshop: " + ("item %s (%s)" % (workshop_id, how) if workshop_id else "not among your published items, skipping"))
 
     if not a.dry_run:
         if run("git", "status", "--porcelain", "--untracked-files=no", capture=True):
@@ -125,6 +149,12 @@ def main():
     finally:
         os.remove(asset)
 
+    if workshop_id and how == "listed":
+        id_file = os.path.join("publish", "workshop-id.txt")
+        print(workshop_id, file=open(id_file, "w"))
+        run("git", "add", id_file)
+        run("git", "commit", "-m", "Record the Workshop item id", "--", id_file)
+        run("git", "push")
     if workshop_id:
         args = [os.path.abspath(UPLOADER), "update", workshop_id, os.path.abspath(zip_path)]
         if os.path.exists(staged_preview):

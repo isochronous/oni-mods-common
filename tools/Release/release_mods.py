@@ -17,9 +17,10 @@ With no repo names, looks at every folder next to oni-mods-common that holds a m
   - release.py then builds, zips, tags and creates the GitHub release with the zip attached.
 
 Mods with uncommitted changes to tracked files are skipped, never stashed or committed.
---plan only prints what would happen. A mod whose publish/workshop-id.txt names a Steam
-Workshop item gets that item updated with the same zip right after the GitHub release
-(see release.py); --no-workshop turns that off.
+--plan only prints what would happen. A mod that is on the Steam Workshop (id in
+publish/workshop-id.txt, or else found by title among your published items) gets that item
+updated with the same zip right after the GitHub release (see release.py); --no-workshop
+turns that off.
 """
 import argparse
 import glob
@@ -29,6 +30,8 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from release import find_workshop_id  # noqa: E402
 RELEASE = os.path.join(HERE, "release.py")
 SHIPPED = ["src", "publish/preview.png"]
 
@@ -101,10 +104,12 @@ def main():
             continue
         level = levels.get(name, a.bump)
         action, detail = plan_for(repo, level)
-        id_file = os.path.join(repo, "publish", "workshop-id.txt")
-        workshop = "Workshop item " + open(id_file).read().strip() if os.path.exists(id_file) and not a.no_workshop else "no Workshop update"
         print("== %s: %s" % (name, detail))
         if action != "skip":
+            workshop_id, how = (None, "off") if a.no_workshop else find_workshop_id(repo)
+            workshop = {"off": "no Workshop update (--no-workshop)", "unlisted": "not on the Workshop",
+                        "file": "Workshop item %s" % workshop_id,
+                        "listed": "Workshop item %s (found by title; id will be recorded)" % workshop_id}.get(how, how)
             print("  + GitHub release, " + workshop)
         if action == "skip" or a.plan:
             continue
