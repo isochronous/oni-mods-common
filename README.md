@@ -46,6 +46,20 @@ Build with `dotnet build src/<ModName> -c Release`. A successful build deploys t
 - Targets **net48** — the game's own assemblies (including `0Harmony.dll`) target .NET Framework 4.8; net471 (old wiki guidance) silently drops references.
 - The game runs Unity 6 Mono, which supports default interface methods; don't validate mod DLLs by loading them on the desktop .NET Framework CLR (it rejects DIMs) — use a .NET 8 host instead.
 
+## Releases
+
+The mods compile against the game's own assemblies, which cannot live on a CI runner, so releases are cut locally instead of by a GitHub Action. No zip is ever made by hand:
+
+```
+python tools/Release/release_mods.py --plan            # what would be released, and why
+python tools/Release/release_mods.py                   # release every mod that changed since its last v* tag
+python tools/Release/release_mods.py sweep-zones smart-weight-plate --bump-for sweep-zones=minor
+```
+
+`release_mods.py` looks at every mod repo next to this one (or just the ones named). A mod is due when commits since its last `v*` tag touched `src/` or `publish/preview.png`; its version is bumped in `mod_info.yaml` and the csproj (patch unless told otherwise, and not at all if you already bumped it or it has never been released), committed as "Release vX.Y.Z" and pushed. Mods with uncommitted changes are skipped, never stashed.
+
+`release.py`, run from a mod repo's root, does one mod: Release build, `publish/content` staged from the build (DLL, yamls, `anim/`, `assets/`, preview scaled to 512 px), `publish/<Mod>.zip`, tag, and a GitHub release with `<Mod>-<version>.zip` attached. `--dry-run` stops after the zip; `--workshop-id <id>` also pushes the same zip to that Workshop item.
+
 ## Publishing to the Steam Workshop
 
 **Do not use steamcmd's `workshop_build_item` for ONI mods.** The game has no Workshop depot (Steam's `workshop_log.txt` says "Workshop depot not defined, legacy support only"), so it can only download *legacy* single-file items: one zip that Steam installs as `<handle>_legacy.bin` and the game opens with `ZipFile`. A folder of loose files uploaded by steamcmd becomes a manifest-based item that Steam skips as "non-legacy", and every subscriber gets "Steam failed to download the mod".
