@@ -45,6 +45,7 @@ internal static class Program
 			switch (args[0])
 			{
 				case "info": return Info(ulong.Parse(args[1]));
+				case "description": return Description(ulong.Parse(args[1]), args.Length > 2 ? args[2] : null);
 				case "list": return List();
 				case "update": return Update(args);
 				case "publish": return Publish(args);
@@ -80,6 +81,27 @@ internal static class Program
 			? "NOT a legacy single-file item: the game cannot download this."
 			: "Legacy single-file item: downloadable by the game.");
 		return details.m_eResult == EResult.k_EResultOK ? 0 : 1;
+	}
+
+	/// <summary>
+	/// Writes the item's LIVE description (uncached) to a file, or prints it. The description can
+	/// be edited on the Workshop page, so read it before overwriting it from a local copy.
+	/// </summary>
+	private static int Description(ulong id, string outFile)
+	{
+		var details = Await<RemoteStorageGetPublishedFileDetailsResult_t>(
+			SteamRemoteStorage.GetPublishedFileDetails(new PublishedFileId_t(id), 0));
+		if (details.m_eResult != EResult.k_EResultOK)
+		{
+			Console.Error.WriteLine($"result: {details.m_eResult}");
+			return 1;
+		}
+		if (outFile != null)
+			File.WriteAllText(outFile, details.m_rgchDescription ?? "");
+		else
+			Console.WriteLine("----\n" + details.m_rgchDescription + "\n----");
+		Console.WriteLine($"description: {(details.m_rgchDescription ?? "").Length} chars, item updated {DateTimeOffset.FromUnixTimeSeconds(details.m_rtimeUpdated)}");
+		return 0;
 	}
 
 	private static int List()

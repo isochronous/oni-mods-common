@@ -65,6 +65,35 @@ def find_workshop_id(repo="."):
     return None, "unlisted"
 
 
+def description_is_ours(workshop_id, description, previous_tag):
+    """True when it is safe to upload publish/workshop-description.txt: the LIVE description is
+    still the text we uploaded last (the file as of the previous release tag). The description
+    can also be edited on the Workshop page; if it was, it is saved next to the file as
+    workshop-description.live.txt and left alone, to be merged by hand."""
+    def normal(text):
+        return "\n".join(line.rstrip() for line in text.replace("\r\n", "\n").strip().split("\n"))
+
+    live_file = os.path.abspath(os.path.join("publish", "workshop-description.live.txt"))
+    fetched = subprocess.run([os.path.abspath(UPLOADER), "description", workshop_id, live_file],
+                             cwd=os.path.dirname(os.path.abspath(UPLOADER)), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if fetched.returncode or not os.path.exists(live_file):
+        print("Workshop description: could not read the live text, leaving it alone")
+        return False
+    live = normal(open(live_file, encoding="utf-8").read())
+    ours = [normal(open(description, encoding="utf-8").read())]
+    if previous_tag:
+        shown = subprocess.run(["git", "show", "%s:publish/workshop-description.txt" % previous_tag],
+                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        if shown.returncode == 0:
+            ours.append(normal(shown.stdout.decode("utf-8")))
+    if live in ours:
+        os.remove(live_file)
+        return live != ours[0]
+    print("Workshop description: the live text was edited on Steam; NOT overwriting it.")
+    print("  saved as %s; merge it into workshop-description.txt, then upload with WorkshopUpload update <id> --description-file" % live_file)
+    return False
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="build and package only")
@@ -160,7 +189,7 @@ def main():
         if os.path.exists(staged_preview):
             args.append(os.path.abspath(staged_preview))
         description = os.path.join("publish", "workshop-description.txt")
-        if os.path.exists(description):
+        if os.path.exists(description) and description_is_ours(workshop_id, description, previous):
             args += ["--description-file", os.path.abspath(description)]
         args += ["--changenote", changenote]
         subprocess.run(args, check=True, cwd=os.path.dirname(os.path.abspath(UPLOADER)))
