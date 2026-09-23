@@ -86,7 +86,7 @@ def workshop_note(version, markdown):
     text = re.sub(r"\*\*(.+?)\*\*", r"[b]\1[/b]", markdown)
     text = re.sub(r"`(.+?)`", r"\1", text)
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", text)
-    text = re.sub(r"^### +", "", text, flags=re.M)
+    text = re.sub(r"^### +(.+?)[ \t]*$", r"[b]\1[/b]", text, flags=re.M)
     return "v%s\n%s" % (version, text)
 
 
