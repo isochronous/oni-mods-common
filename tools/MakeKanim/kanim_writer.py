@@ -19,13 +19,19 @@ downwards. An element may carry a fifth item, a dict with any of alpha (0..1), s
 rotation (degrees, clockwise on screen, about the sprite's centre); that is how the vanilla
 art fades and pulses things. The same PIL image used for several sprites is stored once.
 See make_kanim.py for the binary format notes.
+
+Every building kanim needs a "place" anim: the game plays it on the construction site and
+the placement cursor, and tints it (green/red/white) itself. Vanilla place art is the
+sprite's black ink outlines turned white with everything else transparent, which is what
+place_outline() makes from a cartoon-style sprite; feeding the full-colour sprite instead
+makes an unbuilt building look finished.
 """
 import math
 import os
 import struct
 from collections import namedtuple
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 Sprite = namedtuple("Sprite", "image width height")
 
@@ -40,6 +46,18 @@ def sdbm(s):
 def kstr(s):
     b = s.encode("utf-8")
     return struct.pack("<i", len(b)) + b
+
+
+def place_outline(image, ink=40, fade=30):
+    """White line-art for the "place" symbol: pixels whose brightest channel is below `ink`
+    keep their alpha and turn white, brightness up to ink + fade tails off, the rest is
+    transparent. Works on the black-outlined cartoon style the game's art uses."""
+    r, g, b, a = image.convert("RGBA").split()
+    brightest = ImageChops.lighter(ImageChops.lighter(r, g), b)
+    coverage = brightest.point(lambda v: 255 if v < ink else 0 if v >= ink + fade else int(255 * (ink + fade - v) / fade))
+    out = Image.new("RGBA", image.size, (255, 255, 255, 0))
+    out.putalpha(ImageChops.multiply(a, coverage))
+    return out
 
 
 def pack_atlas(images, size, pad):
