@@ -20,8 +20,13 @@ What it does:
      publish/workshop-id.txt; when that file is missing, the mod.yaml title is looked up
      among your published items (WorkshopUpload list) and, if found, the id is written to
      the file and committed. A mod that is not listed is simply not on the Workshop yet.
-     The change note defaults to the version plus the subjects of the commits that changed
-     what ships. --no-workshop skips all of this; --workshop-id overrides the lookup.
+     --no-workshop skips all of this; --workshop-id overrides the lookup.
+
+Release notes: the section of CHANGELOG.md headed "## <version>" (release_mods.py creates it
+from "## Unreleased") is the GitHub release body and, with the version on top, the Workshop
+change note. Without one, GitHub generates notes from the commits and the change note is the
+version plus the subjects of the commits that changed what ships. --notes and --changenote
+override either.
 
 --dry-run stops after step 4, so it doubles as "just rebuild the zip".
 """
@@ -65,6 +70,26 @@ def find_workshop_id(repo="."):
     return None, "unlisted"
 
 
+def changelog_section(version, path="CHANGELOG.md"):
+    """Body of the "## <version>" section of CHANGELOG.md (markdown, stripped), or None."""
+    if not os.path.exists(path):
+        return None
+    text = open(path, encoding="utf-8").read().replace("\r\n", "\n")
+    match = re.search(r"^## \[?%s\]?\b[^\n]*\n(.*?)(?=^## |\Z)" % re.escape(version), text, re.M | re.S)
+    body = match.group(1).strip() if match else ""
+    return body or None
+
+
+def workshop_note(version, markdown):
+    """The changelog section as a Steam change note: version heading, markdown bullets kept,
+    emphasis and code turned into BBCode / plain text."""
+    text = re.sub(r"\*\*(.+?)\*\*", r"[b]\1[/b]", markdown)
+    text = re.sub(r"`(.+?)`", r"\1", text)
+    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", text)
+    text = re.sub(r"^### +", "", text, flags=re.M)
+    return "v%s\n%s" % (version, text)
+
+
 def description_is_ours(workshop_id, description, previous_tag):
     """True when it is safe to upload publish/workshop-description.txt: the LIVE description is
     still the text we uploaded last (the file as of the previous release tag). The description
@@ -97,10 +122,10 @@ def description_is_ours(workshop_id, description, previous_tag):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="build and package only")
-    ap.add_argument("--notes", help="release notes (default: generated from the commits since the last tag)")
+    ap.add_argument("--notes", help="release notes (default: the CHANGELOG.md section, else generated from the commits)")
     ap.add_argument("--workshop-id", help="Workshop item to update (default: publish/workshop-id.txt)")
     ap.add_argument("--no-workshop", action="store_true", help="GitHub release only")
-    ap.add_argument("--changenote", help="Workshop change note (default: version + shipped commit subjects)")
+    ap.add_argument("--changenote", help="Workshop change note (default: the CHANGELOG.md section, else version + shipped commit subjects)")
     a = ap.parse_args()
 
     projects = glob.glob(os.path.join("src", "*", "*.csproj"))
@@ -166,14 +191,25 @@ def main():
     subjects = run("git", "log", "--format=%s", (previous + "..HEAD") if previous else "HEAD", "--",
                    "src", "publish/preview.png", capture=True).splitlines()
     subjects = [line for line in subjects if not line.startswith("Release v")]
-    changenote = a.changenote or a.notes or (tag + (": " + "; ".join(subjects[:8]) if previous and subjects else ""))
+    changelog = changelog_section(version)
+    notes = a.notes or changelog
+    if changelog:
+        print("release notes: CHANGELOG.md section %s" % version)
+    else:
+        print("release notes: no CHANGELOG.md section for %s; using the commits" % version)
+    if a.changenote or a.notes:
+        changenote = a.changenote or a.notes
+    elif changelog:
+        changenote = workshop_note(version, changelog)
+    else:
+        changenote = tag + (": " + "; ".join(subjects[:8]) if previous and subjects else "")
 
     asset = os.path.join("publish", "%s-%s.zip" % (mod, version))
     shutil.copy(zip_path, asset)
     try:
         run("git", "tag", "-a", tag, "-m", "%s %s" % (mod, version))
         run("git", "push", "origin", tag)
-        notes = ["--notes", a.notes] if a.notes else ["--generate-notes"]
+        notes = ["--notes", notes] if notes else ["--generate-notes"]
         run("gh", "release", "create", tag, asset, "--title", "%s %s" % (mod, version), "--verify-tag", *notes)
     finally:
         os.remove(asset)

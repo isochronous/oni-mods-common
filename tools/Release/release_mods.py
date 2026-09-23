@@ -14,6 +14,10 @@ With no repo names, looks at every folder next to oni-mods-common that holds a m
   - if the version in mod_info.yaml is still the released one, it is bumped (mod_info.yaml
     and the csproj <Version>), committed as "Release vX.Y.Z" and pushed; a version you
     already bumped by hand is used as is;
+  - the "## Unreleased" section of CHANGELOG.md, if it has content, becomes
+    "## X.Y.Z - <date>" in that same commit, and release.py uses it as the GitHub release
+    notes and the Workshop change note. Write the entry before releasing: --plan says
+    "no changelog entry" for a mod that would otherwise ship with notes made of commit subjects;
   - release.py then builds, zips, tags and creates the GitHub release with the zip attached.
 
 Mods with uncommitted changes to tracked files are skipped, never stashed or committed.
@@ -23,6 +27,7 @@ updated with the same zip right after the GitHub release (see release.py); --no-
 turns that off.
 """
 import argparse
+import datetime
 import glob
 import os
 import re
@@ -62,6 +67,33 @@ def replace_in(path, pattern, replacement):
     open(path, "w", encoding="utf-8", newline="").write(new)
 
 
+UNRELEASED = re.compile(r"^## +\[?Unreleased\]?[^\n]*\n(.*?)(?=^## |\Z)", re.M | re.S | re.I)
+
+
+def unreleased_entry(repo):
+    """Content under "## Unreleased" in the repo's CHANGELOG.md, or None."""
+    path = os.path.join(repo, "CHANGELOG.md")
+    if not os.path.exists(path):
+        return None
+    match = UNRELEASED.search(open(path, encoding="utf-8").read().replace("\r\n", "\n"))
+    return match.group(1).strip() if match and match.group(1).strip() else None
+
+
+def release_changelog(repo, version):
+    """Renames "## Unreleased" to "## <version> - <today>" and stages the file. Returns False
+    when there was no entry to release."""
+    path = os.path.join(repo, "CHANGELOG.md")
+    if not unreleased_entry(repo):
+        return False
+    text = open(path, encoding="utf-8", newline="").read()
+    newline = "\r\n" if "\r\n" in text else "\n"
+    heading = "## %s - %s" % (version, datetime.date.today().isoformat())
+    text = re.sub(r"^## +\[?Unreleased\]?[^\n]*$", heading, text, count=1, flags=re.M | re.I)
+    open(path, "w", encoding="utf-8", newline="").write(text.replace("\r\n", "\n").replace("\n", newline))
+    git(repo, "add", "CHANGELOG.md")
+    return True
+
+
 def plan_for(repo, level):
     """Returns (action, detail). action is 'skip', 'first', 'bump' or 'as-is'."""
     if git(repo, "status", "--porcelain", "--untracked-files=no"):
@@ -77,6 +109,8 @@ def plan_for(repo, level):
     if not changed:
         return "skip", "nothing shipped has changed since %s" % last
     commits = git(repo, "log", "--format=  %h %s", "%s..HEAD" % last, "--", *SHIPPED)
+    if not unreleased_entry(repo):
+        commits += "\n  ! no changelog entry (CHANGELOG.md ## Unreleased); notes would be the commit subjects"
     if "v" + version != last:
         return "as-is", "changed since %s; version already set to %s\n%s" % (last, version, commits)
     return "bump", "changed since %s; %s -> %s (%s)\n%s" % (last, version, bumped(version, level), level, commits)
@@ -114,13 +148,14 @@ def main():
         if action == "skip" or a.plan:
             continue
         try:
+            info_path, version = read_version(repo)
             if action == "bump":
-                info_path, version = read_version(repo)
-                new = bumped(version, level)
-                replace_in(info_path, r"^(version:\s*\"?)[0-9]+\.[0-9]+\.[0-9]+", r"\g<1>" + new)
+                version = bumped(version, level)
+                replace_in(info_path, r"^(version:\s*\"?)[0-9]+\.[0-9]+\.[0-9]+", r"\g<1>" + version)
                 for csproj in glob.glob(os.path.join(os.path.dirname(info_path), "*.csproj")):
-                    replace_in(csproj, r"(<Version>)[^<]*(</Version>)", r"\g<1>" + new + r"\g<2>")
-                git(repo, "commit", "-am", "Release v" + new)
+                    replace_in(csproj, r"(<Version>)[^<]*(</Version>)", r"\g<1>" + version + r"\g<2>")
+            if release_changelog(repo, version) or action == "bump":
+                git(repo, "commit", "-am", "Release v" + version)
             git(repo, "push")
             subprocess.run([sys.executable, RELEASE] + (["--no-workshop"] if a.no_workshop else []), cwd=repo, check=True)
         except (RuntimeError, subprocess.CalledProcessError) as error:
