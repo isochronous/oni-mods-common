@@ -20,7 +20,8 @@ With no repo names, looks at every folder next to oni-mods-common that holds a m
     "no changelog entry" for a mod that would otherwise ship with notes made of commit subjects;
   - release.py then builds, zips, tags and creates the GitHub release with the zip attached.
 
-Mods with uncommitted changes to tracked files are skipped, never stashed or committed.
+Mods with uncommitted changes to tracked files are skipped, never stashed or committed; so
+is a repo with no git remote, which marks a local-only mod that is never released.
 --plan only prints what would happen. A mod that is on the Steam Workshop (id in
 publish/workshop-id.txt, or else found by title among your published items) gets that item
 updated with the same zip right after the GitHub release (see release.py); --no-workshop
@@ -96,6 +97,8 @@ def release_changelog(repo, version):
 
 def plan_for(repo, level):
     """Returns (action, detail). action is 'skip', 'first', 'bump' or 'as-is'."""
+    if not git(repo, "remote", check=False):
+        return "skip", "local-only mod (no git remote)"
     if git(repo, "status", "--porcelain", "--untracked-files=no"):
         return "skip", "uncommitted changes to tracked files"
     git(repo, "fetch", "--quiet", "--tags", check=False)
