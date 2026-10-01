@@ -329,7 +329,8 @@ internal static class Program
 		byte[] bytes = File.ReadAllBytes(localPath);
 		// Same cloud names Klei's OniUploader64.exe uses (it is a native wxWidgets app driving
 		// ISteamRemoteStorage v014: FileWrite, FileShare, PublishWorkshopFile, UpdatePublishedFile).
-		string cloudName = localPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ? "mod_publish_data_file.zip" : "mod_publish_preview.png";
+		// The preview keeps its own extension so Steam treats a GIF as an animated preview.
+		string cloudName = localPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ? "mod_publish_data_file.zip" : "mod_publish_preview" + Path.GetExtension(localPath).ToLowerInvariant();
 		Console.WriteLine($"Uploading {cloudName} ({bytes.Length} bytes) to Steam Cloud ...");
 		if (!SteamRemoteStorage.FileWrite(cloudName, bytes, bytes.Length))
 			throw new Exception("FileWrite failed for " + cloudName + " (cloud quota or Steam Cloud disabled for this app?)");

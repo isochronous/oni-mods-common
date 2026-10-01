@@ -14,7 +14,8 @@ What it does:
      and publish/preview.png scaled down to at most 512 px) and zips it to publish/<Mod>.zip.
      The zip has the mod files at its root: the layout the game and the Workshop expect.
   5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached.
-  6. If the mod is on the Steam Workshop, uploads the same zip, the preview and
+  6. If the mod is on the Steam Workshop, uploads the same zip, the preview (publish/preview.gif
+     when it exists, an animated preview Steam plays on the page; else the png) and
      publish/workshop-description.txt to its item (legacy API, via tools/WorkshopUpload;
      Steam must be running as the item's owner). The item id comes from
      publish/workshop-id.txt; when that file is missing, the mod.yaml title is looked up
@@ -222,7 +223,12 @@ def main():
         run("git", "push")
     if workshop_id:
         args = [os.path.abspath(UPLOADER), "update", workshop_id, os.path.abspath(zip_path)]
-        if os.path.exists(staged_preview):
+        # An animated publish/preview.gif is the Workshop preview when present; the zip keeps
+        # preview.png, which is what the game's mod list shows.
+        animated = os.path.join("publish", "preview.gif")
+        if os.path.exists(animated):
+            args.append(os.path.abspath(animated))
+        elif os.path.exists(staged_preview):
             args.append(os.path.abspath(staged_preview))
         description = os.path.join("publish", "workshop-description.txt")
         if os.path.exists(description) and description_is_ours(workshop_id, description, previous):
