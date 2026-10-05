@@ -164,7 +164,7 @@ def main():
     shutil.copy(dlls[0], content)
     for name in ("mod.yaml", "mod_info.yaml"):
         shutil.copy(os.path.join(project_dir, name), content)
-    for folder in ("anim", "assets"):
+    for folder in ("anim", "assets", "worldgen", "templates", "elements", "strings", "codex"):
         if os.path.isdir(os.path.join(project_dir, folder)):
             shutil.copytree(os.path.join(project_dir, folder), os.path.join(content, folder))
     preview = os.path.join("publish", "preview.png")
