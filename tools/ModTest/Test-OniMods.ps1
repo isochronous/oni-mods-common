@@ -10,6 +10,12 @@
 
 .PARAMETER Mods
   Local mod folder names to enable. Defaults to the data-dump mod plus the mods under development.
+.PARAMETER Omit
+  Local mod folder names to leave disabled even though they are in the list, e.g. -Omit VentFreezeFix to
+  check that a bug still happens without the fix.
+.PARAMETER KeepDumps
+  Keep the oni-data-dump.*.json files the data-dump mod writes during the session. By default they are
+  deleted when the game exits, along with the mods.json backup once it has been restored.
 .PARAMETER DryRun
   Show the resulting loadout and write it to the scratch folder instead of touching the game.
 #>
@@ -25,8 +31,11 @@ param(
         'SmartWeightPlate',
         'StoragePodRedux',
         'SupplyClosetUnlocked',
-        'SweepZones'
+        'SweepZones',
+        'VentFreezeFix'
     ),
+    [string[]]$Omit = @(),
+    [switch]$KeepDumps,
     [switch]$DryRun
 )
 Set-StrictMode -Version Latest
@@ -73,7 +82,8 @@ if (-not (Test-Path -LiteralPath $modsJson)) { throw "No mods.json at $modsJson"
 
 $data = [IO.File]::ReadAllText($modsJson, $utf8) | ConvertFrom-Json
 $wanted = @{}
-foreach ($m in $Mods) { $wanted[$m] = $false }
+foreach ($m in $Mods) { if ($Omit -notcontains $m) { $wanted[$m] = $false } }
+foreach ($m in $Omit) { if ($Mods -notcontains $m) { Write-Warning "-Omit '$m' is not in the mod list; nothing to omit" } }
 
 # Disable everything, enable the wanted local mods.
 foreach ($entry in $data.mods) {
@@ -115,6 +125,7 @@ $json = $data | ConvertTo-Json -Depth 6
 
 $enabled = @($data.mods | Where-Object { $_.enabledForDlc.Count -gt 0 } | ForEach-Object { $_.label.title })
 Write-Host "Test loadout ($($enabled.Count) mods): $($enabled -join ', ')"
+if ($Omit.Count -gt 0) { Write-Host "Omitted: $($Omit -join ', ')" }
 
 if ($DryRun) {
     $out = Join-Path $env:TEMP 'oni-modtest.mods.json'
@@ -126,6 +137,7 @@ if ($DryRun) {
 $backup = "$modsJson.modtest-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 Copy-Item -LiteralPath $modsJson -Destination $backup
 Write-Host "Backed up mods.json to $backup"
+$started = Get-Date
 try {
     [IO.File]::WriteAllText($modsJson, $json, $utf8)
     Write-Host 'Launching Oxygen Not Included through Steam...'
@@ -147,6 +159,13 @@ finally {
         Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
     } else {
         Copy-Item -LiteralPath $backup -Destination $modsJson -Force
-        Write-Host "Restored the normal loadout from $backup"
+        Remove-Item -LiteralPath $backup -Force
+        Write-Host 'Restored the normal loadout; backup removed.'
+        if (-not $KeepDumps) {
+            # The data-dump mod rewrites its json files on every launch; the ones from this session are single-use.
+            $dumps = @(Get-ChildItem -LiteralPath $ProfileLink -Filter 'oni-data-dump.*.json' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -gt $started })
+            foreach ($d in $dumps) { Remove-Item -LiteralPath $d.FullName -Force }
+            if ($dumps.Count -gt 0) { Write-Host "Removed $($dumps.Count) data-dump json file(s) written this session." }
+        }
     }
 }
