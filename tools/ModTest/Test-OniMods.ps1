@@ -16,6 +16,9 @@
 .PARAMETER Only
   Enable just this one local mod and nothing else, e.g. -Only VentFreezeFix to test a mod in isolation.
   Replaces the list; cannot be combined with -Mods or -Omit.
+.PARAMETER Steam
+  Workshop item ids to enable as well, e.g. -Steam 3816086407. The item must already be subscribed
+  (the game registers it in mods.json); an unknown id is reported and skipped.
 .PARAMETER KeepDumps
   Keep the oni-data-dump.*.json files the data-dump mod writes during the session. By default they are
   deleted when the game exits, along with the mods.json backup once it has been restored.
@@ -39,6 +42,7 @@ param(
     ),
     [string[]]$Omit = @(),
     [string]$Only,
+    [string[]]$Steam = @(),
     [switch]$KeepDumps,
     [switch]$DryRun
 )
@@ -94,16 +98,21 @@ $wanted = @{}
 foreach ($m in $Mods) { if ($Omit -notcontains $m) { $wanted[$m] = $false } }
 foreach ($m in $Omit) { if ($Mods -notcontains $m) { Write-Warning "-Omit '$m' is not in the mod list; nothing to omit" } }
 
-# Disable everything, enable the wanted local mods.
+# Disable everything, enable the wanted local mods and Workshop items.
+$steamFound = @{}
 foreach ($entry in $data.mods) {
     $id = $entry.label.id
     if ($entry.label.distribution_platform -eq 0 -and $wanted.ContainsKey($id)) {
         $entry.enabledForDlc = @($dlcs)
         $wanted[$id] = $true
+    } elseif ($entry.label.distribution_platform -eq 1 -and $Steam -contains $id) {
+        $entry.enabledForDlc = @($dlcs)
+        $steamFound[$id] = $entry.label.title
     } else {
         $entry.enabledForDlc = @()
     }
 }
+foreach ($id in $Steam) { if (-not $steamFound.ContainsKey($id)) { Write-Warning "Workshop item $id is not in mods.json (not subscribed, or the game has not run since); skipped" } }
 
 # Add entries for wanted local folders the game has not registered yet.
 $list = New-Object System.Collections.ArrayList
@@ -135,6 +144,7 @@ $json = $data | ConvertTo-Json -Depth 6
 $enabled = @($data.mods | Where-Object { $_.enabledForDlc.Count -gt 0 } | ForEach-Object { $_.label.title })
 Write-Host "Test loadout ($($enabled.Count) mods): $($enabled -join ', ')"
 if ($Omit.Count -gt 0) { Write-Host "Omitted: $($Omit -join ', ')" }
+if ($steamFound.Count -gt 0) { Write-Host "Workshop: $(($steamFound.GetEnumerator() | ForEach-Object { "$($_.Value) ($($_.Key))" }) -join ', ')" }
 
 if ($DryRun) {
     $out = Join-Path $env:TEMP 'oni-modtest.mods.json'
