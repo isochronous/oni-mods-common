@@ -13,6 +13,12 @@ namespace WorkshopUpload;
 ///       Replace an existing item's content with the zip (and optionally its preview).
 ///   WorkshopUpload publish &lt;mod.zip&gt; &lt;preview.png&gt; --title "..." [--description-file path] [--visibility public|friends|private]
 ///       Create a new item. Prints the new item id.
+///   WorkshopUpload download &lt;itemId&gt;
+///       Have this Steam client download the item now (what the game does at launch) and print
+///       whether the user is subscribed, the install path and the item's update time.
+///
+/// Only the legacy ISteamRemoteStorage API is used for publishing and updating: an item touched
+/// through the modern ISteamUGC item update stops being downloadable by the game, permanently.
 ///
 /// The zip must contain mod.yaml, mod_info.yaml, the DLL, and preview.png at its root,
 /// exactly like the items Klei's own uploader produces.
@@ -50,8 +56,6 @@ internal static class Program
 				case "update": return Update(args);
 				case "publish": return Publish(args);
 				case "cloud": return Cloud();
-				case "ugc-update": return UgcUpdate(args);
-				case "ugc-describe": return UgcDescribe(args);
 				case "download": return Download(ulong.Parse(args[1]));
 				default:
 					Console.Error.WriteLine("unknown command " + args[0]);
@@ -213,36 +217,6 @@ internal static class Program
 	}
 
 	/// <summary>
-	/// ISteamUGC update with a content folder. Used to test whether a folder holding a
-	/// single zip is stored as a legacy-downloadable item.
-	///   ugc-update &lt;id&gt; &lt;contentFolder&gt; [preview.png] [--changenote N]
-	/// </summary>
-	private static int UgcUpdate(string[] args)
-	{
-		if (args.Length < 3)
-		{
-			Console.Error.WriteLine("usage: ugc-update <id> <contentFolder> [preview] [--changenote N]");
-			return 2;
-		}
-		ulong id = ulong.Parse(args[1]);
-		string folder = Path.GetFullPath(args[2]);
-		string previewPath = args.Length > 3 && !args[3].StartsWith("--") ? Path.GetFullPath(args[3]) : null;
-		var opts = ParseOptions(args);
-		Console.WriteLine($"content folder: {folder} ({string.Join(", ", Directory.GetFiles(folder).Select(Path.GetFileName))})");
-		UGCUpdateHandle_t handle = SteamUGC.StartItemUpdate(new AppId_t(AppId), new PublishedFileId_t(id));
-		Check(SteamUGC.SetItemContent(handle, folder), "SetItemContent");
-		if (previewPath != null)
-			Check(SteamUGC.SetItemPreview(handle, previewPath), "SetItemPreview");
-		opts.TryGetValue("changenote", out string note);
-		Console.WriteLine($"Submitting UGC update to item {id} ...");
-		var result = Await<SubmitItemUpdateResult_t>(SteamUGC.SubmitItemUpdate(handle, note ?? ""), 600);
-		Console.WriteLine("result: " + result.m_eResult + (result.m_bUserNeedsToAcceptWorkshopLegalAgreement ? " (user must accept the Workshop legal agreement)" : ""));
-		if (result.m_eResult != EResult.k_EResultOK)
-			return 1;
-		return Info(id);
-	}
-
-	/// <summary>
 	/// Downloads the item with this Steam client (owner can fetch private items) and reports
 	/// what the game would see: the install path and whether it is a single zip file.
 	/// </summary>
@@ -255,7 +229,9 @@ internal static class Program
 		{
 			if (r.m_nPublishedFileId == fileId) { downloadResult = r.m_eResult; done = true; }
 		});
-		Console.WriteLine($"item state before: {(EItemState)SteamUGC.GetItemState(fileId)}");
+		var stateBefore = (EItemState)SteamUGC.GetItemState(fileId);
+		Console.WriteLine($"item state before: {stateBefore}");
+		Console.WriteLine($"subscribed: {(stateBefore & EItemState.k_EItemStateSubscribed) != 0}");
 		if (!SteamUGC.DownloadItem(fileId, true))
 		{
 			Console.Error.WriteLine("DownloadItem returned false (invalid item or not allowed)");
@@ -275,6 +251,7 @@ internal static class Program
 			return 1;
 		}
 		Console.WriteLine($"install path: {path} ({size} bytes)");
+		Console.WriteLine($"updated: {timestamp}");
 		if (File.Exists(path))
 		{
 			Console.WriteLine("path is a FILE: the game will open it as a zip (legacy item, OK)");
@@ -291,37 +268,6 @@ internal static class Program
 		Console.WriteLine("path does not exist");
 		return 1;
 	}
-
-	/// <summary>
-	/// Metadata-only ISteamUGC update (no content): description, title, visibility. Works on
-	/// items created by steamcmd, which the legacy API refuses to touch. Run with the
-	/// environment variable SteamAppId=457140 so the item's own app is used.
-	///   ugc-describe &lt;id&gt; --description-file F [--title T] [--visibility public|friends|unlisted|private] [--changenote N]
-	/// </summary>
-	private static int UgcDescribe(string[] args)
-	{
-		if (args.Length < 2)
-		{
-			Console.Error.WriteLine("usage: ugc-describe <id> --description-file F [--title T] [--visibility V] [--changenote N]");
-			return 2;
-		}
-		ulong id = ulong.Parse(args[1]);
-		var opts = ParseOptions(args);
-		UGCUpdateHandle_t handle = SteamUGC.StartItemUpdate(new AppId_t(AppId), new PublishedFileId_t(id));
-		if (opts.TryGetValue("description-file", out string descFile))
-			Check(SteamUGC.SetItemDescription(handle, File.ReadAllText(descFile)), "SetItemDescription");
-		if (opts.TryGetValue("title", out string title))
-			Check(SteamUGC.SetItemTitle(handle, title), "SetItemTitle");
-		if (opts.TryGetValue("visibility", out string vis))
-			Check(SteamUGC.SetItemVisibility(handle, ParseVisibility(vis)), "SetItemVisibility");
-		opts.TryGetValue("changenote", out string note);
-		Console.WriteLine($"Submitting metadata update to item {id} ...");
-		var result = Await<SubmitItemUpdateResult_t>(SteamUGC.SubmitItemUpdate(handle, note ?? ""), 300);
-		Console.WriteLine("result: " + result.m_eResult);
-		return result.m_eResult == EResult.k_EResultOK ? 0 : 1;
-	}
-
-	// ---- helpers ----
 
 	/// <summary>Writes a local file into the user's Steam Cloud for this app and returns its cloud name.</summary>
 	private static string UploadToCloud(string localPath)

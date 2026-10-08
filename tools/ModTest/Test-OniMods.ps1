@@ -17,8 +17,10 @@
   Enable just this one local mod and nothing else, e.g. -Only VentFreezeFix to test a mod in isolation.
   Replaces the list; cannot be combined with -Mods or -Omit.
 .PARAMETER Steam
-  Workshop item ids to enable as well, e.g. -Steam 3816086407. The item must already be subscribed
-  (the game registers it in mods.json); an unknown id is reported and skipped.
+  Workshop item ids to enable as well, e.g. -Steam 3816086407. The item must be subscribed. One the
+  game has not registered yet (subscribed since its last launch) is downloaded through the Steam
+  client with tools/WorkshopUpload, unpacked into mods/Steam/<id> and given a mods.json entry, the
+  way the game itself installs it at launch.
 .PARAMETER KeepDumps
   Keep the oni-data-dump.*.json files the data-dump mod writes during the session. By default they are
   deleted when the game exits, along with the mods.json backup once it has been restored.
@@ -112,7 +114,37 @@ foreach ($entry in $data.mods) {
         $entry.enabledForDlc = @()
     }
 }
-foreach ($id in $Steam) { if (-not $steamFound.ContainsKey($id)) { Write-Warning "Workshop item $id is not in mods.json (not subscribed, or the game has not run since); skipped" } }
+
+# Add entries for wanted Workshop items the game has not registered yet: download through the Steam
+# client (what the game does at launch), unpack the item's zip into mods/Steam/<id>, register it.
+$steamDir = Join-Path $modsDir 'Steam'
+$uploader = Join-Path $PSScriptRoot '..\WorkshopUpload\WorkshopUpload.csproj'
+foreach ($id in $Steam) {
+    if ($steamFound.ContainsKey($id)) { continue }
+    Write-Host "Workshop item $id is not registered yet; asking the Steam client to download it"
+    $out = & dotnet run -c Release --project $uploader -- download $id 2>&1 | ForEach-Object { "$_" }
+    $subscribed = ($out | Select-String -Pattern '^subscribed: True' -Quiet)
+    $zip = ($out | Select-String -Pattern '^install path: (.+?) \(\d+ bytes\)$' | ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -First 1)
+    $updated = ($out | Select-String -Pattern '^updated: (\d+)$' | ForEach-Object { [long]$_.Matches[0].Groups[1].Value } | Select-Object -First 1)
+    if (-not $subscribed) { Write-Warning "Workshop item $id is not subscribed; the game would remove it again, so it is skipped"; continue }
+    if (-not $zip -or -not (Test-Path -LiteralPath $zip)) { Write-Warning "Workshop item $id did not download:`n$($out -join "`n")"; continue }
+    $target = Join-Path $steamDir $id
+    if (Test-Path -LiteralPath $target) { Remove-Item -Recurse -Force $target }
+    Expand-Archive -LiteralPath $zip -DestinationPath $target -Force
+    $title = $id; $staticID = $id
+    $yaml = Join-Path $target 'mod.yaml'
+    if (Test-Path -LiteralPath $yaml) {
+        $text = Get-Content -LiteralPath $yaml -Raw
+        $m = [regex]::Match($text, '(?m)^title:\s*"?([^"\r\n]+)"?');    if ($m.Success) { $title = $m.Groups[1].Value.Trim() }
+        $m = [regex]::Match($text, '(?m)^staticID:\s*"?([^"\r\n]+)"?'); if ($m.Success) { $staticID = $m.Groups[1].Value.Trim() }
+    }
+    $data.mods += [pscustomobject]([ordered]@{
+        label = [ordered]@{ distribution_platform = 1; id = $id; title = $title; version = $updated }
+        status = 1; enabled = $false; enabledForDlc = @($dlcs); crash_count = 0; reinstall_path = $null; staticID = $staticID
+    })
+    $steamFound[$id] = $title
+    Write-Host "Installed and registered Workshop item '$title' ($id)"
+}
 
 # Add entries for wanted local folders the game has not registered yet.
 $list = New-Object System.Collections.ArrayList
