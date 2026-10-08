@@ -205,7 +205,7 @@ $json = $data | ConvertTo-Json -Depth 6
 $enabled = @($data.mods | Where-Object { $_.enabledForDlc.Count -gt 0 } | ForEach-Object { $_.label.title })
 Write-Host "Test loadout ($($enabled.Count) mods): $($enabled -join ', ')"
 if ($Omit.Count -gt 0) { Write-Host "Omitted: $($Omit -join ', ')" }
-if ($skippedDisabled.Count -gt 0) { Write-Host "Disabled by disabled.txt: $($skippedDisabled -join ', ')" }
+if ($skippedDisabled.Count -gt 0 -and -not $Only -and -not $NoLocal) { Write-Host "Disabled by disabled.txt: $($skippedDisabled -join ', ')" }
 if ($steamFound.Count -gt 0) { Write-Host "Workshop: $(($steamFound.GetEnumerator() | ForEach-Object { "$($_.Value) ($($_.Key))" }) -join ', ')" }
 
 if ($DryRun) {
