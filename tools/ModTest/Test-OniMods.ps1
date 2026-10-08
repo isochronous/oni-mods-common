@@ -13,6 +13,9 @@
 .PARAMETER Omit
   Local mod folder names to leave disabled even though they are in the list, e.g. -Omit VentFreezeFix to
   check that a bug still happens without the fix.
+.PARAMETER Only
+  Enable just this one local mod and nothing else, e.g. -Only VentFreezeFix to test a mod in isolation.
+  Replaces the list; cannot be combined with -Mods or -Omit.
 .PARAMETER KeepDumps
   Keep the oni-data-dump.*.json files the data-dump mod writes during the session. By default they are
   deleted when the game exits, along with the mods.json backup once it has been restored.
@@ -35,6 +38,7 @@ param(
         'VentFreezeFix'
     ),
     [string[]]$Omit = @(),
+    [string]$Only,
     [switch]$KeepDumps,
     [switch]$DryRun
 )
@@ -79,6 +83,11 @@ $utf8     = New-Object System.Text.UTF8Encoding $false
 
 if (-not $DryRun) { Assert-OniNotRunning }
 if (-not (Test-Path -LiteralPath $modsJson)) { throw "No mods.json at $modsJson" }
+
+if ($Only) {
+    if ($PSBoundParameters.ContainsKey('Mods') -or $Omit.Count -gt 0) { throw "-Only cannot be combined with -Mods or -Omit" }
+    $Mods = @($Only)
+}
 
 $data = [IO.File]::ReadAllText($modsJson, $utf8) | ConvertFrom-Json
 $wanted = @{}

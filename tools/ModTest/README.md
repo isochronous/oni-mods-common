@@ -4,7 +4,7 @@
 restores the normal loadout when the game exits.
 
 ```
-pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods a,b,...] [-Omit c,...] [-KeepDumps] [-DryRun]
+pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods a,b,...] [-Omit c,...] [-Only d] [-KeepDumps] [-DryRun]
 ```
 
 - Backs up `Documents\Klei\OxygenNotIncluded\mods\mods.json` to `mods.json.modtest-<timestamp>`.
@@ -17,4 +17,5 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
   the backup back and deletes it. The oni-data-dump.*.json files the data-dump mod wrote during the
   session are deleted too unless `-KeepDumps` is given. Mod folders, configs and saves are never touched.
 - `-Omit` leaves named mods out of the loadout without editing the list, e.g. `-Omit VentFreezeFix` to confirm a bug still reproduces without the fix.
+- `-Only` enables a single mod and nothing else, e.g. `-Only VentFreezeFix` to test it in isolation. It replaces the list and cannot be combined with `-Mods` or `-Omit`.
 - `-DryRun` prints the loadout and writes it to the temp folder without launching.

@@ -98,8 +98,8 @@ python tools/MakePreview/render_kanim.py fridge_0.png fridge_build.bytes fridge_
 
 ## Testing a mod in isolation
 
-`tools/ModTest/Test-OniMods.ps1` launches the game with only the mods under development enabled and restores the normal loadout afterwards: it backs up `mods.json` (`mods.json.modtest-<timestamp>`), disables every entry, enables the listed local mods for both the base game and Spaced Out (default: the data-dump mod plus the isochronous mods; Fast Track and Refined Building are left out), registers freshly built local mods the game has not seen yet, launches through Steam, waits for the game to exit, copies the backup back and deletes it, and removes the data-dump json files written during the session (`-KeepDumps` keeps them). `-Omit` leaves named mods out without editing the list (for checking a bug without its fix); `-DryRun` only prints the loadout.
+`tools/ModTest/Test-OniMods.ps1` launches the game with only the mods under development enabled and restores the normal loadout afterwards: it backs up `mods.json` (`mods.json.modtest-<timestamp>`), disables every entry, enables the listed local mods for both the base game and Spaced Out (default: the data-dump mod plus the isochronous mods; Fast Track and Refined Building are left out), registers freshly built local mods the game has not seen yet, launches through Steam, waits for the game to exit, copies the backup back and deletes it, and removes the data-dump json files written during the session (`-KeepDumps` keeps them). `-Omit` leaves named mods out without editing the list (for checking a bug without its fix); `-Only` enables a single mod and nothing else; `-DryRun` only prints the loadout.
 
 ```
-pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods a,b,...] [-Omit c,...] [-KeepDumps] [-DryRun]
+pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods a,b,...] [-Omit c,...] [-Only d] [-KeepDumps] [-DryRun]
 ```
