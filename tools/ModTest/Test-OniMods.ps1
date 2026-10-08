@@ -47,9 +47,9 @@ $ErrorActionPreference = 'Stop'
 
 # Started with pwsh -File, a comma-separated argument arrives as one string: split the list parameters.
 function Split-List([string[]]$values) { @($values | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ }) }
-if ($PSBoundParameters.ContainsKey('Mods')) { $Mods = Split-List $Mods }
-$Omit = Split-List $Omit
-$Steam = Split-List $Steam
+if ($PSBoundParameters.ContainsKey('Mods')) { $Mods = @(Split-List $Mods) }
+$Omit = @(Split-List $Omit)
+$Steam = @(Split-List $Steam)
 
 # --- self-contained helpers -------------------------------------------------------------------
 $OniAppId    = 457140
