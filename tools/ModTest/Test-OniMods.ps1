@@ -122,7 +122,10 @@ $uploader = Join-Path $PSScriptRoot '..\WorkshopUpload\WorkshopUpload.csproj'
 foreach ($id in $Steam) {
     if ($steamFound.ContainsKey($id)) { continue }
     Write-Host "Workshop item $id is not registered yet; asking the Steam client to download it"
-    $out = & dotnet run -c Release --project $uploader -- download $id 2>&1 | ForEach-Object { "$_" }
+    # Steam reports subscription and install state per app, so the download runs as the game, not as the uploader app.
+    $env:SteamAppId = '457140'; $env:SteamGameId = '457140'
+    try { $out = & dotnet run -c Release --project $uploader -- download $id 2>&1 | ForEach-Object { "$_" } }
+    finally { Remove-Item Env:SteamAppId, Env:SteamGameId -ErrorAction SilentlyContinue }
     $subscribed = ($out | Select-String -Pattern '^subscribed: True' -Quiet)
     $zip = ($out | Select-String -Pattern '^install path: (.+?) \(\d+ bytes\)$' | ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -First 1)
     $updated = ($out | Select-String -Pattern '^updated: (\d+)$' | ForEach-Object { [long]$_.Matches[0].Groups[1].Value } | Select-Object -First 1)

@@ -15,7 +15,9 @@ namespace WorkshopUpload;
 ///       Create a new item. Prints the new item id.
 ///   WorkshopUpload download &lt;itemId&gt;
 ///       Have this Steam client download the item now (what the game does at launch) and print
-///       whether the user is subscribed, the install path and the item's update time.
+///       whether the user is subscribed, the install path and the item's update time. Steam keeps
+///       subscription and install state per app, so run this one with the environment variables
+///       SteamAppId=457140 and SteamGameId=457140 (ModTest does), or it answers for the uploader app.
 ///
 /// Only the legacy ISteamRemoteStorage API is used for publishing and updating: an item touched
 /// through the modern ISteamUGC item update stops being downloadable by the game, permanently.
