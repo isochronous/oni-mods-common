@@ -35,6 +35,7 @@ param(
     [string[]]$Mods = @(
         'OniDataDump',
         'Bitshifter',
+        'FallYouBastard',
         'MotionSensorRange',
         'MultichannelCritterSensor',
         'NaturalBackwalls',
