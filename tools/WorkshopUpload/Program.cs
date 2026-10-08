@@ -234,19 +234,27 @@ internal static class Program
 		var stateBefore = (EItemState)SteamUGC.GetItemState(fileId);
 		Console.WriteLine($"item state before: {stateBefore}");
 		Console.WriteLine($"subscribed: {(stateBefore & EItemState.k_EItemStateSubscribed) != 0}");
-		if (!SteamUGC.DownloadItem(fileId, true))
+		bool current = (stateBefore & EItemState.k_EItemStateInstalled) != 0 && (stateBefore & EItemState.k_EItemStateNeedsUpdate) == 0;
+		if (current)
 		{
-			Console.Error.WriteLine("DownloadItem returned false (invalid item or not allowed)");
-			return 1;
+			Console.WriteLine("download result: already installed and current, nothing to download");
 		}
-		var deadline = DateTime.UtcNow.AddSeconds(180);
-		while (!done && DateTime.UtcNow < deadline)
+		else
 		{
-			SteamAPI.RunCallbacks();
-			Thread.Sleep(100);
+			if (!SteamUGC.DownloadItem(fileId, true))
+			{
+				Console.Error.WriteLine("DownloadItem returned false (invalid item or not allowed)");
+				return 1;
+			}
+			var deadline = DateTime.UtcNow.AddSeconds(180);
+			while (!done && DateTime.UtcNow < deadline)
+			{
+				SteamAPI.RunCallbacks();
+				Thread.Sleep(100);
+			}
+			Console.WriteLine($"download result: {(done ? downloadResult.ToString() : "timeout")}");
+			Console.WriteLine($"item state after:  {(EItemState)SteamUGC.GetItemState(fileId)}");
 		}
-		Console.WriteLine($"download result: {(done ? downloadResult.ToString() : "timeout")}");
-		Console.WriteLine($"item state after:  {(EItemState)SteamUGC.GetItemState(fileId)}");
 		if (!SteamUGC.GetItemInstallInfo(fileId, out ulong size, out string path, 1024, out uint timestamp))
 		{
 			Console.WriteLine("GetItemInstallInfo: not installed");

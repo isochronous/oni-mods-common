@@ -129,7 +129,7 @@ $steamDir = Join-Path $modsDir 'Steam'
 $uploader = Join-Path $PSScriptRoot '..\WorkshopUpload\WorkshopUpload.csproj'
 foreach ($id in $Steam) {
     if ($steamFound.ContainsKey($id)) { continue }
-    Write-Host "Workshop item $id is not registered yet; asking the Steam client to download it"
+    Write-Host "Workshop item $id is not registered yet; checking it with the Steam client"
     # Steam reports subscription and install state per app, so the download runs as the game, not as the uploader app.
     $env:SteamAppId = '457140'; $env:SteamGameId = '457140'
     try { $out = & dotnet run -c Release --project $uploader -- download $id 2>&1 | ForEach-Object { "$_" } }
@@ -140,8 +140,12 @@ foreach ($id in $Steam) {
     if (-not $subscribed) { Write-Warning "Workshop item $id is not subscribed; the game would remove it again, so it is skipped"; continue }
     if (-not $zip -or -not (Test-Path -LiteralPath $zip)) { Write-Warning "Workshop item $id did not download:`n$($out -join "`n")"; continue }
     $target = Join-Path $steamDir $id
-    if (Test-Path -LiteralPath $target) { Remove-Item -Recurse -Force $target }
-    Expand-Archive -LiteralPath $zip -DestinationPath $target -Force
+    $marker = Join-Path $target 'mod.yaml'
+    if (-not (Test-Path -LiteralPath $marker) -or (Get-Item -LiteralPath $zip).LastWriteTimeUtc -gt (Get-Item -LiteralPath $marker).LastWriteTimeUtc) {
+        if (Test-Path -LiteralPath $target) { Remove-Item -Recurse -Force $target }
+        Expand-Archive -LiteralPath $zip -DestinationPath $target -Force
+        Write-Host "Unpacked Workshop item $id into $target"
+    }
     $title = $id; $staticID = $id
     $yaml = Join-Path $target 'mod.yaml'
     if (Test-Path -LiteralPath $yaml) {
@@ -154,7 +158,7 @@ foreach ($id in $Steam) {
         status = 1; enabled = $false; enabledForDlc = @($dlcs); crash_count = 0; reinstall_path = $null; staticID = $staticID
     })
     $steamFound[$id] = $title
-    Write-Host "Installed and registered Workshop item '$title' ($id)"
+    Write-Host "Registered Workshop item '$title' ($id) for this run"
 }
 
 # Add entries for wanted local folders the game has not registered yet.
