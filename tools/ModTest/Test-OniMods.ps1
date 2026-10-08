@@ -16,6 +16,9 @@
 .PARAMETER Only
   Enable just this one local mod and nothing else, e.g. -Only VentFreezeFix to test a mod in isolation.
   Replaces the list; cannot be combined with -Mods or -Omit.
+.PARAMETER NoLocal
+  Enable no local mods at all, only the -Steam items, e.g. -NoLocal -Steam 3816086407 to see how a
+  Workshop mod behaves on its own. Cannot be combined with -Mods, -Omit or -Only.
 .PARAMETER Steam
   Workshop item ids to enable as well, e.g. -Steam 3816086407. The item must be subscribed. One the
   game has not registered yet (subscribed since its last launch) is downloaded through the Steam
@@ -45,6 +48,7 @@ param(
     [string[]]$Omit = @(),
     [string]$Only,
     [string[]]$Steam = @(),
+    [switch]$NoLocal,
     [switch]$KeepDumps,
     [switch]$DryRun
 )
@@ -93,6 +97,10 @@ if (-not (Test-Path -LiteralPath $modsJson)) { throw "No mods.json at $modsJson"
 if ($Only) {
     if ($PSBoundParameters.ContainsKey('Mods') -or $Omit.Count -gt 0) { throw "-Only cannot be combined with -Mods or -Omit" }
     $Mods = @($Only)
+}
+if ($NoLocal) {
+    if ($PSBoundParameters.ContainsKey('Mods') -or $Omit.Count -gt 0 -or $Only) { throw "-NoLocal cannot be combined with -Mods, -Omit or -Only" }
+    $Mods = @()
 }
 
 $data = [IO.File]::ReadAllText($modsJson, $utf8) | ConvertFrom-Json
