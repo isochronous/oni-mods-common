@@ -138,8 +138,8 @@ foreach ($id in $Steam) {
     $yaml = Join-Path $target 'mod.yaml'
     if (Test-Path -LiteralPath $yaml) {
         $text = Get-Content -LiteralPath $yaml -Raw
-        $m = [regex]::Match($text, '(?m)^title:\s*"?([^"\r\n]+)"?');    if ($m.Success) { $title = $m.Groups[1].Value.Trim() }
-        $m = [regex]::Match($text, '(?m)^staticID:\s*"?([^"\r\n]+)"?'); if ($m.Success) { $staticID = $m.Groups[1].Value.Trim() }
+        $m = [regex]::Match($text, '(?m)^title:\s*["'']?([^"''\r\n]+)["'']?');    if ($m.Success) { $title = $m.Groups[1].Value.Trim() }
+        $m = [regex]::Match($text, '(?m)^staticID:\s*["'']?([^"''\r\n]+)["'']?'); if ($m.Success) { $staticID = $m.Groups[1].Value.Trim() }
     }
     $data.mods += [pscustomobject]([ordered]@{
         label = [ordered]@{ distribution_platform = 1; id = $id; title = $title; version = $updated }
@@ -163,8 +163,8 @@ foreach ($id in @($wanted.Keys)) {
     $yaml = Join-Path $folder 'mod.yaml'
     if (Test-Path -LiteralPath $yaml) {
         $text = Get-Content -LiteralPath $yaml -Raw
-        $m = [regex]::Match($text, '(?m)^title:\s*"?([^"\r\n]+)"?');    if ($m.Success) { $title = $m.Groups[1].Value.Trim() }
-        $m = [regex]::Match($text, '(?m)^staticID:\s*"?([^"\r\n]+)"?'); if ($m.Success) { $staticID = $m.Groups[1].Value.Trim() }
+        $m = [regex]::Match($text, '(?m)^title:\s*["'']?([^"''\r\n]+)["'']?');    if ($m.Success) { $title = $m.Groups[1].Value.Trim() }
+        $m = [regex]::Match($text, '(?m)^staticID:\s*["'']?([^"''\r\n]+)["'']?'); if ($m.Success) { $staticID = $m.Groups[1].Value.Trim() }
     }
     [void]$list.Add([pscustomobject]([ordered]@{
         label = [ordered]@{ distribution_platform = 0; id = $id; title = $title; version = Get-DotNetStringHash $id }
