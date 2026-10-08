@@ -1,0 +1,4 @@
+# Local mod folders Test-OniMods.ps1 leaves out of the default loadout, one per line.
+FastTrack              # third-party, kept locally for compatibility checks only
+RefinedBuilding        # unlisted on the Workshop, no longer developed
+SupplyClosetUnlocked   # personal, will not be published

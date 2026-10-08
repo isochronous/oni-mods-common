@@ -8,9 +8,11 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
 ```
 
 - Backs up `Documents\Klei\OxygenNotIncluded\mods\mods.json` to `mods.json.modtest-<timestamp>`.
-- Disables every entry and enables the listed local mods for both the base game and Spaced Out.
-  The default list is the data-dump mod plus the isochronous mods; third-party local mods
-  (Fast Track) and retired ones (Refined Building) are left out.
+- Disables every entry and enables the local mods for both the base game and Spaced Out. By default
+  that is every folder under `mods/local` with a `mod.yaml`, minus the names in `disabled.txt` next
+  to the script (one per line, `#` for comments): third-party local mods such as Fast Track, retired
+  ones such as Refined Building, and personal ones that will not be published. `-Mods` replaces the
+  default list.
 - Registers local mod folders the game has not seen yet (a freshly built mod), using the game's own
   folder-name hash as the entry version so the first launch does not ask for a restart.
 - Launches through Steam, waits for the game to exit (surviving a mod-triggered restart), then puts

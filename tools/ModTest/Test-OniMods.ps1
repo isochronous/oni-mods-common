@@ -9,7 +9,9 @@
   mod folders, configs and saves stay as they are.
 
 .PARAMETER Mods
-  Local mod folder names to enable. Defaults to the data-dump mod plus the mods under development.
+  Local mod folder names to enable. By default every folder under mods/local that holds a mod.yaml,
+  except the names listed in disabled.txt next to this script (one per line, # for comments): mods
+  that are not under development, such as third-party local mods or ones that will not be published.
 .PARAMETER Omit
   Local mod folder names to leave disabled even though they are in the list, e.g. -Omit VentFreezeFix to
   check that a bug still happens without the fix.
@@ -32,20 +34,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string[]]$Mods = @(
-        'OniDataDump',
-        'Bitshifter',
-        'FallYouBastard',
-        'MotionSensorRange',
-        'MultichannelCritterSensor',
-        'NaturalBackwalls',
-        'NoMagicFridges',
-        'SmartWeightPlate',
-        'StoragePodRedux',
-        'SupplyClosetUnlocked',
-        'SweepZones',
-        'VentFreezeFix'
-    ),
+    [string[]]$Mods,
     [string[]]$Omit = @(),
     [string]$Only,
     [string[]]$Steam = @(),
@@ -90,6 +79,24 @@ $modsDir  = Join-Path $ProfileLink 'mods'
 $modsJson = Join-Path $modsDir 'mods.json'
 $localDir = Join-Path $modsDir 'local'
 $dlcs     = @('EXPANSION1_ID', '')
+
+# Default loadout: every local mod folder with a mod.yaml, minus disabled.txt.
+$disabledFile = Join-Path $PSScriptRoot 'disabled.txt'
+$disabled = @()
+if (Test-Path -LiteralPath $disabledFile) {
+    $disabled = @(Get-Content -LiteralPath $disabledFile | ForEach-Object { ($_ -replace '#.*$', '').Trim() } | Where-Object { $_ })
+}
+$skippedDisabled = @()
+if (-not $PSBoundParameters.ContainsKey('Mods')) {
+    $Mods = @()
+    if (Test-Path -LiteralPath $localDir) {
+        foreach ($dir in Get-ChildItem -LiteralPath $localDir -Directory | Sort-Object Name) {
+            if (-not (Test-Path -LiteralPath (Join-Path $dir.FullName 'mod.yaml'))) { continue }
+            if ($disabled -contains $dir.Name) { $skippedDisabled += $dir.Name; continue }
+            $Mods += $dir.Name
+        }
+    }
+}
 $utf8     = New-Object System.Text.UTF8Encoding $false
 
 if (-not $DryRun) { Assert-OniNotRunning }
@@ -192,6 +199,7 @@ $json = $data | ConvertTo-Json -Depth 6
 $enabled = @($data.mods | Where-Object { $_.enabledForDlc.Count -gt 0 } | ForEach-Object { $_.label.title })
 Write-Host "Test loadout ($($enabled.Count) mods): $($enabled -join ', ')"
 if ($Omit.Count -gt 0) { Write-Host "Omitted: $($Omit -join ', ')" }
+if ($skippedDisabled.Count -gt 0) { Write-Host "Disabled by disabled.txt: $($skippedDisabled -join ', ')" }
 if ($steamFound.Count -gt 0) { Write-Host "Workshop: $(($steamFound.GetEnumerator() | ForEach-Object { "$($_.Value) ($($_.Key))" }) -join ', ')" }
 
 if ($DryRun) {
