@@ -12,7 +12,10 @@ namespace WorkshopUpload;
 ///   WorkshopUpload update &lt;itemId&gt; &lt;mod.zip&gt; [preview.png] [--title "..."] [--description-file path] [--changenote "..."]
 ///       Replace an existing item's content with the zip (and optionally its preview).
 ///   WorkshopUpload publish &lt;mod.zip&gt; &lt;preview.png&gt; --title "..." [--description-file path] [--visibility public|friends|private] [--tags "a,b"]
-///       Create a new item. Prints the new item id. Tags matter: the Workshop's browse views (Most
+///       Create a new item. Prints the new item id. Prefer Klei's own uploader for NEW items: the
+///       one item created here (2026-10-08) never appeared in the Workshop's Most Recent listing even
+///       after tags were added, while items made by Klei's uploader list at once; updating existing
+///       items with this tool is proven. Tags matter: the Workshop's browse views (Most
 ///       Recent and the DLC filters) key off them, so give a category (Klei's uploader uses e.g.
 ///       "tweaks") plus the DLCs supported ("Base Game", "Spaced Out!", "The Frosty Planet Pack",
 ///       "The Bionic Booster Pack", "The Prehistoric Planet Pack", "The Aquatic Planet Pack").
