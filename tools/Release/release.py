@@ -16,7 +16,7 @@ What it does:
   5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached.
   6. If the mod is on the Steam Workshop, uploads the same zip, the preview (publish/preview.gif
      when it exists, an animated preview Steam plays on the page; else the png) and
-     publish/workshop-description.txt to its item (legacy API, via tools/WorkshopUpload;
+     publish/workshop-description.txt and the tags in publish/workshop-tags.txt to its item (legacy API, via tools/WorkshopUpload;
      Steam must be running as the item's owner). The item id comes from
      publish/workshop-id.txt; when that file is missing, the mod.yaml title is looked up
      among your published items (WorkshopUpload list) and, if found, the id is written to
@@ -234,6 +234,14 @@ def main():
         if os.path.exists(description) and description_is_ours(workshop_id, description, previous):
             args += ["--description-file", os.path.abspath(description)]
         args += ["--changenote", changenote]
+        # Tags, one per line in publish/workshop-tags.txt (# comments): the category plus the DLCs
+        # supported. The Workshop's browse views key off them; an item without tags is not listed.
+        tags_file = os.path.join("publish", "workshop-tags.txt")
+        if os.path.exists(tags_file):
+            tags = [line.split("#", 1)[0].strip() for line in open(tags_file, encoding="utf-8")]
+            tags = [t for t in tags if t]
+            if tags:
+                args += ["--tags", ",".join(tags)]
         subprocess.run(args, check=True, cwd=os.path.dirname(os.path.abspath(UPLOADER)))
 
 

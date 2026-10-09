@@ -11,8 +11,11 @@ namespace WorkshopUpload;
 ///       List the logged-in user's published items for app 457140.
 ///   WorkshopUpload update &lt;itemId&gt; &lt;mod.zip&gt; [preview.png] [--title "..."] [--description-file path] [--changenote "..."]
 ///       Replace an existing item's content with the zip (and optionally its preview).
-///   WorkshopUpload publish &lt;mod.zip&gt; &lt;preview.png&gt; --title "..." [--description-file path] [--visibility public|friends|private]
-///       Create a new item. Prints the new item id.
+///   WorkshopUpload publish &lt;mod.zip&gt; &lt;preview.png&gt; --title "..." [--description-file path] [--visibility public|friends|private] [--tags "a,b"]
+///       Create a new item. Prints the new item id. Tags matter: the Workshop's browse views (Most
+///       Recent and the DLC filters) key off them, so give a category (Klei's uploader uses e.g.
+///       "tweaks") plus the DLCs supported ("Base Game", "Spaced Out!", "The Frosty Planet Pack",
+///       "The Bionic Booster Pack", "The Prehistoric Planet Pack", "The Aquatic Planet Pack").
 ///   WorkshopUpload download &lt;itemId&gt;
 ///       Have this Steam client download the item now (what the game does at launch) and print
 ///       whether the user is subscribed, the install path and the item's update time. Steam keeps
@@ -38,7 +41,8 @@ internal static class Program
 	{
 		if (args.Length == 0)
 		{
-			Console.Error.WriteLine("usage: WorkshopUpload info <id> | list | update <id> <zip> [preview] [options] | publish <zip> <preview> --title T [options]");
+			Console.Error.WriteLine("usage: WorkshopUpload info <id> | list | update <id> [zip [preview]] [options] | publish <zip> <preview> --title T [options] | download <id>");
+			Console.Error.WriteLine("options: --title T --description-file F --changenote N --visibility public|friends|unlisted|private --tags \"tweaks,Base Game,Spaced Out!\"");
 			return 2;
 		}
 		if (!SteamAPI.Init())
@@ -138,7 +142,7 @@ internal static class Program
 	{
 		if (args.Length < 3)
 		{
-			Console.Error.WriteLine("usage: update <id> [zip [preview]] [--title T] [--description-file F] [--changenote N] [--visibility public|friends|unlisted|private]");
+			Console.Error.WriteLine("usage: update <id> [zip [preview]] [--title T] [--description-file F] [--changenote N] [--visibility public|friends|unlisted|private] [--tags \"a,b\"]");
 			return 2;
 		}
 		ulong id = ulong.Parse(args[1]);
@@ -162,6 +166,8 @@ internal static class Program
 			Check(SteamRemoteStorage.UpdatePublishedFileSetChangeDescription(handle, note), "UpdatePublishedFileSetChangeDescription");
 		if (opts.TryGetValue("visibility", out string vis))
 			Check(SteamRemoteStorage.UpdatePublishedFileVisibility(handle, ParseVisibility(vis)), "UpdatePublishedFileVisibility");
+		if (opts.TryGetValue("tags", out string tagList))
+			Check(SteamRemoteStorage.UpdatePublishedFileTags(handle, ParseTags(tagList)), "UpdatePublishedFileTags");
 
 		Console.WriteLine($"Committing update to item {id} ...");
 		var result = Await<RemoteStorageUpdatePublishedFileResult_t>(SteamRemoteStorage.CommitPublishedFileUpdate(handle));
@@ -190,8 +196,11 @@ internal static class Program
 		string cloudZip = UploadToCloud(args[1]);
 		string cloudPreview = UploadToCloud(args[2]);
 		Console.WriteLine($"Publishing '{title}' ({visibility}) ...");
+		var tags = ParseTags(opts.TryGetValue("tags", out string tagList) ? tagList : "");
+		if (tags.Count == 0)
+			Console.WriteLine("warning: no --tags; the Workshop's browse views key off tags (category plus the DLCs supported), so an untagged item does not show up in them");
 		var result = Await<RemoteStoragePublishFileResult_t>(SteamRemoteStorage.PublishWorkshopFile(
-			cloudZip, cloudPreview, new AppId_t(AppId), title, description, visibility, new List<string>(),
+			cloudZip, cloudPreview, new AppId_t(AppId), title, description, visibility, tags,
 			EWorkshopFileType.k_EWorkshopFileTypeCommunity));
 		Console.WriteLine("result: " + result.m_eResult + (result.m_bUserNeedsToAcceptWorkshopLegalAgreement ? " (user must accept the Workshop legal agreement)" : ""));
 		if (result.m_eResult != EResult.k_EResultOK)
@@ -297,6 +306,16 @@ internal static class Program
 		else
 			Console.WriteLine($"  shared as UGC handle {share.m_hFile}");
 		return cloudName;
+	}
+
+	/// <summary>"tweaks,Base Game,Spaced Out!" -> the list; blanks dropped.</summary>
+	private static List<string> ParseTags(string tags)
+	{
+		var list = new List<string>();
+		foreach (string t in (tags ?? "").Split(','))
+			if (t.Trim().Length > 0)
+				list.Add(t.Trim());
+		return list;
 	}
 
 	private static ERemoteStoragePublishedFileVisibility ParseVisibility(string vis)
