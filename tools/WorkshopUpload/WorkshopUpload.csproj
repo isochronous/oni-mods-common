@@ -29,6 +29,8 @@
 
   <ItemGroup>
     <None Include="steam_appid.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Valve's native library for the Steamworks.NET version above; the NuGet package does not carry it. -->
+    <None Include="steam_api64.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
