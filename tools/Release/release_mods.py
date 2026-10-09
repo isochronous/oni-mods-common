@@ -9,7 +9,7 @@ With no repo names, looks at every folder next to oni-mods-common that holds a m
 
   - the last release is the newest v* tag; a mod with no tag yet gets its first release at
     the version it already has;
-  - "changed" means commits since that tag touched what ships: src/ or publish/preview.png
+  - "changed" means commits since that tag touched what ships: src/ or publish/preview.png or .jpg
     (README-only changes do not trigger a release);
   - if the version in mod_info.yaml is still the released one, it is bumped (mod_info.yaml
     and the csproj <Version>), committed as "Release vX.Y.Z" and pushed; a version you
@@ -39,7 +39,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from release import find_workshop_id  # noqa: E402
 RELEASE = os.path.join(HERE, "release.py")
-SHIPPED = ["src", "publish/preview.png"]
+SHIPPED = ["src", "publish/preview.png", "publish/preview.jpg"]
 
 
 def git(repo, *args, check=True):
