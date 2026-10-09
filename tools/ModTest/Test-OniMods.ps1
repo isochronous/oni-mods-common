@@ -45,6 +45,15 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# A top-level scalar from mod.yaml: double-quoted, single-quoted, or bare. Quoted values may hold the
+# other quote character (Don't Count Eggs on Rails), so the quotes decide where the value ends.
+function Get-YamlScalar([string]$text, [string]$key) {
+    $m = [regex]::Match($text, '(?m)^' + $key + '\s*:\s*(?:"([^"]*)"|''([^'']*)''|([^\r\n#]+))')
+    if (-not $m.Success) { return $null }
+    foreach ($g in 1..3) { if ($m.Groups[$g].Success) { return $m.Groups[$g].Value.Trim() } }
+    return $null
+}
+
 # Started with pwsh -File, a comma-separated argument arrives as one string: split the list parameters.
 function Split-List([string[]]$values) { @($values | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ }) }
 if ($PSBoundParameters.ContainsKey('Mods')) { $Mods = @(Split-List $Mods) }
@@ -164,8 +173,8 @@ foreach ($id in $Steam) {
     $yaml = Join-Path $target 'mod.yaml'
     if (Test-Path -LiteralPath $yaml) {
         $text = Get-Content -LiteralPath $yaml -Raw
-        $m = [regex]::Match($text, '(?m)^title:\s*["'']?([^"''\r\n]+)["'']?');    if ($m.Success) { $title = $m.Groups[1].Value.Trim() }
-        $m = [regex]::Match($text, '(?m)^staticID:\s*["'']?([^"''\r\n]+)["'']?'); if ($m.Success) { $staticID = $m.Groups[1].Value.Trim() }
+        $v = Get-YamlScalar $text 'title';    if ($null -ne $v) { $title = $v }
+        $v = Get-YamlScalar $text 'staticID'; if ($null -ne $v) { $staticID = $v }
     }
     $data.mods += [pscustomobject]([ordered]@{
         label = [ordered]@{ distribution_platform = 1; id = $id; title = $title; version = $updated }
@@ -189,8 +198,8 @@ foreach ($id in @($wanted.Keys)) {
     $yaml = Join-Path $folder 'mod.yaml'
     if (Test-Path -LiteralPath $yaml) {
         $text = Get-Content -LiteralPath $yaml -Raw
-        $m = [regex]::Match($text, '(?m)^title:\s*["'']?([^"''\r\n]+)["'']?');    if ($m.Success) { $title = $m.Groups[1].Value.Trim() }
-        $m = [regex]::Match($text, '(?m)^staticID:\s*["'']?([^"''\r\n]+)["'']?'); if ($m.Success) { $staticID = $m.Groups[1].Value.Trim() }
+        $v = Get-YamlScalar $text 'title';    if ($null -ne $v) { $title = $v }
+        $v = Get-YamlScalar $text 'staticID'; if ($null -ne $v) { $staticID = $v }
     }
     [void]$list.Add([pscustomobject]([ordered]@{
         label = [ordered]@{ distribution_platform = 0; id = $id; title = $title; version = Get-DotNetStringHash $id }
