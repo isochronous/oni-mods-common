@@ -198,6 +198,10 @@ def main():
     print("release notes: " + ("--notes" if a.notes else "CHANGELOG.md section %s" % version))
     changenote = a.changenote or a.notes or workshop_note(version, changelog)
 
+    # The tag before this release: the description check compares the live Workshop text
+    # with the file as it was then.
+    previous = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
+                              text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
     asset = os.path.join("publish", "%s-%s.zip" % (mod, version))
     shutil.copy(zip_path, asset)
     try:
