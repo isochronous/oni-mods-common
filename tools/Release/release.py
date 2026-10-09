@@ -11,7 +11,7 @@ What it does:
   2. Reads the version from src/<Mod>/mod_info.yaml; the tag is v<version> and must be new.
   3. Builds src/<Mod> in Release (without deploying to the local mods folder).
   4. Stages publish/content from the build (DLL, mod.yaml, mod_info.yaml, anim/, assets/,
-     and publish/preview.png scaled down to at most 512 px) and zips it to publish/<Mod>.zip.
+     and publish/preview.png or preview.jpg as preview.png, scaled down to at most 512 px) and zips it to publish/<Mod>.zip.
      The zip has the mod files at its root: the layout the game and the Workshop expect.
   5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached.
   6. If the mod is on the Steam Workshop, uploads the same zip, the preview (publish/preview.gif
@@ -167,13 +167,17 @@ def main():
     for folder in ("anim", "assets", "worldgen", "templates", "elements", "strings", "codex"):
         if os.path.isdir(os.path.join(project_dir, folder)):
             shutil.copytree(os.path.join(project_dir, folder), os.path.join(content, folder))
-    preview = os.path.join("publish", "preview.png")
+    # The preview source is publish/preview.png or publish/preview.jpg; the game wants preview.png in the zip.
+    preview = next((p for p in (os.path.join("publish", "preview.png"), os.path.join("publish", "preview.jpg"))
+                    if os.path.exists(p)), None)
     staged_preview = os.path.join(content, "preview.png")
-    if os.path.exists(preview):
+    if preview:
         from PIL import Image
         image = Image.open(preview)
-        if max(image.size) > 512:
-            image.convert("RGB").resize((512, 512), Image.LANCZOS).save(staged_preview, optimize=True)
+        if max(image.size) > 512 or not preview.endswith(".png"):
+            if max(image.size) > 512:
+                image = image.resize((512, 512), Image.LANCZOS)
+            image.convert("RGB").save(staged_preview, optimize=True)
         else:
             shutil.copy(preview, staged_preview)
 
