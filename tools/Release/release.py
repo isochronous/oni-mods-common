@@ -25,9 +25,8 @@ What it does:
 
 Release notes: the section of CHANGELOG.md headed "## <version>" (release_mods.py creates it
 from "## Unreleased") is the GitHub release body and, with the version on top, the Workshop
-change note. Without one, GitHub generates notes from the commits and the change note is the
-version plus the subjects of the commits that changed what ships. --notes and --changenote
-override either.
+change note. Without one the release is refused, unless --notes is given; --notes and
+--changenote override either.
 
 --dry-run stops after step 4, so it doubles as "just rebuild the zip".
 """
@@ -123,10 +122,10 @@ def description_is_ours(workshop_id, description, previous_tag):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="build and package only")
-    ap.add_argument("--notes", help="release notes (default: the CHANGELOG.md section, else generated from the commits)")
+    ap.add_argument("--notes", help="release notes (default: the CHANGELOG.md section, which is otherwise required)")
     ap.add_argument("--workshop-id", help="Workshop item to update (default: publish/workshop-id.txt)")
     ap.add_argument("--no-workshop", action="store_true", help="GitHub release only")
-    ap.add_argument("--changenote", help="Workshop change note (default: the CHANGELOG.md section, else version + shipped commit subjects)")
+    ap.add_argument("--changenote", help="Workshop change note (default: the CHANGELOG.md section, or --notes)")
     a = ap.parse_args()
 
     projects = glob.glob(os.path.join("src", "*", "*.csproj"))
@@ -152,6 +151,10 @@ def main():
             sys.exit("tag %s already exists; bump the version in mod_info.yaml and the csproj" % tag)
         if run("git", "rev-list", "--count", "@{upstream}..HEAD", capture=True) != "0":
             sys.exit("HEAD is not pushed; push first so the tag lands on a commit GitHub has")
+    changelog = changelog_section(version)
+    if not changelog and not a.notes:
+        sys.exit("no CHANGELOG.md section for %s and no --notes: write the entry first (release_mods.py "
+                 "turns '## Unreleased' into it); nothing ships on commit subjects" % version)
 
     run("dotnet", "build", project_dir, "-c", "Release", "-v", "q", "--nologo", "-p:ModDeployFolder=none")
     dlls = glob.glob(os.path.join(project_dir, "bin", "Release", mod + ".dll"))
@@ -191,31 +194,16 @@ def main():
     if a.dry_run:
         return
 
-    previous = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
-                              text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
-    subjects = run("git", "log", "--format=%s", (previous + "..HEAD") if previous else "HEAD", "--",
-                   "src", "publish/preview.png", capture=True).splitlines()
-    subjects = [line for line in subjects if not line.startswith("Release v")]
-    changelog = changelog_section(version)
     notes = a.notes or changelog
-    if changelog:
-        print("release notes: CHANGELOG.md section %s" % version)
-    else:
-        print("release notes: no CHANGELOG.md section for %s; using the commits" % version)
-    if a.changenote or a.notes:
-        changenote = a.changenote or a.notes
-    elif changelog:
-        changenote = workshop_note(version, changelog)
-    else:
-        changenote = tag + (": " + "; ".join(subjects[:8]) if previous and subjects else "")
+    print("release notes: " + ("--notes" if a.notes else "CHANGELOG.md section %s" % version))
+    changenote = a.changenote or a.notes or workshop_note(version, changelog)
 
     asset = os.path.join("publish", "%s-%s.zip" % (mod, version))
     shutil.copy(zip_path, asset)
     try:
         run("git", "tag", "-a", tag, "-m", "%s %s" % (mod, version))
         run("git", "push", "origin", tag)
-        notes = ["--notes", notes] if notes else ["--generate-notes"]
-        run("gh", "release", "create", tag, asset, "--title", "%s %s" % (mod, version), "--verify-tag", *notes)
+        run("gh", "release", "create", tag, asset, "--title", "%s %s" % (mod, version), "--verify-tag", "--notes", notes)
     finally:
         os.remove(asset)
 

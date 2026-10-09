@@ -14,10 +14,10 @@ With no repo names, looks at every folder next to oni-mods-common that holds a m
   - if the version in mod_info.yaml is still the released one, it is bumped (mod_info.yaml
     and the csproj <Version>), committed as "Release vX.Y.Z" and pushed; a version you
     already bumped by hand is used as is;
-  - the "## Unreleased" section of CHANGELOG.md, if it has content, becomes
-    "## X.Y.Z - <date>" in that same commit, and release.py uses it as the GitHub release
-    notes and the Workshop change note. Write the entry before releasing: --plan says
-    "no changelog entry" for a mod that would otherwise ship with notes made of commit subjects;
+  - the "## Unreleased" section of CHANGELOG.md must have content; a mod without one is
+    skipped (--plan says so), nothing is ever released on commit subjects. The section
+    becomes "## X.Y.Z - <date>" in that same commit, and release.py uses it as the GitHub
+    release notes and the Workshop change note;
   - release.py then builds, zips, tags and creates the GitHub release with the zip attached.
 
 Mods with uncommitted changes to tracked files are skipped, never stashed or committed; so
@@ -71,13 +71,20 @@ def replace_in(path, pattern, replacement):
 UNRELEASED = re.compile(r"^## +\[?Unreleased\]?[^\n]*\n(.*?)(?=^## |\Z)", re.M | re.S | re.I)
 
 
+PLACEHOLDER = re.compile(r"^\s*(?:[-*]\s*)?(?:\.\.\.|TODO|TBD)?\s*$", re.I)
+
+
 def unreleased_entry(repo):
-    """Content under "## Unreleased" in the repo's CHANGELOG.md, or None."""
+    """Content under "## Unreleased" in the repo's CHANGELOG.md, or None when the section is missing,
+    empty, or still the skeleton's placeholder ("- ...")."""
     path = os.path.join(repo, "CHANGELOG.md")
     if not os.path.exists(path):
         return None
     match = UNRELEASED.search(open(path, encoding="utf-8").read().replace("\r\n", "\n"))
-    return match.group(1).strip() if match and match.group(1).strip() else None
+    if not match:
+        return None
+    lines = [line for line in match.group(1).splitlines() if not PLACEHOLDER.match(line) and not line.startswith("###")]
+    return match.group(1).strip() if lines else None
 
 
 def release_changelog(repo, version):
@@ -107,13 +114,16 @@ def plan_for(repo, level):
     _, version = read_version(repo)
     last = git(repo, "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*", check=False)
     if not last:
+        if not unreleased_entry(repo):
+            return "skip", "no release yet, but no changelog entry: write CHANGELOG.md ## Unreleased first"
         return "first", "no release yet; releasing v%s" % version
     changed = git(repo, "diff", "--name-only", last, "HEAD", "--", *SHIPPED)
     if not changed:
         return "skip", "nothing shipped has changed since %s" % last
-    commits = git(repo, "log", "--format=  %h %s", "%s..HEAD" % last, "--", *SHIPPED)
+    commits = "  " + git(repo, "log", "--format=  %h %s", "%s..HEAD" % last, "--", *SHIPPED)
     if not unreleased_entry(repo):
-        commits += "\n  ! no changelog entry (CHANGELOG.md ## Unreleased); notes would be the commit subjects"
+        # Hard gate: nothing ships without release notes written by hand.
+        return "skip", "changed since %s but no changelog entry: write CHANGELOG.md ## Unreleased first\n%s" % (last, commits)
     if "v" + version != last:
         return "as-is", "changed since %s; version already set to %s\n%s" % (last, version, commits)
     return "bump", "changed since %s; %s -> %s (%s)\n%s" % (last, version, bumped(version, level), level, commits)
