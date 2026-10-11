@@ -103,3 +103,11 @@ python tools/MakePreview/render_kanim.py fridge_0.png fridge_build.bytes fridge_
 ```
 pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods a,b,...] [-Omit c,...] [-Only d] [-NoLocal] [-Steam id,...] [-KeepDumps] [-DryRun]
 ```
+
+## Reproducing a report in a save
+
+`tools/SaveRunner` is a dev mod plus `Invoke-SaveRun.ps1` that load a save with nobody at the keyboard, run it for a while with every save to disk blocked, record a probe once per game second and quit: run it once with the mod under test and once with `-Without <Mod>` and compare the two `probe.csv` files. The player's own loadout stays enabled, so a report reproduces with their mods. Mod Profile Manager restarts the game on a changed loadout and has to be left out with `-Without 2854869130,3281716506`. Details and the probes in `tools/SaveRunner/README.md`.
+
+```
+pwsh -File common/tools/SaveRunner/Invoke-SaveRun.ps1 -Save <file.sav> -Seconds 90 -Probe fridges [-With ...] [-Without ...] -Label <name>
+```

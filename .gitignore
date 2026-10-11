@@ -6,3 +6,6 @@ __pycache__/
 
 # WorldgenDriver run output (game logs, result files)
 tools/WorldgenDriver/runs/
+
+# SaveRunner run output (save copies, probe readings, game logs)
+tools/SaveRunner/runs/

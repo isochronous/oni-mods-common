@@ -1,0 +1,3 @@
+title: "Save Runner (dev tool)"
+description: "Loads a save unattended when the game is started with --saverun=FILE, runs it for a while with saving disabled, writes probe readings and quits. Does nothing otherwise. Not for the Workshop."
+staticID: "Isochronous.SaveRunner"
