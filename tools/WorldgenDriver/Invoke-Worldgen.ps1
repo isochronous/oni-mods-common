@@ -106,8 +106,16 @@ function Read-Results {
     }
 }
 
-Copy-Item $modsJson "$modsJson.worldgen-backup" -Force
-Copy-Item $prefs "$prefs.worldgen-backup" -Force
+# A leftover backup means an earlier run died before its finally block (killed shell, timeout): it
+# holds the real loadout, so put it back first instead of overwriting it with the stripped file.
+foreach ($pair in @(@($modsJson, "$modsJson.worldgen-backup"), @($prefs, "$prefs.worldgen-backup"))) {
+    if (Test-Path $pair[1]) {
+        Write-Warning "Leftover backup $($pair[1]) from an unfinished run; restoring it before starting."
+        Copy-Item $pair[1] $pair[0] -Force
+    } else {
+        Copy-Item $pair[0] $pair[1]
+    }
+}
 $results = @()
 $session = 0
 try {
@@ -170,6 +178,7 @@ try {
 finally {
     Copy-Item "$modsJson.worldgen-backup" $modsJson -Force
     Copy-Item "$prefs.worldgen-backup" $prefs -Force
+    Remove-Item "$modsJson.worldgen-backup", "$prefs.worldgen-backup" -Force
     Write-Host 'Restored mods.json and kplayerprefs.yaml.'
 }
 Write-Host "Results: $master"
