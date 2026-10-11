@@ -3,3 +3,6 @@ obj/
 .vs/
 *.user
 __pycache__/
+
+# WorldgenDriver run output (game logs, result files)
+tools/WorldgenDriver/runs/

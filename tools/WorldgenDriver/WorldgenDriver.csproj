@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\oni-mod.props" />
+
+  <PropertyGroup>
+    <AssemblyName>WorldgenDriver</AssemblyName>
+    <RootNamespace>WorldgenDriver</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\oni-mod.targets" />
+
+</Project>

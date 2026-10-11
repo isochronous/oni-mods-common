@@ -1,0 +1,3 @@
+title: "Worldgen Driver (dev tool)"
+description: "Generates a cluster unattended when the game is started with --worldgen=COORD, writes a result file and quits. Does nothing otherwise. Not for the Workshop."
+staticID: "Isochronous.WorldgenDriver"
