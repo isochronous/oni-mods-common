@@ -167,7 +167,7 @@ def main():
     shutil.copy(dlls[0], content)
     for name in ("mod.yaml", "mod_info.yaml"):
         shutil.copy(os.path.join(project_dir, name), content)
-    for folder in ("anim", "assets", "worldgen", "templates", "elements", "strings", "codex"):
+    for folder in ("anim", "assets", "worldgen", "templates", "elements", "strings", "codex", "translations"):
         if os.path.isdir(os.path.join(project_dir, folder)):
             shutil.copytree(os.path.join(project_dir, folder), os.path.join(content, folder))
     # The preview source is publish/preview.png or publish/preview.jpg; the game wants preview.png in the zip.
