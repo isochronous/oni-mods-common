@@ -153,8 +153,17 @@ internal static class Program
 
 	private static int CheckPo(string path, List<Entry> entries)
 	{
-		Dictionary<string, KeyValuePair<string, string>> translated = ReadPo(path);
 		string name = Path.GetFileName(path);
+		Dictionary<string, KeyValuePair<string, string>> translated;
+		try
+		{
+			translated = ReadPo(path);
+		}
+		catch (FormatException e)
+		{
+			Console.WriteLine("FAIL " + e.Message);
+			return 1;
+		}
 		int missing = 0, stale = 0, empty = 0, refused = 0, obsolete = 0;
 		var seen = new HashSet<string>();
 		foreach (Entry e in entries)
@@ -206,6 +215,12 @@ internal static class Program
 	}
 
 	/// <summary>msgctxt -> (msgid, msgstr), parsed the way the game's reader does it: a keyword line plus any following lines that start with a quote.</summary>
+	/// <summary>
+	/// Parsed the way the game's reader (Localization.GetParameter) does it: a keyword line plus any
+	/// following lines that start with a quote, each stripped of its first and last character. A
+	/// quoted line shorter than two characters makes the game's reader throw and the whole file is
+	/// dropped, so it is reported here as a parse error; the header is read too, for the same reason.
+	/// </summary>
 	private static Dictionary<string, KeyValuePair<string, string>> ReadPo(string path)
 	{
 		var result = new Dictionary<string, KeyValuePair<string, string>>();
@@ -222,31 +237,34 @@ internal static class Program
 				continue;
 			}
 			if (line.StartsWith("msgctxt "))
-				ctx = Parameter(lines, ref i);
+				ctx = Parameter(path, lines, ref i);
 			else if (line.StartsWith("msgid "))
-				id = Parameter(lines, ref i);
+				id = Parameter(path, lines, ref i);
 			else if (line.StartsWith("msgstr "))
-				str = Parameter(lines, ref i);
+				str = Parameter(path, lines, ref i);
+			else if (line.StartsWith("\""))
+				throw new FormatException(Path.GetFileName(path) + " line " + (i + 1) + ": a quoted line that continues nothing (the game's reader skips it, so the entry before it is cut short)");
 		}
 		return result;
 	}
 
-	private static string Parameter(string[] lines, ref int i)
+	private static string Parameter(string path, string[] lines, ref int i)
 	{
 		string first = lines[i].TrimEnd('\r');
-		var text = new StringBuilder(Quoted(first.Substring(first.IndexOf(' ') + 1)));
+		var text = new StringBuilder(Quoted(path, i, first.Substring(first.IndexOf(' ') + 1)));
 		while (i + 1 < lines.Length && lines[i + 1].TrimEnd('\r').StartsWith("\""))
 		{
 			i++;
-			text.Append(Quoted(lines[i].TrimEnd('\r')));
+			text.Append(Quoted(path, i, lines[i].TrimEnd('\r')));
 		}
 		return Unescape(text.ToString());
 	}
 
-	private static string Quoted(string line)
+	private static string Quoted(string path, int i, string line)
 	{
-		line = line.Trim();
-		return line.Length >= 2 && line[0] == '"' && line[line.Length - 1] == '"' ? line.Substring(1, line.Length - 2) : line;
+		if (line.Length < 2 || line[0] != '"' || line[line.Length - 1] != '"')
+			throw new FormatException(Path.GetFileName(path) + " line " + (i + 1) + ": not a quoted string (the game's reader throws here and drops the whole file): " + line);
+		return line.Substring(1, line.Length - 2);
 	}
 
 	/// <summary>The game's rule: the set of distinct {…} tokens must be the same.</summary>
