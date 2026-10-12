@@ -35,6 +35,7 @@ Build with `dotnet build src/<ModName> -c Release`. A successful build deploys t
 | `ModDeployFolder` | Deploy destination; `none` disables deployment |
 | `ReferenceUnityUI` | Adds UnityEngine.UI, TextMeshPro, TextRenderingModule references |
 | `ReferenceImageConversion` | Adds UnityEngine.ImageConversionModule (PNG sprite loading) |
+| `UseTranslations` | Compiles `src/Translations.cs` into the mod and deploys its `translations/` folder (see Translations) |
 
 ## After a game update
 
@@ -45,6 +46,24 @@ Build with `dotnet build src/<ModName> -c Release`. A successful build deploys t
 
 - Targets **net48** — the game's own assemblies (including `0Harmony.dll`) target .NET Framework 4.8; net471 (old wiki guidance) silently drops references.
 - The game runs Unity 6 Mono, which supports default interface methods; don't validate mod DLLs by loading them on the desktop .NET Framework CLR (it rejects DIMs) — use a .NET 8 host instead.
+
+## Translations
+
+A mod's text lives in a `ModStrings` class whose nested classes mirror the game's `STRINGS` tree: `ModStrings.BUILDINGS.PREFABS.X.NAME` is registered as `STRINGS.BUILDINGS.PREFABS.X.NAME`, the key the game itself looks a building's name up by; mod-private text goes under its own branch, `ModStrings.MYMOD.SIDESCREEN.TITLE`. Every field is a `public static LocString`, and code reads the field when it needs the text (never into a const or a cached string). With `<UseTranslations>true</UseTranslations>` in the csproj, `src/Translations.cs` is compiled into the mod and `OnLoad` calls
+
+```csharp
+Translations.Register(harmony, typeof(ModStrings));   // optional third argument: a System.Action run after every language pass
+```
+
+which creates the keys, applies `translations/<locale>.po` from the mod folder (`zh.po`, `ko.po`, `ru.po`: the game's locale codes, the ones Klei ships; a Workshop language uses its own code) once from the saved language preference, so strings the game copies early are already translated, and again after `Localization.Initialize` with the locale the game settled on. Translated text goes into both the fields and the string table, so key lookups (`Strings.Get`, `LocString.ToString`, PLib `[Option("STRINGS.MYMOD.OPTIONS.X.NAME", ...)]` keys) agree with field reads. Entries whose `{n}` parameters or `<link>` tags differ from the English are refused, as the game does for its own files, and logged.
+
+The template comes from the built DLL, not the source, so the English in it is exactly what the player sees:
+
+```
+python tools/Translations/translations.py [mod-folder ...] [--build]
+```
+
+rewrites `src/<Mod>/translations/<Mod>.pot` for every mod with `UseTranslations` (or the ones named) and checks each `<locale>.po` there: missing, empty, stale (translating English the mod no longer says), obsolete and refused entries, plus every `[Option]` key that is not in the tree. Run it after changing strings and before a release; a po file is edited by hand or in Poedit, and the `translations/` folder ships in the zip.
 
 ## Releases
 
