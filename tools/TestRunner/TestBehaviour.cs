@@ -93,7 +93,8 @@ namespace Isochronous.TestRunner
 				+ ", mouse locked at " + KInputManager.lockedMousePos
 				+ "; sandbox " + Game.Instance.SandboxModeActive + ", sandbox menu " + (SandboxToolParameterMenu.instance != null)
 				+ ", plan screen " + (PlanScreen.Instance != null) + ", priority screen " + (ToolMenu.Instance != null && ToolMenu.Instance.PriorityScreen != null)
-				+ ", pop fx " + (PopFXManager.Instance != null));
+				+ ", pop fx " + (PopFXManager.Instance != null)
+				+ "; dialogs open: " + UnityEngine.Object.FindObjectsOfType<ConfirmDialogScreen>().Length);
 		}
 
 		private IEnumerator RunOne(TestCase test)
