@@ -39,6 +39,10 @@ import subprocess
 import sys
 import zipfile
 
+# Changelog text (any language) is printed and passed on the command line; the console code page is not UTF-8 by default.
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 UPLOADER = os.path.join(HERE, "..", "WorkshopUpload", "bin", "Release", "net8.0", "win-x64", "WorkshopUpload.exe")
 
