@@ -97,7 +97,14 @@ $managed = Join-Path (Get-GameFolder) 'OxygenNotIncluded_Data\Managed'
 $spacedOut = ([IO.File]::ReadAllText($prefs, $utf8) -match '(?m)^\s*EXPANSION1_ID\.ENABLED:\s*1')
 $dlc = if ($spacedOut) { 'EXPANSION1_ID' } else { '' }
 if (-not $Fixture) {
-    $Fixture = Join-Path $PSScriptRoot ('fixtures\' + $(if ($spacedOut) { 'testbed-so.sav' } else { 'testbed-base.sav' }))
+    # Fixture saves are not committed, so a submodule checkout of this repo has none: fall back to
+    # the workspace's own oni-mods-common checkout.
+    $name = 'fixtures\' + $(if ($spacedOut) { 'testbed-so.sav' } else { 'testbed-base.sav' })
+    foreach ($dir in $PSScriptRoot, (Join-Path $workspace 'oni-mods-common\tools\TestRunner')) {
+        $candidate = Join-Path $dir $name
+        if (Test-Path -LiteralPath $candidate) { $Fixture = $candidate; break }
+    }
+    if (-not $Fixture) { $Fixture = Join-Path $PSScriptRoot $name }
 }
 if (-not (Test-Path -LiteralPath $Fixture)) { throw "Fixture save not found: $Fixture (see fixtures/README.md)" }
 $header = [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($Fixture)[0..8191])
