@@ -20,6 +20,9 @@
   fixtures/testbed-base.sav (see fixtures/README.md).
 .PARAMETER With
   Extra mods to enable (local folder names), e.g. a mod the tests expect alongside.
+.PARAMETER BuildArgs
+  Extra arguments for the dotnet build of the test project (and so of the mod), e.g.
+  -BuildArgs '-p:PLibVersion=4.25.1','-p:RestoreAdditionalProjectSources=C:eed'.
 .PARAMETER KeepGame
   Leave the colony open when the tests are done; the script waits until the game is closed by hand.
 .PARAMETER TimeoutSec
@@ -38,6 +41,7 @@ param(
     [switch]$NoCheck,
     [switch]$KeepGame,
     [switch]$Trace,
+    [string[]]$BuildArgs = @(),
     [int]$TimeoutSec = 600,
     [int]$TestTimeoutSec = 60,
     [string]$Label = 'run',
@@ -134,7 +138,7 @@ if ($runDir -match '\s') { throw "The run folder path must not contain spaces (i
 foreach ($p in $projects) {
     if (-not $NoBuild) {
         Write-Host "Building $($p.Csproj)"
-        & dotnet build $p.Csproj -c Release -nologo -v q
+        & dotnet build $p.Csproj -c Release -nologo -v q @BuildArgs
         if ($LASTEXITCODE -ne 0) { Write-Host "Build failed for $($p.Mod)"; exit 3 }
     }
     if (-not (Test-Path -LiteralPath $p.Dll)) { throw "Test assembly not found after build: $($p.Dll)" }
