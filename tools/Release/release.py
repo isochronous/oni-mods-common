@@ -132,7 +132,8 @@ def main():
     ap.add_argument("--changenote", help="Workshop change note (default: the CHANGELOG.md section, or --notes)")
     a = ap.parse_args()
 
-    projects = glob.glob(os.path.join("src", "*", "*.csproj"))
+    # The mod's own project; a src/<Mod>.Tests project beside it is the in-game test suite.
+    projects = [p for p in glob.glob(os.path.join("src", "*", "*.csproj")) if not p.endswith(".Tests.csproj")]
     if len(projects) != 1:
         sys.exit("expected exactly one src/<Mod>/<Mod>.csproj under %s" % os.getcwd())
     project_dir = os.path.dirname(projects[0])
