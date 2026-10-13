@@ -92,6 +92,20 @@ namespace Isochronous.TestRunner
 	}
 
 	/// <summary>
+	/// A fixture with no Duplicants is a lost colony to the game: GameFlowManager's running state
+	/// checks every tick and shows the "colony lost" screen about half a minute after the load,
+	/// which would sit over the HUD for the rest of the session. No game over during a run.
+	/// </summary>
+	[HarmonyPatch(typeof(GameFlowManager.StatesInstance), nameof(GameFlowManager.StatesInstance.CheckForGameOver))]
+	public static class GameFlowManager_CheckForGameOver_Patch
+	{
+		public static bool Prefix()
+		{
+			return !Session.Active;
+		}
+	}
+
+	/// <summary>
 	/// The game drops every click and key while its window is not focused (KInputManager.isFocused
 	/// gates KButton clicks, queued events and the whole input update), and an unattended run has
 	/// the window wherever the desktop left it. Unity reports focus changes here; the run forces the

@@ -87,6 +87,23 @@ namespace Isochronous.TestKit
 			throw new SkipException(reason);
 		}
 
+		/// <summary>
+		/// Instant build on or off for the rest of the test (the harness runs with it on; off, a
+		/// tool queues construction orders the way a player's does). Restored at cleanup.
+		/// </summary>
+		public void InstantBuild(bool on)
+		{
+			bool was = DebugHandler.InstantBuildMode;
+			if (was == on)
+				return;
+			DebugHandler.ToggleInstantBuildMode();
+			Cleanup(() =>
+			{
+				if (DebugHandler.InstantBuildMode != was)
+					DebugHandler.ToggleInstantBuildMode();
+			});
+		}
+
 		/// <summary>n frames (Frames(1) resumes next frame).</summary>
 		public Wait Frames(int n)
 		{
