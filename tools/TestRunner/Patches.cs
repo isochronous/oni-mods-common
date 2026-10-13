@@ -110,6 +110,33 @@ namespace Isochronous.TestRunner
 	}
 
 	/// <summary>
+	/// The main menu reports the mod manager's events (a mod installed, updated, deactivated, a
+	/// restart requested) in a "mod events" dialog, with a restart button in dev mode. Every run
+	/// rebuilds a dev mod, so every run has events. During a run they go to the log instead, under
+	/// the session tag, and the dialog never opens.
+	/// </summary>
+	[HarmonyPatch(typeof(KMod.Manager), nameof(KMod.Manager.Report))]
+	public static class Manager_Report_Patch
+	{
+		public static bool Prefix(KMod.Manager __instance)
+		{
+			if (!Session.Active)
+				return true;
+			foreach (KMod.Event e in __instance.events)
+			{
+				string line = Session.Tag + "mod event: " + e.event_type + " for " + e.mod.title + " (" + e.mod.id + ")"
+					+ (string.IsNullOrEmpty(e.details) ? "" : ": " + e.details);
+				if (e.event_type == KMod.EventType.LoadError || e.event_type == KMod.EventType.ActiveDuringCrash)
+					Debug.LogWarning(line);
+				else
+					Debug.Log(line);
+			}
+			__instance.events.Clear();
+			return false;
+		}
+	}
+
+	/// <summary>
 	/// A fixture with no Duplicants is a lost colony to the game: GameFlowManager's running state
 	/// checks every tick and shows the "colony lost" screen about half a minute after the load,
 	/// which would sit over the HUD for the rest of the session. No game over during a run.
