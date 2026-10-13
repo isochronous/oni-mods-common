@@ -27,7 +27,10 @@ namespace Isochronous.TestKit
 			if (def == null)
 				throw new OniAssertException("no building def named " + prefabId);
 			var elements = new List<Tag> { element.CreateTag() };
-			if (!def.IsValidPlaceLocation(def.BuildingComplete, cell, orientation, out string reason))
+			// No source object: with the prefab, the port check (AreLogicPortsInValidPositions) refreshes the
+			// prefab's port visualizers at the prefab's own position, and the next prefab checked collides with
+			// them ("Automation ports cannot overlap"). The tool layer validates ports through the real visualizer.
+			if (!def.IsValidPlaceLocation(null, cell, orientation, out string reason))
 				throw new OniAssertException("cannot place " + prefabId + " at " + Cells.Describe(cell) + ": " + reason);
 			float temperature = Mathf.Min(def.Temperature, ElementLoader.GetMinMeltingPointAmongElements(elements) - 10f);
 			GameObject go = def.Build(cell, orientation, null, elements, temperature, playsound: false, timeBuilt: GameClock.Instance.GetTime());
