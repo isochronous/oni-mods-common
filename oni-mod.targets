@@ -51,6 +51,11 @@
       <HintPath>$(GameLibsFolder)\UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Canvas, RectTransformUtility and the rest of the canvas types are forwarded here. -->
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(GameLibsFolder)\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(ReferenceImageConversion)' == 'true'">
