@@ -74,8 +74,10 @@
   <PropertyGroup Condition="'$(UsePLib)' == 'true'">
     <PLibVersion Condition="'$(PLibVersion)' == ''">4.25.0</PLibVersion>
   </PropertyGroup>
+  <!-- PrivateAssets: the package is merged into the mod, so a project referencing the mod
+       (its tests) must see PLib's types only through the merged copy. -->
   <ItemGroup Condition="'$(UsePLib)' == 'true' And '$(PLibDll)' == ''">
-    <PackageReference Include="PLib" Version="$(PLibVersion)" />
+    <PackageReference Include="PLib" Version="$(PLibVersion)" PrivateAssets="all" />
   </ItemGroup>
   <!-- PLibDll=path: build against a PLib assembly on disk instead of the package, to try a
        modified PLib. The game's own netstandard 2.1 facade goes with it, since a netstandard
