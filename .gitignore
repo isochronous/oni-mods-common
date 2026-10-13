@@ -12,4 +12,4 @@ tools/SaveRunner/runs/
 
 # TestRunner run output and fixture saves (game logs, result files, copies of saves)
 tools/TestRunner/runs/
-tools/TestRunner/fixtures/*.sav
+# (fixture saves are tracked: tools/TestRunner/fixtures/*.sav is the permanent copy of the test map)
