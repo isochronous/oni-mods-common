@@ -70,7 +70,7 @@ namespace Isochronous.TestKit
 		{
 			if (cells == null || cells.Length == 0)
 				throw new ArgumentException("a path needs at least one cell");
-			yield return null;
+			yield return PrimeBuildMenu(t);
 			Tool.OnMouseMove(Pos(cells[0]));
 			yield return null;
 			Tool.OnLeftClickDown(Pos(cells[0]));
@@ -106,10 +106,33 @@ namespace Isochronous.TestKit
 			yield return null;
 		}
 
+		/// <summary>
+		/// A player reaches a build tool through the build menu, whose product info screen has
+		/// then been shown once; that first showing runs its Awake, which creates the material
+		/// selection panel that BuildPath reads the build priority from after queuing an order
+		/// (PlanScreen.GetBuildingPriority, a one-liner Mono inlines, so the NullReferenceException
+		/// it throws otherwise is reported inside BuildPath). Activating a tool directly skips the
+		/// menu, so the screen is woken once here: shown for a frame, so its spawn runs as it would
+		/// behind the menu, then hidden again.
+		/// </summary>
+		internal static IEnumerator PrimeBuildMenu(TestContext t)
+		{
+			ProductInfoScreen screen = PlanScreen.Instance != null ? PlanScreen.Instance.ProductInfoScreen : null;
+			if (screen == null || screen.materialSelectionPanel != null)
+			{
+				yield return null;
+				yield break;
+			}
+			screen.gameObject.SetActive(true);
+			yield return null;
+			screen.gameObject.SetActive(false);
+			t.Log("woke the product info screen once, as the build menu would have (material panel " + (screen.materialSelectionPanel != null) + ")");
+		}
+
 		/// <summary>A player's fast swipe: one mouse move from the first cell to the last; the tool samples the cells in between itself.</summary>
 		public IEnumerator Sweep(int from, int to)
 		{
-			yield return null;
+			yield return PrimeBuildMenu(t);
 			Tool.OnMouseMove(Pos(from));
 			yield return null;
 			Tool.OnLeftClickDown(Pos(from));
