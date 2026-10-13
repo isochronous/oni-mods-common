@@ -92,6 +92,24 @@ namespace Isochronous.TestRunner
 	}
 
 	/// <summary>
+	/// The fixture was saved with the player's own loadout, and a run's is always different, so
+	/// the game would list the differences in a "mod differences" dialog over the HUD for the
+	/// whole session (in the way of any screenshot). The comparison only records events for
+	/// that dialog, and the loadout is the launcher's own, so it is skipped during a run.
+	/// </summary>
+	[HarmonyPatch(typeof(KMod.Manager), nameof(KMod.Manager.MatchFootprint))]
+	public static class Manager_MatchFootprint_Patch
+	{
+		public static bool Prefix(ref bool __result)
+		{
+			if (!Session.Active)
+				return true;
+			__result = true;
+			return false;
+		}
+	}
+
+	/// <summary>
 	/// A fixture with no Duplicants is a lost colony to the game: GameFlowManager's running state
 	/// checks every tick and shows the "colony lost" screen about half a minute after the load,
 	/// which would sit over the HUD for the rest of the session. No game over during a run.
