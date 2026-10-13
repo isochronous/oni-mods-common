@@ -133,11 +133,17 @@ namespace Isochronous.TestKit
 			}
 		}
 
+		/// <summary>The preview tints plus what sits on the def's layers at each path cell, for the log.</summary>
 		private string DescribePreview()
 		{
 			var parts = new List<string>();
 			foreach (KeyValuePair<int, Color> pair in previewTints)
-				parts.Add(pair.Key + "=" + (pair.Value == Color.white ? "white" : pair.Value == Color.red ? "red" : pair.Value.ToString()));
+			{
+				GameObject onLayer = Grid.Objects[pair.Key, (int)Def.ObjectLayer];
+				GameObject onTile = Def.TileLayer == ObjectLayer.NumLayers ? null : Grid.Objects[pair.Key, (int)Def.TileLayer];
+				parts.Add(pair.Key + "=" + (pair.Value == Color.white ? "white" : pair.Value == Color.red ? "red" : pair.Value.ToString())
+					+ (onLayer != null ? " layer:" + onLayer.name : "") + (onTile != null ? " tile:" + onTile.name + (onTile.GetComponent<PrimaryElement>() == null ? "(no PrimaryElement)" : "") : ""));
+			}
 			return parts.Count == 0 ? "(no nodes)" : string.Join(", ", parts);
 		}
 
