@@ -50,7 +50,11 @@ $Mods = @($Mods | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() 
 $With = @($With | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 
 $commonRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$workspace = (Resolve-Path (Join-Path $commonRoot '..')).Path
+# The workspace holds every mod repo and the oni-mods-common checkout; this script may be running
+# from a mod's common/ submodule, one level deeper, so walk up until oni-mods-common is a sibling.
+$workspace = $commonRoot
+while ($workspace -and -not (Test-Path (Join-Path $workspace 'oni-mods-common'))) { $workspace = Split-Path $workspace -Parent }
+if (-not $workspace) { $workspace = (Resolve-Path (Join-Path $commonRoot '..')).Path }
 $klei = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Klei\OxygenNotIncluded'
 $modsJson = Join-Path $klei 'mods\mods.json'
 $prefs = Join-Path $klei 'kplayerprefs.yaml'
