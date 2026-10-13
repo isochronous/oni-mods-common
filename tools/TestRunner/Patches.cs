@@ -110,10 +110,10 @@ namespace Isochronous.TestRunner
 	}
 
 	/// <summary>
-	/// The main menu reports the mod manager's events (a mod installed, updated, deactivated, a
-	/// restart requested) in a "mod events" dialog, with a restart button in dev mode. Every run
-	/// rebuilds a dev mod, so every run has events. During a run they go to the log instead, under
-	/// the session tag, and the dialog never opens.
+	/// The main menu reports what the mod manager noticed at boot (a Workshop mod installed,
+	/// removed or updated, a mod deactivated, a restart requested) in a "mod events" dialog, with
+	/// a restart button in dev mode. During a run they go to the log instead, under the session
+	/// tag, and the dialog never opens.
 	/// </summary>
 	[HarmonyPatch(typeof(KMod.Manager), nameof(KMod.Manager.Report))]
 	public static class Manager_Report_Patch
