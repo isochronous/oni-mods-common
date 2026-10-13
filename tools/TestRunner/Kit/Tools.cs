@@ -74,7 +74,7 @@ namespace Isochronous.TestKit
 			Tool.OnMouseMove(Pos(cells[0]));
 			yield return null;
 			Tool.OnLeftClickDown(Pos(cells[0]));
-			t.Log("drag down at " + World.Describe(cells[0]));
+			t.Log("drag down at " + Cells.Describe(cells[0]));
 			for (int i = 1; i < cells.Length; i++)
 			{
 				yield return null;
@@ -84,7 +84,7 @@ namespace Isochronous.TestKit
 			yield return null;
 			SnapshotPreview();
 			Tool.OnLeftClickUp(Pos(cells[cells.Length - 1]));
-			t.Log("drag up at " + World.Describe(cells[cells.Length - 1]) + "; preview " + DescribePreview());
+			t.Log("drag up at " + Cells.Describe(cells[cells.Length - 1]) + "; preview " + DescribePreview());
 			yield return null;
 		}
 
@@ -101,7 +101,7 @@ namespace Isochronous.TestKit
 			yield return null;
 			SnapshotPreview();
 			Tool.OnLeftClickUp(Pos(to));
-			t.Log("sweep from " + World.Describe(from) + " to " + World.Describe(to) + "; preview " + DescribePreview());
+			t.Log("sweep from " + Cells.Describe(from) + " to " + Cells.Describe(to) + "; preview " + DescribePreview());
 			yield return null;
 		}
 

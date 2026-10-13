@@ -28,10 +28,10 @@ namespace Isochronous.TestKit
 				throw new OniAssertException("no building def named " + prefabId);
 			var elements = new List<Tag> { element.CreateTag() };
 			if (!def.IsValidPlaceLocation(def.BuildingComplete, cell, orientation, out string reason))
-				throw new OniAssertException("cannot place " + prefabId + " at " + Describe(cell) + ": " + reason);
+				throw new OniAssertException("cannot place " + prefabId + " at " + Cells.Describe(cell) + ": " + reason);
 			float temperature = Mathf.Min(def.Temperature, ElementLoader.GetMinMeltingPointAmongElements(elements) - 10f);
 			GameObject go = def.Build(cell, orientation, null, elements, temperature, playsound: false, timeBuilt: GameClock.Instance.GetTime());
-			t.Log("built " + prefabId + " at " + Describe(cell) + (orientation != Orientation.Neutral ? " rotated " + orientation : ""));
+			t.Log("built " + prefabId + " at " + Cells.Describe(cell) + (orientation != Orientation.Neutral ? " rotated " + orientation : ""));
 			return go;
 		}
 
@@ -59,6 +59,12 @@ namespace Isochronous.TestKit
 			return Game.Instance.logicCircuitSystem.GetConnections(cell, is_physical_building: true);
 		}
 
+	}
+
+	/// <summary>Cell helpers for messages; a separate class because the game has a World type of its own that wins in a test's namespace.</summary>
+	public static class Cells
+	{
+		/// <summary>"1234 (x, y)".</summary>
 		public static string Describe(int cell)
 		{
 			Grid.CellToXY(cell, out int x, out int y);
