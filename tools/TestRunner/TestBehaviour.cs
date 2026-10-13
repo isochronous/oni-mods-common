@@ -90,7 +90,10 @@ namespace Isochronous.TestRunner
 			Harness.ForceFocus();
 			Debug.Log(Session.Tag + "fixture area " + FixtureArea.Current + ", focus " + KInputManager.isFocused
 				+ ", instant build " + DebugHandler.InstantBuildMode + ", paused " + SpeedControlScreen.Instance.IsPaused
-				+ ", mouse locked at " + KInputManager.lockedMousePos);
+				+ ", mouse locked at " + KInputManager.lockedMousePos
+				+ "; sandbox " + Game.Instance.SandboxModeActive + ", sandbox menu " + (SandboxToolParameterMenu.instance != null)
+				+ ", plan screen " + (PlanScreen.Instance != null) + ", priority screen " + (ToolMenu.Instance != null && ToolMenu.Instance.PriorityScreen != null)
+				+ ", pop fx " + (PopFXManager.Instance != null));
 		}
 
 		private IEnumerator RunOne(TestCase test)
