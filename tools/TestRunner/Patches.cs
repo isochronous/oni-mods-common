@@ -1,0 +1,120 @@
+using System.IO;
+using HarmonyLib;
+using UnityEngine;
+
+namespace Isochronous.TestRunner
+{
+	/// <summary>
+	/// At the main menu: note the time. The load itself waits a few seconds (see the watchdog below)
+	/// so the menu's popups have finished laying out before the scene is torn down.
+	/// </summary>
+	[HarmonyPatch(typeof(MainMenu), "OnSpawn")]
+	public static class MainMenu_OnSpawn_Patch
+	{
+		public static void Postfix()
+		{
+			if (Session.Active && !Session.Started && Session.MenuSeenAt < 0f)
+				Session.MenuSeenAt = Time.realtimeSinceStartup;
+		}
+	}
+
+	/// <summary>The colony is up: attach the driver to the Game object.</summary>
+	[HarmonyPatch(typeof(Game), "OnSpawn")]
+	public static class Game_OnSpawn_Patch
+	{
+		public static void Postfix(Game __instance)
+		{
+			if (!Session.Active || !Session.Started || Session.Finished)
+				return;
+			Debug.Log(Session.Tag + "colony loaded after " + (Time.realtimeSinceStartup - Session.StartedAt).ToString("F0") + " s real time");
+			__instance.gameObject.AddComponent<TestBehaviour>();
+		}
+	}
+
+	/// <summary>Whoever quits the game during a run says so in the log, with a stack.</summary>
+	[HarmonyPatch(typeof(App), nameof(App.Quit))]
+	public static class App_Quit_Patch
+	{
+		public static void Prefix()
+		{
+			if (Session.Active)
+				Debug.Log(Session.Tag + "App.Quit called" + (Session.Finished ? " by the runner" : " by someone else:\n" + System.Environment.StackTrace));
+		}
+	}
+
+	/// <summary>
+	/// Nothing written to disk while a run is on (no autosave, no save on quit, no colony summary)
+	/// except under the run directory, where a round-trip test may save.
+	/// </summary>
+	[HarmonyPatch(typeof(SaveLoader), nameof(SaveLoader.Save), typeof(string), typeof(bool), typeof(bool))]
+	public static class SaveLoader_Save_Patch
+	{
+		public static bool Prefix(string filename, ref string __result)
+		{
+			if (!Session.Active)
+				return true;
+			if (filename != null && Path.GetFullPath(filename).StartsWith(Path.GetFullPath(Session.Dir), System.StringComparison.OrdinalIgnoreCase))
+				return true;
+			Debug.Log(Session.Tag + "blocked a save to " + filename);
+			__result = filename;
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// Runs in every scene: starts the load once the main menu has settled, the way the Load screen
+	/// does it minus its dialogs, and calls a session that takes too long in real time a hang.
+	/// </summary>
+	[HarmonyPatch(typeof(App), "LateUpdate")]
+	public static class App_LateUpdate_Patch
+	{
+		private const float MenuSettleSeconds = 4f;
+
+		public static void Postfix()
+		{
+			if (!Session.Active || Session.Finished)
+				return;
+			if (!Session.Started && Session.MenuSeenAt >= 0f && Time.realtimeSinceStartup - Session.MenuSeenAt >= MenuSettleSeconds)
+			{
+				Session.Started = true;
+				if (!File.Exists(Session.SavePath))
+				{
+					Session.Finish("no-save", "file not found: " + Session.SavePath);
+					return;
+				}
+				Debug.Log(Session.Tag + "loading " + Session.SavePath);
+				LoadScreen.DoLoad(Session.SavePath);
+				return;
+			}
+			if (Time.realtimeSinceStartup - Session.StartedAt > Session.TimeoutSeconds)
+				Session.Finish("timeout", "no end of session after " + Session.TimeoutSeconds + " s real time");
+		}
+	}
+
+	/// <summary>
+	/// The game drops every click and key while its window is not focused (KInputManager.isFocused
+	/// gates KButton clicks, queued events and the whole input update), and an unattended run has
+	/// the window wherever the desktop left it. Unity reports focus changes here; the run forces the
+	/// flag back on after each one.
+	/// </summary>
+	[HarmonyPatch(typeof(KInputManager), nameof(KInputManager.OnApplicationFocus))]
+	public static class KInputManager_OnApplicationFocus_Patch
+	{
+		public static void Postfix()
+		{
+			if (Session.Active && Session.Started)
+				Harness.ForceFocus();
+		}
+	}
+
+	/// <summary>Same for the per-tool flag that gates InterfaceTool.OnMouseMove's visualizer move and the hover update.</summary>
+	[HarmonyPatch(typeof(InterfaceTool), "OnApplicationFocus")]
+	public static class InterfaceTool_OnApplicationFocus_Patch
+	{
+		public static void Postfix(InterfaceTool __instance)
+		{
+			if (Session.Active && Session.Started)
+				Reflect.SetAppFocused(__instance, true);
+		}
+	}
+}

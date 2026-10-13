@@ -1,0 +1,3 @@
+title: "Test Runner (dev tool)"
+description: "Runs in-game tests of the isochronous mods when the game is started with --onitest-dir=DIR: loads a fixture save from the main menu, runs every [OniTest] coroutine found in DIR/tests, writes results and quits. Does nothing otherwise. Not for the Workshop."
+staticID: "Isochronous.TestRunner"

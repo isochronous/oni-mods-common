@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\oni-mod.props" />
+
+  <PropertyGroup>
+    <AssemblyName>TestRunner</AssemblyName>
+    <RootNamespace>Isochronous.TestRunner</RootNamespace>
+    <Version>0.1.0</Version>
+    <ReferenceUnityUI>true</ReferenceUnityUI>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\oni-mod.targets" />
+
+</Project>

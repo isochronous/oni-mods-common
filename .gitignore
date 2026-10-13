@@ -9,3 +9,7 @@ tools/WorldgenDriver/runs/
 
 # SaveRunner run output (save copies, probe readings, game logs)
 tools/SaveRunner/runs/
+
+# TestRunner run output and fixture saves (game logs, result files, copies of saves)
+tools/TestRunner/runs/
+tools/TestRunner/fixtures/*.sav
