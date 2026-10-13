@@ -90,7 +90,16 @@ namespace Isochronous.TestKit
 			}
 			catch (Exception)
 			{
-				t.Log("the up threw; cells now: " + DescribePreview());
+				t.Log("the up threw; cells now: " + DescribePreview() + "; instant build " + DebugHandler.InstantBuildMode + ", sandbox " + Game.Instance.SandboxModeActive);
+				foreach (int cell in cells)
+				{
+					GameObject onTile = Def.TileLayer == ObjectLayer.NumLayers ? null : Grid.Objects[cell, (int)Def.TileLayer];
+					if (onTile == null)
+						continue;
+					PrimaryElement pe = onTile.GetComponent<PrimaryElement>();
+					t.Log("tile occupant at " + Cells.Describe(cell) + ": " + onTile.name + ", PrimaryElement " + (pe == null ? "missing" : pe.ElementID + " -> " + (pe.Element == null ? "no Element" : pe.Element.id.ToString()))
+						+ ", BuildingComplete " + (onTile.GetComponent<BuildingComplete>() != null) + ", Constructable " + (onTile.GetComponent<Constructable>() != null));
+				}
 				throw;
 			}
 			t.Log("drag up at " + Cells.Describe(cells[cells.Length - 1]) + "; preview " + DescribePreview());
