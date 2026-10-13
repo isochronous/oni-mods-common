@@ -1,0 +1,4 @@
+# Workshop items Test-OniMods.ps1 always enables, on top of the mods under test: one item id
+# per line, # for comments. For quality-of-life mods that make testing easier (a wider zoom
+# out, sandbox tools). An item must be subscribed; one the game has not registered yet is
+# downloaded and registered for the run, as with -Steam.

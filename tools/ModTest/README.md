@@ -12,7 +12,9 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
   that is every folder under `mods/local` with a `mod.yaml`, minus the names in `disabled.txt` next
   to the script (one per line, `#` for comments): third-party local mods such as Fast Track, retired
   ones such as Refined Building, and personal ones that will not be published. `-Mods` replaces the
-  default list.
+  default list. Workshop items listed in `included.txt` next to the script (one id per line) are
+  always enabled too, for quality-of-life mods that make testing easier (a wider zoom out, sandbox
+  tools); `-Steam` adds more for one run.
 - Registers local mod folders the game has not seen yet (a freshly built mod), using the game's own
   folder-name hash as the entry version so the first launch does not ask for a restart.
 - Launches through Steam, waits for the game to exit (surviving a mod-triggered restart), then puts

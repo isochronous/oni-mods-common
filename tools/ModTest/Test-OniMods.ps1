@@ -25,7 +25,8 @@
   Workshop item ids to enable as well, e.g. -Steam 3816086407. The item must be subscribed. One the
   game has not registered yet (subscribed since its last launch) is downloaded through the Steam
   client with tools/WorkshopUpload, unpacked into mods/Steam/<id> and given a mods.json entry, the
-  way the game itself installs it at launch.
+  way the game itself installs it at launch. The ids in included.txt next to this script are
+  always added (quality-of-life mods for testing).
 .PARAMETER KeepDumps
   Keep the oni-data-dump.*.json files the data-dump mod writes during the session. By default they are
   deleted when the game exits, along with the mods.json backup once it has been restored.
@@ -59,6 +60,13 @@ function Split-List([string[]]$values) { @($values | ForEach-Object { $_ -split 
 if ($PSBoundParameters.ContainsKey('Mods')) { $Mods = @(Split-List $Mods) }
 $Omit = @(Split-List $Omit)
 $Steam = @(Split-List $Steam)
+# Workshop items always enabled for a session (quality-of-life mods: a wider zoom out, sandbox
+# tools): included.txt next to this script, one item id per line, # for comments.
+$includedFile = Join-Path $PSScriptRoot 'included.txt'
+if (Test-Path -LiteralPath $includedFile) {
+    $included = @(Get-Content -LiteralPath $includedFile | ForEach-Object { ($_ -replace '#.*$', '').Trim() } | Where-Object { $_ })
+    foreach ($id in $included) { if ($Steam -notcontains $id) { $Steam += $id } }
+}
 
 # --- self-contained helpers -------------------------------------------------------------------
 $OniAppId    = 457140
