@@ -9,6 +9,14 @@
     <ReferenceUnityUI>true</ReferenceUnityUI>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- t.Screenshot: ScreenCapture.CaptureScreenshot -->
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <HintPath>$(GameLibsFolder)\UnityEngine.ScreenCaptureModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
   <Import Project="$(MSBuildThisFileDirectory)..\..\oni-mod.targets" />
 
 </Project>

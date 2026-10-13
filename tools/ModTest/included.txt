@@ -2,3 +2,19 @@
 # per line, # for comments. For quality-of-life mods that make testing easier (a wider zoom
 # out, sandbox tools). An item must be subscribed; one the game has not registered yet is
 # downloaded and registered for the run, as with -Steam.
+# bigger camera zoom out
+1717463209
+# sandbox tools
+1928837153
+# geyser control
+3369395347
+# adaptive building menu
+3724635599
+# blueprints expanded
+3468585385
+# better info cards
+1960947963
+# better automation overlay
+1878896484
+# sweep by type
+1863428350

@@ -104,6 +104,24 @@ namespace Isochronous.TestKit
 			});
 		}
 
+		/// <summary>
+		/// A PNG of the whole screen, written to the run's artifacts folder as
+		/// &lt;class&gt;.&lt;method&gt;-&lt;name&gt;.png and listed in the result; never an oracle, something
+		/// to look at. Yield it: the capture happens at the end of the frame.
+		/// </summary>
+		public Wait Screenshot(string name)
+		{
+			string dir = System.IO.Path.Combine(Isochronous.TestRunner.Session.Dir, "artifacts");
+			System.IO.Directory.CreateDirectory(dir);
+			string file = System.IO.Path.Combine(dir, Id.Replace('/', '.') + "-" + name + ".png");
+			ScreenCapture.CaptureScreenshot(file, 1);
+			Artifacts.Add(file);
+			Log("screenshot " + file);
+			return new FrameWait(3);
+		}
+
+		internal readonly List<string> Artifacts = new List<string>();
+
 		/// <summary>n frames (Frames(1) resumes next frame).</summary>
 		public Wait Frames(int n)
 		{
