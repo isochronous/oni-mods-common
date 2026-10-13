@@ -34,6 +34,8 @@ namespace Isochronous.TestRunner
 		public static double TimeoutSeconds = 600;
 		public static double TestTimeoutSeconds = 60;
 		public static bool Keep;
+		/// <summary>--onitest-trace=1: log the grid marks the game makes during tests (Diagnostics.cs).</summary>
+		public static bool Trace;
 		public static float StartedAt;
 		/// <summary>Real time the main menu appeared, or -1 before that.</summary>
 		public static float MenuSeenAt = -1f;
@@ -68,6 +70,7 @@ namespace Isochronous.TestRunner
 					case "--onitest-timeout": if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double t) && t > 0) TimeoutSeconds = t; break;
 					case "--onitest-test-timeout": if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double tt) && tt > 0) TestTimeoutSeconds = tt; break;
 					case "--onitest-keep": Keep = value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase); break;
+					case "--onitest-trace": Trace = value == "1"; break;
 				}
 			}
 			Active = !string.IsNullOrEmpty(Dir) && !string.IsNullOrEmpty(SavePath);

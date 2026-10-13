@@ -37,6 +37,7 @@ param(
     [switch]$NoBuild,
     [switch]$NoCheck,
     [switch]$KeepGame,
+    [switch]$Trace,
     [int]$TimeoutSec = 600,
     [int]$TestTimeoutSec = 60,
     [string]$Label = 'run',
@@ -220,6 +221,7 @@ try {
     $gameArgs = @('-applaunch', "$AppId", "--onitest-dir=$runDir", "--onitest-save=$fixtureCopy", "--onitest-timeout=$TimeoutSec", "--onitest-test-timeout=$TestTimeoutSec")
     if ($Filter) { $gameArgs += "--onitest-filter=$Filter" }
     if ($KeepGame) { $gameArgs += '--onitest-keep=1' }
+    if ($Trace) { $gameArgs += '--onitest-trace=1' }
     Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $Fixture"
     Write-Host "Launching: $($gameArgs -join ' ')"
     Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
