@@ -83,6 +83,7 @@ namespace Isochronous.TestKit
 			yield return null;
 			yield return null;
 			SnapshotPreview();
+			t.Log("before the up at " + Cells.Describe(cells[cells.Length - 1]) + ": " + DescribePreview());
 			Tool.OnLeftClickUp(Pos(cells[cells.Length - 1]));
 			t.Log("drag up at " + Cells.Describe(cells[cells.Length - 1]) + "; preview " + DescribePreview());
 			yield return null;
