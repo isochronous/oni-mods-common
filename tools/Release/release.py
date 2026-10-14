@@ -12,8 +12,9 @@ What it does:
   3. Builds src/<Mod> in Release (without deploying to the local mods folder).
   4. Stages publish/content from the build (DLL, mod.yaml, mod_info.yaml, anim/, assets/,
      and publish/preview.png or preview.jpg as preview.png, scaled down to at most 512 px) and zips it to publish/<Mod>.zip.
-     The zip has the mod files at its root: the layout the game and the Workshop expect.
-  5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached.
+     The zip has the mod files at its root: the layout the Workshop expects.
+  5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached:
+     the same files inside a <Mod>/ folder, so it unzips straight into mods/Local.
   6. If the mod is on the Steam Workshop, uploads the same zip, the preview (publish/preview.gif
      when it exists, an animated preview Steam plays on the page; else the png) and
      publish/workshop-description.txt and the tags in publish/workshop-tags.txt to its item (legacy API, via tools/WorkshopUpload;
@@ -28,7 +29,7 @@ from "## Unreleased") is the GitHub release body and, with the version on top, t
 change note. Without one the release is refused, unless --notes is given; --notes and
 --changenote override either.
 
---dry-run stops after step 4, so it doubles as "just rebuild the zip".
+--dry-run stops after step 4 (both zips built), so it doubles as "just rebuild the zips".
 """
 import argparse
 import glob
@@ -72,6 +73,17 @@ def find_workshop_id(repo="."):
         if match and match.group(2).strip().lower() == title.strip().lower():
             return match.group(1), "listed"
     return None, "unlisted"
+
+
+def pack(content, zip_path, folder=None):
+    """Zips the staged mod files, at the zip's root or inside <folder>/."""
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for root, _, files in os.walk(content):
+            for f in sorted(files):
+                path = os.path.join(root, f)
+                name = os.path.relpath(path, content).replace(os.sep, "/")
+                z.write(path, folder + "/" + name if folder else name)
+        print("packaged %s: %s" % (zip_path, ", ".join(z.namelist())))
 
 
 def changelog_section(version, path="CHANGELOG.md"):
@@ -190,12 +202,11 @@ def main():
             shutil.copy(preview, staged_preview)
 
     zip_path = os.path.join("publish", mod + ".zip")
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
-        for root, _, files in os.walk(content):
-            for f in sorted(files):
-                path = os.path.join(root, f)
-                z.write(path, os.path.relpath(path, content).replace(os.sep, "/"))
-        print("packaged %s: %s" % (zip_path, ", ".join(z.namelist())))
+    pack(content, zip_path)
+    # The GitHub release zip: the same files in a folder named after the mod, so it unzips
+    # straight into the game's mods/Local folder as a local mod.
+    asset = os.path.join("publish", "%s-%s.zip" % (mod, version))
+    pack(content, asset, folder=mod)
     if a.dry_run:
         return
 
@@ -207,8 +218,6 @@ def main():
     # with the file as it was then.
     previous = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
                               text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
-    asset = os.path.join("publish", "%s-%s.zip" % (mod, version))
-    shutil.copy(zip_path, asset)
     try:
         run("git", "tag", "-a", tag, "-m", "%s %s" % (mod, version))
         run("git", "push", "origin", tag)
