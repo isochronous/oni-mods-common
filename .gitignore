@@ -13,3 +13,6 @@ tools/SaveRunner/runs/
 # TestRunner run output and fixture saves (game logs, result files, copies of saves)
 tools/TestRunner/runs/
 # (fixture saves are tracked: tools/TestRunner/fixtures/*.sav is the permanent copy of the test map)
+
+# Graystroke (free on DaFont, no licence text to redistribute it under): kept locally
+tools/MakePreview/fonts/GRAYSTROKE*
