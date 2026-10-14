@@ -20,6 +20,9 @@
   fixtures/testbed-base.sav (see fixtures/README.md).
 .PARAMETER With
   Extra mods to enable (local folder names), e.g. a mod the tests expect alongside.
+.PARAMETER Steam
+  Workshop mods to enable as well, by item id, e.g. -Steam 3724635599 to run the tests alongside
+  another author's mod the player uses. The item must already be installed (in mods.json).
 .PARAMETER BuildArgs
   Extra arguments for the dotnet build of the test project (and so of the mod), e.g.
   -BuildArgs '-p:PLibVersion=4.25.1','-p:RestoreAdditionalProjectSources=C:eed'.
@@ -37,6 +40,7 @@ param(
     [string]$Filter = '',
     [string]$Fixture = '',
     [string[]]$With = @(),
+    [string[]]$Steam = @(),
     [switch]$NoBuild,
     [switch]$NoCheck,
     [switch]$KeepGame,
@@ -53,6 +57,7 @@ $ErrorActionPreference = 'Stop'
 # Started with pwsh -File, a comma-separated argument arrives as one string: split the list parameters.
 $Mods = @($Mods | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $With = @($With | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$Steam = @($Steam | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 
 $commonRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 # The workspace holds every mod repo and the oni-mods-common checkout; this script may be running
@@ -180,10 +185,19 @@ function Set-Mods {
             # A rebuilt local mod is left ReinstallPending (3) by the game; the boot-time reinstall
             # then blocks the main menu. Installed (1) makes the game just load it.
             $m.status = 1; $m.reinstall_path = $null
+        } elseif ($m.label.distribution_platform -ne 0 -and $Steam -contains $id) {
+            # A Workshop item, enabled as the game has it installed.
+            $seen["steam:$id"] = $true
+            $m.enabled = $true
+            $m.enabledForDlc = @($dlc)
+            $m.crash_count = 0
         } else {
             $m.enabled = $false
             $m.enabledForDlc = @()
         }
+    }
+    foreach ($id in $Steam) {
+        if (-not $seen["steam:$id"]) { throw "Workshop mod $id is not installed (not in mods.json)." }
     }
     $list = New-Object System.Collections.ArrayList
     foreach ($m in $json.mods) { [void]$list.Add($m) }
@@ -226,7 +240,7 @@ try {
     if ($Filter) { $gameArgs += "--onitest-filter=$Filter" }
     if ($KeepGame) { $gameArgs += '--onitest-keep=1' }
     if ($Trace) { $gameArgs += '--onitest-trace=1' }
-    Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $Fixture"
+    Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Steam) { ' + Workshop ' + ($Steam -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $Fixture"
     Write-Host "Launching: $($gameArgs -join ' ')"
     Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
     $proc = $null
