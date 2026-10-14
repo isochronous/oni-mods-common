@@ -43,6 +43,17 @@ namespace Isochronous.TestRunner
 			KInputManager.isMousePosLocked = true;
 		}
 
+		/// <summary>
+		/// The locked mouse in the bottom right corner of the screen, where no hover card or tool
+		/// visualizer it raises covers what a test looks at or captures. Tests that need the cursor
+		/// somewhere call TestContext.PointAt.
+		/// </summary>
+		public static void ParkMouse()
+		{
+			KInputManager.lockedMousePos = new Vector3(Screen.width - 1, 0f, 0f);
+			KInputManager.isMousePosLocked = true;
+		}
+
 		/// <summary>Instant build the way the debug key does it, so the tools' configs and the plan screen follow.</summary>
 		public static void EnsureInstantBuild()
 		{

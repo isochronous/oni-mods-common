@@ -105,6 +105,15 @@ namespace Isochronous.TestKit
 		}
 
 		/// <summary>
+		/// The locked mouse over the cell, for a test that needs the cursor or its hover card there.
+		/// The harness parks it in the screen's bottom right corner again after the test.
+		/// </summary>
+		public void PointAt(int cell)
+		{
+			Isochronous.TestRunner.Harness.LockMouse(cell);
+		}
+
+		/// <summary>
 		/// A PNG of the whole screen, written to the run's artifacts folder as
 		/// &lt;class&gt;.&lt;method&gt;-&lt;name&gt;.png and listed in the result; never an oracle, something
 		/// to look at. Yield it: the capture happens at the end of the frame.

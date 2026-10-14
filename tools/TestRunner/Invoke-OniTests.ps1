@@ -276,7 +276,7 @@ foreach ($r in $results) {
     foreach ($e in $r.logErrors) { $lines += "         logged: $e" }
 }
 if ($status) {
-    $lines += "Session $($status.status)$(if ($status.detail) { ': ' + $status.detail }); $($status.passed) passed, $($status.failed) failed, $($status.errors) errors, $($status.timeouts) timeouts, $($status.skipped) skipped of $($status.total); $($status.realSeconds) s real time"
+    $lines += "Session $($status.status)$(if ($status.detail) { ': ' + $status.detail }); $($status.passed) passed, $($status.failed) failed, $($status.errors) errors, $($status.timeouts) timeouts, $($status.skipped) skipped of $($status.total); $($status.realSeconds) s real time$(if ($status.reloads) { "; fixture loaded again $($status.reloads) time(s)" })"
 } else {
     $lines += 'No status file: the session never finished (launch, load or crash). See Player.log in the run folder.'
 }

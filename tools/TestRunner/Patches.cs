@@ -27,6 +27,7 @@ namespace Isochronous.TestRunner
 			if (!Session.Active || !Session.Started || Session.Finished)
 				return;
 			Debug.Log(Session.Tag + "colony loaded after " + (Time.realtimeSinceStartup - Session.StartedAt).ToString("F0") + " s real time");
+			Session.SaveIsFresh = true;
 			__instance.gameObject.AddComponent<TestBehaviour>();
 		}
 	}

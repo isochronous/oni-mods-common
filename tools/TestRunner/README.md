@@ -31,6 +31,25 @@ The fixture is `fixtures/testbed-so.sav` or `fixtures/testbed-base.sav` by the g
 (`-Fixture` overrides); see `fixtures/README.md`. The harness picks a 40x10 test area in the fixture
 world itself and clears it before the first test and after every test.
 
+Launcher options:
+
+| Option | What it does |
+|---|---|
+| `-Filter "glob[;glob]"` | Only tests whose `Assembly/Class.Method` id or display name matches. One word, no spaces (it travels through Steam's command line); `*` and `?` wildcards. Also the only way to run an `Explicit` test. |
+| `-Fixture path.sav` | Load this save instead of the testbed, e.g. a player's colony for a bug only seen there. The save is copied into the run folder and never written back. |
+| `-With Mod1,Mod2` | Enable more local mods (folder names under `mods/local`). |
+| `-Steam id1,id2` | Enable installed Workshop mods by item id, to test alongside another author's mod. |
+| `-TimeoutSec n` | Real seconds the whole session may take (default 600). |
+| `-TestTimeoutSec n` | Default real seconds per test (default 60); `[OniTest(Timeout = n)]` overrides it. |
+| `-KeepGame` | Leave the colony open after the tests; the launcher waits until the game is closed. |
+| `-Label name` | The run folder's prefix (`runs/<label>-<stamp>`). |
+| `-Trace` | Log the grid marks the game makes during tests (`Diagnostics.cs`). |
+| `-NoBuild`, `-NoCheck`, `-BuildArgs` | Skip the build or the ModCheck pass, or pass extra arguments to `dotnet build`. |
+
+The game must not be running (the launcher refuses), and Steam must be. If a run is killed before
+it ends, `mods.json.onitest-backup` holds the player's mod list: the next run restores it first, or
+copy it over `mods.json` by hand.
+
 ## Writing tests
 
 ```
@@ -62,6 +81,12 @@ public static class WireDrags
 - A test is `public static IEnumerator M(TestContext t)` with `[OniTest]`; `[Layer(n)]` records
   which layer it drives. Tests run in declaration order, each with a real-time timeout (the
   attribute's `Timeout`, else `-TestTimeoutSec`).
+- `[OniTest(FreshSave = true)]`: the fixture is loaded again before the test, in the same game (a
+  few seconds, not a restart), unless no test has run since the last load. For tests that change
+  the colony outside the test area, such as one run on a player's save. Only a change of mods or
+  mod settings needs a new launch. The status line counts the reloads.
+- `[OniTest(Explicit = true)]`: left out of a run with no `-Filter`, run only when a filter selects
+  it. For long tests kept for when they are needed.
 - Yield `t.Frames(n)`, `t.WaitGameSeconds(s)` (scaled sim time), `t.WaitRealSeconds(s)`,
   `t.WaitUntil(cond, timeout, what)` (a timeout fails the test with `what`), or a kit coroutine
   such as `wire.Path(...)`. Plain `yield return null` is one frame.
@@ -76,10 +101,24 @@ public static class WireDrags
   test whatever happened; `t.AllowLogError(regex)` for an error the game is expected to log,
   because any `Error`, `Exception` or `Assert` logged during a test fails it otherwise;
   `t.Skip(reason)`.
+- `t.InstantBuild(on)` turns the debug instant build off or on for the test (restored at cleanup);
+  sandbox's own Instant Build setting is a separate switch, `SandboxToolParameterMenu.instance.settings.InstantBuild`.
+- `t.Screenshot(name)` (yield it) writes `artifacts/<Class>.<Method>-<name>.png` and lists it in the
+  result; something to look at, never an oracle.
+- `t.PointAt(cell)` puts the locked mouse over a cell, for a test that needs the cursor or its hover
+  card there.
+
+**Pace tests to the game.** The game is built for a player's speed: build, change, rebuild and clear
+frames apart, and its sim callbacks arrive after the objects they belong to are gone (in one case an
+endless exception every tick, the game at 2 FPS). Between steps, wait game time
+(`t.WaitGameSeconds`, a second or two after building or clearing), wait for conditions rather than
+a frame count, give a drag a moment between its steps, and let a door finish opening before acting on
+it. Watch `Player.log` for a repeating exception during long runs.
 
 The harness forces the game's focus flags on (unfocused, the game drops every click), locks the
-mouse position and ignores the physical keyboard and mouse for the session, turns instant build on
-the way the debug key does, and runs the sim unpaused at speed 1. Every private game member it reads
+mouse position in the screen's bottom right corner, where its hover card and tool visualizers cover
+nothing (back there after every test), ignores the physical keyboard and mouse for the session,
+turns instant build on the way the debug key does, and runs the sim unpaused at speed 1. Every private game member it reads
 is listed in `Reflect.cs` with a self-check that fails the run with the member's name after a game
 update renames it.
 

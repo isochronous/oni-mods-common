@@ -43,6 +43,10 @@ namespace Isochronous.TestRunner
 		public static readonly List<TestCase> Tests = new List<TestCase>();
 		/// <summary>Index of the next test to run; survives a scene change, so a reload resumes here.</summary>
 		public static int NextIndex;
+		/// <summary>True from each load of the fixture until a test runs on it.</summary>
+		public static bool SaveIsFresh;
+		/// <summary>How many times the fixture was loaded again for a [OniTest(FreshSave = true)] test.</summary>
+		public static int Reloads;
 		public static int Passed, Failed, Errors, Timeouts, Skipped;
 
 		private static StreamWriter results;
@@ -133,8 +137,10 @@ namespace Isochronous.TestRunner
 			}
 			foreach (TestCase test in found)
 			{
-				if (regexes.Count == 0 || regexes.Exists(r => r.IsMatch(test.Id) || r.IsMatch(test.Name)))
+				if (regexes.Count == 0 ? !test.Explicit : regexes.Exists(r => r.IsMatch(test.Id) || r.IsMatch(test.Name)))
 					Tests.Add(test);
+				else if (regexes.Count == 0)
+					Debug.Log(Tag + "  " + test.Id + ": left out (runs only when a filter selects it)");
 			}
 			Debug.Log(Tag + Tests.Count + " of " + found.Count + " test(s) selected from " + dlls.Length + " assembly(ies)");
 			foreach (TestCase test in Tests)
@@ -174,7 +180,7 @@ namespace Isochronous.TestRunner
 			string line = "{\"status\":" + Json.Str(status) + ",\"detail\":" + Json.Str(detail ?? "")
 				+ ",\"save\":" + Json.Str(SavePath)
 				+ ",\"total\":" + Tests.Count + ",\"passed\":" + Passed + ",\"failed\":" + Failed + ",\"errors\":" + Errors
-				+ ",\"timeouts\":" + Timeouts + ",\"skipped\":" + Skipped
+				+ ",\"timeouts\":" + Timeouts + ",\"skipped\":" + Skipped + ",\"reloads\":" + Reloads
 				+ ",\"realSeconds\":" + (Time.realtimeSinceStartup - StartedAt).ToString("F1", CultureInfo.InvariantCulture) + "}";
 			Debug.Log(Tag + "finished: " + line);
 			try
@@ -204,6 +210,8 @@ namespace Isochronous.TestRunner
 		public readonly string Name;
 		public readonly double TimeoutSeconds;
 		public readonly int Layer;
+		public readonly bool FreshSave;
+		public readonly bool Explicit;
 
 		public TestCase(string assemblyName, Type type, MethodInfo method, OniTestAttribute attr)
 		{
@@ -211,6 +219,8 @@ namespace Isochronous.TestRunner
 			Type = type;
 			Method = method;
 			Name = attr.Name ?? method.Name;
+			FreshSave = attr.FreshSave;
+			Explicit = attr.Explicit;
 			TimeoutSeconds = attr.Timeout > 0 ? attr.Timeout : Session.TestTimeoutSeconds;
 			LayerAttribute layer = method.GetCustomAttribute<LayerAttribute>() ?? type.GetCustomAttribute<LayerAttribute>();
 			Layer = layer != null ? layer.Layer : -1;

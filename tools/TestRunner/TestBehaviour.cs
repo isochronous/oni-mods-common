@@ -66,8 +66,20 @@ namespace Isochronous.TestRunner
 			{
 				if (Session.Finished)
 					yield break;
+				TestCase test = Session.Tests[i];
+				if (test.FreshSave && !Session.SaveIsFresh)
+				{
+					// The scene change destroys this driver; Game_OnSpawn_Patch attaches a new one,
+					// which resumes at this test.
+					Session.NextIndex = i;
+					Session.Reloads++;
+					Debug.Log(Session.Tag + "loading the fixture again for " + test.Id);
+					LoadScreen.DoLoad(Session.SavePath);
+					yield break;
+				}
 				Session.NextIndex = i + 1;
-				yield return RunOne(Session.Tests[i]);
+				Session.SaveIsFresh = false;
+				yield return RunOne(test);
 				yield return FixtureArea.Clear(FixtureArea.Current);
 			}
 			Session.Finish("done", Session.Passed + " passed, " + Session.Failed + " failed, " + Session.Errors + " errors, " + Session.Timeouts + " timeouts, " + Session.Skipped + " skipped");
@@ -86,7 +98,7 @@ namespace Isochronous.TestRunner
 			FixtureArea.Current = FixtureArea.Find(FixtureArea.Width, FixtureArea.Height);
 			int centre = FixtureArea.Current.Cell(FixtureArea.Width / 2, FixtureArea.Height / 2);
 			Harness.LookAt(centre, 14f);
-			Harness.LockMouse(centre);
+			Harness.ParkMouse();
 			Harness.ForceFocus();
 			Debug.Log(Session.Tag + "fixture area " + FixtureArea.Current + ", focus " + KInputManager.isFocused
 				+ ", instant build " + DebugHandler.InstantBuildMode + ", paused " + SpeedControlScreen.Instance.IsPaused
@@ -197,6 +209,7 @@ namespace Isochronous.TestRunner
 			try
 			{
 				Harness.ResetTools();
+				Harness.ParkMouse();
 			}
 			catch (Exception e)
 			{
