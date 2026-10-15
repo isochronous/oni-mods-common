@@ -26,6 +26,9 @@
 .PARAMETER BuildArgs
   Extra arguments for the dotnet build of the test project (and so of the mod), e.g.
   -BuildArgs '-p:PLibVersion=4.25.1','-p:RestoreAdditionalProjectSources=C:eed'.
+.PARAMETER BuildOnly
+  Build the test project (and so the mod) and check it against the game assemblies, then stop: no
+  game session. Like every run, it waits its turn behind any other run already going.
 .PARAMETER KeepGame
   Leave the colony open when the tests are done; the script waits until the game is closed by hand.
 .PARAMETER TimeoutSec
@@ -43,6 +46,7 @@ param(
     [string[]]$Steam = @(),
     [switch]$NoBuild,
     [switch]$NoCheck,
+    [switch]$BuildOnly,
     [switch]$KeepGame,
     [switch]$Trace,
     [string[]]$BuildArgs = @(),
@@ -103,8 +107,23 @@ function Get-YamlScalar([string]$text, [string]$key) {
     return $null
 }
 
+# --- one run at a time ---------------------------------------------------------------------------
+# Runs started side by side (several agents at once) would share the one game, mods.json and the
+# harness's build output; a machine-wide mutex queues them, held until this process exits (an
+# exit, a throw or a kill all release it). -BuildOnly takes it too, for the shared build output.
+$runLock = [System.Threading.Mutex]::new($false, 'Global\IsochronousOniTests')
+try {
+    if (-not $runLock.WaitOne(0)) {
+        Write-Host "$(Get-Date -Format HH:mm:ss) Another test run holds the game; waiting for it to finish."
+        [void]$runLock.WaitOne()
+        Write-Host "$(Get-Date -Format HH:mm:ss) Our turn."
+    }
+} catch [System.Threading.AbandonedMutexException] {
+    # The previous holder died without releasing; the mutex is ours now.
+}
+
 # --- what to run -------------------------------------------------------------------------------
-if (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue) { throw 'The game is already running; close it first.' }
+if (-not $BuildOnly -and (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue)) { throw 'The game is already running; close it first.' }
 if (-not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
 $managed = Join-Path (Get-GameFolder) 'OxygenNotIncluded_Data\Managed'
 
@@ -166,6 +185,7 @@ foreach ($p in $projects) {
     }
     Copy-Item -LiteralPath $p.Dll -Destination $testsDir
 }
+if ($BuildOnly) { Write-Host 'Built and checked against the game assemblies (-BuildOnly: no game session).'; exit 0 }
 foreach ($mod in $Mods + 'TestRunner') {
     if (-not (Test-Path (Join-Path $klei "mods\local\$mod\$mod.dll"))) { throw "Mod $mod is not deployed to mods\local; build it first." }
 }
