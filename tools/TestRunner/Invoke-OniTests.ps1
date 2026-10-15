@@ -132,8 +132,8 @@ foreach ($mod in $Mods) {
     # A mod is a repo of its own in the workspace, or a mods/<name> folder of a repo that holds
     # several (the repo this common/ is checked out in first).
     $repos = @(Get-ChildItem -LiteralPath $workspace -Directory)
-    $modFolders = @((Split-Path $commonRoot -Parent), $repos.FullName) | Select-Object -Unique |
-        ForEach-Object { $mods = Join-Path $_ 'mods'; if (Test-Path -LiteralPath $mods) { (Get-ChildItem -LiteralPath $mods -Directory).FullName } }
+    $modFolders = @(Split-Path $commonRoot -Parent) + @($repos.FullName) | Select-Object -Unique |
+        ForEach-Object { $modsDir = Join-Path $_ 'mods'; if (Test-Path -LiteralPath $modsDir) { (Get-ChildItem -LiteralPath $modsDir -Directory).FullName } }
     $found = @(@($modFolders) + @($repos.FullName) | ForEach-Object { Join-Path $_ "src\$mod.Tests\$mod.Tests.csproj" } | Where-Object { Test-Path -LiteralPath $_ })
     if ($found.Count -eq 0) { throw "No test project src/$mod.Tests/$mod.Tests.csproj under any repo or mods/ folder in $workspace" }
     $projects += [pscustomobject]@{ Mod = $mod; Csproj = $found[0]; Dll = Join-Path (Split-Path $found[0]) "bin\Release\$mod.Tests.dll" }
