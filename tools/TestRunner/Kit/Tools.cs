@@ -115,7 +115,7 @@ namespace Isochronous.TestKit
 		/// menu, so the screen is woken once here: shown for a frame, so its spawn runs as it would
 		/// behind the menu, then hidden again.
 		/// </summary>
-		internal static IEnumerator PrimeBuildMenu(TestContext t)
+		public static IEnumerator PrimeBuildMenu(TestContext t)
 		{
 			ProductInfoScreen screen = PlanScreen.Instance != null ? PlanScreen.Instance.ProductInfoScreen : null;
 			if (screen == null || screen.materialSelectionPanel != null)

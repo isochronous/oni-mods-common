@@ -63,6 +63,24 @@ namespace Isochronous.TestRunner
 	}
 
 	/// <summary>
+	/// No autosave during a run. The game's autosave waits only for a drag the player controller
+	/// knows of, then cancels dragging and turns it off for a few frames; a test drives its tool
+	/// directly, so a drag at the start of a new cycle was cut short and placed nothing. The save
+	/// itself would land in the run folder, where saves are allowed, and is of no use there.
+	/// </summary>
+	[HarmonyPatch(typeof(Game), nameof(Game.StartDelayedSave))]
+	public static class Game_StartDelayedSave_Patch
+	{
+		public static bool Prefix(string filename, bool isAutoSave)
+		{
+			if (!Session.Active || !isAutoSave)
+				return true;
+			Debug.Log(Session.Tag + "skipped an autosave to " + filename);
+			return false;
+		}
+	}
+
+	/// <summary>
 	/// Runs in every scene: starts the load once the main menu has settled, the way the Load screen
 	/// does it minus its dialogs, and calls a session that takes too long in real time a hang.
 	/// </summary>

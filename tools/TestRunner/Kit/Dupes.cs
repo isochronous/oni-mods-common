@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -84,6 +85,19 @@ namespace Isochronous.TestKit
 		}
 
 		/// <summary>
+		/// The inside of the area's box cleared within a test, as between two boxed tests (objects, loose
+		/// items, cells gone solid), and the box made good again. Remove the Duplicants first; the clear
+		/// leaves them where they stand. Yield it.
+		/// </summary>
+		public IEnumerator ClearBox(SimHashes wall = SimHashes.IgneousRock)
+		{
+			if (!Isochronous.TestRunner.FixtureArea.BoxStanding)
+				throw new OniAssertException("no box stands over the fixture area to clear");
+			yield return Isochronous.TestRunner.FixtureArea.ClearInside();
+			Box(wall);
+		}
+
+		/// <summary>
 		/// <paramref name="count"/> Duplicants standing at the cell, as the sandbox spawner makes them,
 		/// with only their model's base trait (no trait that forbids a kind of work, falls asleep or
 		/// gets in the way), every attribute at 20, and a schedule of work at every hour. They are kept fed, rested and calm
@@ -137,6 +151,32 @@ namespace Isochronous.TestKit
 				resume.GrantSkill(id);
 			}
 			t.Log(dupe.GetProperName() + " granted " + string.Join(", ", skillIds));
+		}
+
+		/// <summary>
+		/// Every skill a standard Duplicant can learn, mastered by every Duplicant of the test: for a
+		/// test whose work some building asks a skill of (conductive and Heavi-Watt wire, conveyor
+		/// rails), and for any test that should not depend on which skills that is.
+		/// </summary>
+		public void GrantAll()
+		{
+			var ids = new List<string>();
+			foreach (Database.Skill skill in Db.Get().Skills.resources)
+			{
+				if (skill.deprecated)
+					continue;
+				string model = skill.requiredDuplicantModel;
+				if (!string.IsNullOrWhiteSpace(model) && model != MinionConfig.MODEL.Name)
+					continue;
+				ids.Add(skill.Id);
+			}
+			foreach (MinionIdentity dupe in spawned)
+			{
+				MinionResume resume = dupe.GetComponent<MinionResume>();
+				foreach (string id in ids)
+					resume.GrantSkill(id);
+			}
+			t.Log(spawned.Count + " Duplicant(s) granted all " + ids.Count + " skills");
 		}
 
 		/// <summary>

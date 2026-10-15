@@ -93,6 +93,8 @@ public static class WireDrags
   such as `wire.Path(...)`. Plain `yield return null` is one frame.
 - `t.World`: `Build(id, cell, orientation, element)`, `At(cell, layer)`, `Destroy(go)`,
   `LogicNetwork(cell)`, `LogicConnections(cell)`.
+- `UtilityDragSession.PrimeBuildMenu(t)`: wakes the build menu's product screen once, as the menu
+  would have, before a test drives a build tool directly (the BuildTool, say).
 - `t.Tools.UtilityTool(id, element)`: the real utility build tool; `Path(cells...)` visits each
   cell with a frame between (a careful drag), `Sweep(from, to)` is one move (a fast swipe);
   `PreviewTint(cell)` is the preview's colour just before the button went up (white: buildable).
@@ -109,10 +111,13 @@ public static class WireDrags
   dev life support in its top left corner, and returns the inside, whose bottom row is the floor;
   `Spawn(n, cell)` makes Duplicants there as the sandbox spawner does, with only their base trait,
   every attribute at 20, a schedule of work at every hour, and their needs topped up while the test
-  runs; `Grant(skillIds...)` masters skills without points; `Drop(material, kg, cell)` leaves a
+  runs; `Grant(skillIds...)` masters skills without points, `GrantAll()` every skill a standard
+  Duplicant can learn (some buildings ask one of whoever builds them); `Drop(material, kg, cell)` leaves a
   loose pile to fetch (an element or an item); `Remove(dupe)` and `RemoveAll()`. Every Duplicant
   spawned is removed at cleanup. Wait a game second after `Box()` before spawning. Walls and life
   support already standing are kept and the air filled again, so `Box()` is cheap the second time.
+  `ClearBox()` (yield it) clears the inside within a test, as between two boxed tests, for a test
+  that works in batches; remove the Duplicants first.
 - `[OniTest(Boxed = true)]`: the test works in the box over the whole area. When the next test is
   boxed too, only the inside is cleared between them (the life support stays); otherwise the whole
   area is, as usual.
@@ -132,7 +137,8 @@ endless exception every tick, the game at 2 FPS). Between steps, wait game time
 a frame count, give a drag a moment between its steps, and let a door finish opening before acting on
 it. Watch `Player.log` for a repeating exception during long runs.
 
-The harness forces the game's focus flags on (unfocused, the game drops every click), locks the
+The harness skips the game's autosave during a run (it cancels a drag the player controller does not
+know of, which is every test's), forces the game's focus flags on (unfocused, the game drops every click), locks the
 mouse position in the screen's bottom right corner, where its hover card and tool visualizers cover
 nothing (back there after every test), ignores the physical keyboard and mouse for the session,
 turns instant build on the way the debug key does, and runs the sim unpaused at speed 1. Every private game member it reads
