@@ -149,6 +149,20 @@ namespace Isochronous.TestKit
 		}
 
 		/// <summary>
+		/// A key press as the game hands one to its screens: the action's key down, then up, through
+		/// KScreenManager, the topmost screen first, until one takes it (the physical keyboard stays
+		/// ignored). Yield it: the screens act on it over the next frames.
+		/// </summary>
+		public Wait Press(global::Action action)
+		{
+			var down = new KButtonEvent(null, InputEventType.KeyDown, action);
+			KScreenManager.Instance.OnKeyDown(down);
+			KScreenManager.Instance.OnKeyUp(new KButtonEvent(null, InputEventType.KeyUp, action));
+			Log("pressed " + action + (down.Consumed ? "" : ", which no screen took"));
+			return new FrameWait(2);
+		}
+
+		/// <summary>
 		/// A PNG of the whole screen, written to the run's artifacts folder as
 		/// &lt;class&gt;.&lt;method&gt;-&lt;name&gt;.png and listed in the result; never an oracle, something
 		/// to look at. Yield it: the capture happens at the end of the frame.
