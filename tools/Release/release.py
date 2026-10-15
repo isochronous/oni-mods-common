@@ -26,6 +26,11 @@ What it does:
      among your published items (WorkshopUpload list) and, if found, the id is written to
      the file and committed. A mod that is not listed is simply not on the Workshop yet.
      --no-workshop skips all of this; --workshop-id overrides the lookup.
+  7. Posts a release notice to a Discord webhook: the mod's title and version, the release notes,
+     and links to the GitHub release and the Workshop item. The webhook URL is a secret, so it
+     never lives in a repo: it is read from the ONI_RELEASE_WEBHOOK environment variable, else
+     from ~/.config/oni-mods/discord-webhook.txt; with neither, no notice is posted. A failed post
+     only prints a warning. --no-discord skips it.
 
 Release notes: the section of CHANGELOG.md headed "## <version>" (release_mods.py creates it
 from "## Unreleased") is the GitHub release body and, with the version on top, the Workshop
@@ -39,8 +44,10 @@ import glob
 import os
 import re
 import shutil
+import json
 import subprocess
 import sys
+import urllib.request
 import zipfile
 
 # Changelog text (any language) is printed and passed on the command line; the console code page is not UTF-8 by default.
@@ -146,12 +153,57 @@ def description_is_ours(workshop_id, description, previous_tag):
     return False
 
 
+WEBHOOK_FILE = os.path.join(os.path.expanduser("~"), ".config", "oni-mods", "discord-webhook.txt")
+
+
+def discord_webhook():
+    """The release-notice webhook URL, or None: the environment variable, else the file outside any repo."""
+    url = os.environ.get("ONI_RELEASE_WEBHOOK", "").strip()
+    if not url and os.path.exists(WEBHOOK_FILE):
+        url = open(WEBHOOK_FILE, encoding="utf-8").read().strip()
+    return url or None
+
+
+def discord_notice(webhook, title, version, notes, release_url, workshop_id, thumbnail_url=None, content=None):
+    """Posts one embed: "<title> <version>" linking to the GitHub release, the notes as its text, and
+    the download links. Returns the HTTP status."""
+    links = ["[GitHub release](%s)" % release_url]
+    if workshop_id:
+        links.append("[Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=%s)" % workshop_id)
+    embed = {"title": "%s %s" % (title, version), "url": release_url, "color": 0x5865F2,
+             "description": notes[:3800], "fields": [{"name": "Download", "value": " · ".join(links)}]}
+    if thumbnail_url:
+        embed["thumbnail"] = {"url": thumbnail_url}
+    payload = {"embeds": [embed], "allowed_mentions": {"parse": []}}
+    if content:
+        payload["content"] = content
+    request = urllib.request.Request(webhook, data=json.dumps(payload).encode("utf-8"), method="POST", headers={
+        "Content-Type": "application/json",
+        # Discord refuses requests without a descriptive user agent.
+        "User-Agent": "DiscordBot (https://github.com/isochronous/oni-mods-common, 1)"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return response.status
+
+
+def preview_url(tag):
+    """The tracked publish/preview.png (or .jpg) as a raw.githubusercontent.com URL at the tag, or None."""
+    for name in ("preview.png", "preview.jpg"):
+        path = os.path.join("publish", name)
+        if subprocess.run(["git", "ls-files", "--error-unmatch", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+            continue
+        repo = run("gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner", capture=True)
+        folder = run("git", "rev-parse", "--show-prefix", capture=True)
+        return "https://raw.githubusercontent.com/%s/%s/%spublish/%s" % (repo, tag, folder, name)
+    return None
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="build and package only")
     ap.add_argument("--notes", help="release notes (default: the CHANGELOG.md section, which is otherwise required)")
     ap.add_argument("--workshop-id", help="Workshop item to update (default: publish/workshop-id.txt)")
     ap.add_argument("--no-workshop", action="store_true", help="GitHub release only")
+    ap.add_argument("--no-discord", action="store_true", help="post no release notice to Discord")
     ap.add_argument("--changenote", help="Workshop change note (default: the CHANGELOG.md section, or --notes)")
     a = ap.parse_args()
 
@@ -265,6 +317,16 @@ def main():
             if tags:
                 args += ["--tags", ",".join(tags)]
         subprocess.run(args, check=True, cwd=os.path.dirname(os.path.abspath(UPLOADER)))
+
+    webhook = None if a.no_discord else discord_webhook()
+    if webhook:
+        try:
+            title = re.search(r"^title:\s*\"?(.*?)\"?\s*$", open(os.path.join(project_dir, "mod.yaml"), encoding="utf-8").read(), re.M).group(1)
+            release_url = run("gh", "release", "view", tag, "--json", "url", "-q", ".url", capture=True)
+            status = discord_notice(webhook, title, version, notes, release_url, workshop_id, preview_url(tag))
+            print("Discord release notice: HTTP %s" % status)
+        except Exception as error:  # a notice must never fail a release that has already shipped
+            print("Discord release notice failed: %s" % error)
 
 
 if __name__ == "__main__":
