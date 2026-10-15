@@ -127,6 +127,8 @@ public static class WireDrags
   for tests that wait on Duplicants.
 - `t.Screenshot(name)` (yield it) writes `artifacts/<Class>.<Method>-<name>.png` and lists it in the
   result; something to look at, never an oracle.
+- `yield return t.Press(Action.Escape)` presses a key as the game hands one to its screens (KScreenManager,
+  topmost first, until one takes it); the physical keyboard stays ignored.
 - `t.PointAt(cell)` puts the locked mouse over a cell, for a test that needs the cursor or its hover
   card there.
 
