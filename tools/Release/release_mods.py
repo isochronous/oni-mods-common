@@ -4,10 +4,11 @@
     python oni-mods-common/tools/Release/release_mods.py [repo ...] [--plan] [--bump patch|minor|major]
                                                           [--bump-for repo=level ...] [--root DIR]
 
-With no repo names, looks at every folder next to oni-mods-common that holds a mod
-(src/<Mod>/mod_info.yaml). For each one:
+With no names, looks at every mod under --root: a folder holding src/<Mod>/mod_info.yaml, either
+a repo of its own or mods/<name>/ in a repo that holds several (whose tags are <name>-v*, and
+whose checks and commits cover only that folder). For each one:
 
-  - the last release is the newest v* tag; a mod with no tag yet gets its first release at
+  - the last release is the newest v* tag (<name>-v*); a mod with no tag yet gets its first release at
     the version it already has;
   - "changed" means commits since that tag touched what ships: src/ or publish/preview.png or .jpg
     (README-only changes do not trigger a release);
@@ -38,7 +39,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from release import find_workshop_id  # noqa: E402
+from release import find_workshop_id, tag_prefix  # noqa: E402
 RELEASE = os.path.join(HERE, "release.py")
 SHIPPED = ["src", "publish/preview.png", "publish/preview.jpg"]
 
@@ -110,13 +111,14 @@ def plan_for(repo, level):
     retired = os.path.join(repo, "publish", "retired.txt")
     if os.path.exists(retired):
         return "skip", "retired: " + (open(retired, encoding="utf-8").read().strip() or "no longer released")
-    if git(repo, "status", "--porcelain", "--untracked-files=no"):
+    if git(repo, "status", "--porcelain", "--untracked-files=no", "--", "."):
         return "skip", "uncommitted changes to tracked files"
     git(repo, "fetch", "--quiet", "--tags", check=False)
     if git(repo, "rev-list", "--count", "HEAD..@{upstream}", check=False) not in ("", "0"):
         return "skip", "behind its remote (a stale copy?); pull first"
     _, version = read_version(repo)
-    last = git(repo, "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*", check=False)
+    prefix = tag_prefix(repo)
+    last = git(repo, "describe", "--tags", "--abbrev=0", "--match", prefix + "v[0-9]*", check=False)
     if not last:
         if not unreleased_entry(repo):
             return "skip", "no release yet, but no changelog entry: write CHANGELOG.md ## Unreleased first"
@@ -128,15 +130,16 @@ def plan_for(repo, level):
     if not unreleased_entry(repo):
         # Hard gate: nothing ships without release notes written by hand.
         return "skip", "changed since %s but no changelog entry: write CHANGELOG.md ## Unreleased first\n%s" % (last, commits)
-    if "v" + version != last:
+    if prefix + "v" + version != last:
         return "as-is", "changed since %s; version already set to %s\n%s" % (last, version, commits)
     return "bump", "changed since %s; %s -> %s (%s)\n%s" % (last, version, bumped(version, level), level, commits)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("repos", nargs="*", help="mod repo folder names (default: all)")
-    ap.add_argument("--root", default=os.path.abspath(os.path.join(HERE, "..", "..", "..")), help="folder holding the mod repos")
+    ap.add_argument("repos", nargs="*", help="mod folder names (default: all)")
+    ap.add_argument("--root", default=os.path.abspath(os.path.join(HERE, "..", "..", "..")),
+                    help="the repo holding mods/, or the folder holding the mod repos")
     ap.add_argument("--plan", action="store_true", help="only print what would be released")
     ap.add_argument("--bump", choices=("patch", "minor", "major"), default="patch")
     ap.add_argument("--no-workshop", action="store_true", help="GitHub releases only")
@@ -144,11 +147,16 @@ def main():
     a = ap.parse_args()
 
     levels = dict(item.split("=", 1) for item in a.bump_for)
-    names = a.repos or sorted(os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(p))))
-                              for p in glob.glob(os.path.join(a.root, "*", "src", "*", "mod_info.yaml")))
+    folders = {}
+    for pattern in (os.path.join(a.root, "*", "src", "*", "mod_info.yaml"),
+                    os.path.join(a.root, "mods", "*", "src", "*", "mod_info.yaml")):
+        for p in glob.glob(pattern):
+            folder = os.path.dirname(os.path.dirname(os.path.dirname(p)))
+            folders.setdefault(os.path.basename(folder), folder)
+    names = a.repos or sorted(folders)
     failures = 0
     for name in names:
-        repo = os.path.join(a.root, name)
+        repo = folders.get(name, os.path.join(a.root, name))
         if not glob.glob(os.path.join(repo, "src", "*", "mod_info.yaml")):
             print("== %s: not a mod repo under %s" % (name, a.root))
             failures += 1
@@ -172,7 +180,10 @@ def main():
                 for csproj in glob.glob(os.path.join(os.path.dirname(info_path), "*.csproj")):
                     replace_in(csproj, r"(<Version>)[^<]*(</Version>)", r"\g<1>" + version + r"\g<2>")
             if release_changelog(repo, version) or action == "bump":
-                git(repo, "commit", "-am", "Release v" + version)
+                prefix = tag_prefix(repo)
+                message = "Release %s v%s" % (prefix[:-1], version) if prefix else "Release v" + version
+                # Only the mod's own folder: in a shared repo the other mods' work is not this release's.
+                git(repo, "commit", "-m", message, "--", ".")
             git(repo, "push")
             subprocess.run([sys.executable, RELEASE] + (["--no-workshop"] if a.no_workshop else []), cwd=repo, check=True)
         except (RuntimeError, subprocess.CalledProcessError) as error:

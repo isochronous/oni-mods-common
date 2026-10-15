@@ -3,12 +3,15 @@
 
     python common/tools/Release/release.py [--dry-run] [--notes "text"] [--changenote "text"] [--no-workshop]
 
-Run it from the mod repo's root. The mods compile against the game's own assemblies, which
+Run it from the mod's folder: the root of its own repo, or mods/<name>/ in a repo that holds
+several mods. In a shared repo the tags are <name>-v<version> and only the mod's own folder has
+to be committed; in a repo of its own they are v<version>. The mods compile against the game's own assemblies, which
 cannot live on a CI runner, so releases are cut locally instead of by a GitHub Action.
 
 What it does:
-  1. Refuses to run unless tracked files are all committed and HEAD is pushed.
-  2. Reads the version from src/<Mod>/mod_info.yaml; the tag is v<version> and must be new.
+  1. Refuses to run unless the mod's tracked files are all committed and HEAD is pushed.
+  2. Reads the version from src/<Mod>/mod_info.yaml; the tag is v<version> (<name>-v<version> in a
+     shared repo) and must be new.
   3. Builds src/<Mod> in Release (without deploying to the local mods folder).
   4. Stages publish/content from the build (DLL, mod.yaml, mod_info.yaml, anim/, assets/,
      and publish/preview.png or preview.jpg as preview.png, scaled down to at most 512 px) and zips it to publish/<Mod>.zip.
@@ -52,6 +55,14 @@ def run(*cmd, capture=False):
     print(">", " ".join(cmd))
     result = subprocess.run(cmd, check=True, text=True, stdout=subprocess.PIPE if capture else None)
     return result.stdout.strip() if capture else None
+
+
+def tag_prefix(folder="."):
+    """"" for a mod that is its own repo; "<folder name>-" for one in a shared repo's mods/<name>/."""
+    top = subprocess.run(["git", "-C", folder, "rev-parse", "--show-toplevel"], text=True,
+                         stdout=subprocess.PIPE, check=True).stdout.strip()
+    here = os.path.abspath(folder)
+    return "" if os.path.normcase(os.path.abspath(top)) == os.path.normcase(here) else os.path.basename(here) + "-"
 
 
 def find_workshop_id(repo="."):
@@ -123,7 +134,7 @@ def description_is_ours(workshop_id, description, previous_tag):
     live = normal(open(live_file, encoding="utf-8").read())
     ours = [normal(open(description, encoding="utf-8").read())]
     if previous_tag:
-        shown = subprocess.run(["git", "show", "%s:publish/workshop-description.txt" % previous_tag],
+        shown = subprocess.run(["git", "show", "%s:./publish/workshop-description.txt" % previous_tag],
                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         if shown.returncode == 0:
             ours.append(normal(shown.stdout.decode("utf-8")))
@@ -152,7 +163,8 @@ def main():
     mod = os.path.splitext(os.path.basename(projects[0]))[0]
     info = open(os.path.join(project_dir, "mod_info.yaml"), encoding="utf-8").read()
     version = re.search(r"^version:\s*\"?([0-9][^\s\"]*)", info, re.M).group(1)
-    tag = "v" + version
+    prefix = tag_prefix()
+    tag = prefix + "v" + version
     workshop_id, how = (a.workshop_id, "file") if a.workshop_id else (None, "unlisted")
     if not a.no_workshop and not a.dry_run and not workshop_id:
         workshop_id, how = find_workshop_id()
@@ -161,8 +173,8 @@ def main():
         print("Workshop: " + ("item %s (%s)" % (workshop_id, how) if workshop_id else "not among your published items, skipping"))
 
     if not a.dry_run:
-        if run("git", "status", "--porcelain", "--untracked-files=no", capture=True):
-            sys.exit("work tree is not clean; commit or stash first")
+        if run("git", "status", "--porcelain", "--untracked-files=no", "--", ".", capture=True):
+            sys.exit("the mod's files are not all committed; commit or stash first")
         run("git", "fetch", "--quiet", "--tags")
         if run("git", "tag", "--list", tag, capture=True):
             sys.exit("tag %s already exists; bump the version in mod_info.yaml and the csproj" % tag)
@@ -216,7 +228,7 @@ def main():
 
     # The tag before this release: the description check compares the live Workshop text
     # with the file as it was then.
-    previous = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
+    previous = subprocess.run(["git", "describe", "--tags", "--abbrev=0", "--match", prefix + "v[0-9]*"],
                               text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
     try:
         run("git", "tag", "-a", tag, "-m", "%s %s" % (mod, version))

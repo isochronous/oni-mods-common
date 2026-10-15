@@ -3,7 +3,7 @@
   Build a mod and its in-game tests, run them in the real game with nobody at the keyboard, and report.
 
 .DESCRIPTION
-  For each mod named in -Mods, finds <repo>/src/<Mod>.Tests/<Mod>.Tests.csproj under the workspace
+  For each mod named in -Mods, finds <repo>/src/<Mod>.Tests/<Mod>.Tests.csproj (or <repo>/mods/<name>/src/...) under the workspace
   root (the folder above this common repo), builds it (which builds and deploys the mod and the
   TestRunner harness), checks the test DLL loads against the game assemblies (tools/ModCheck), and
   copies it into a run folder. Then rewrites mods.json so that only TestRunner, the mods under test
@@ -129,8 +129,13 @@ if ($fixtureSpacedOut -ne $spacedOut) {
 
 $projects = @()
 foreach ($mod in $Mods) {
-    $found = @(Get-ChildItem -LiteralPath $workspace -Directory | ForEach-Object { Join-Path $_.FullName "src\$mod.Tests\$mod.Tests.csproj" } | Where-Object { Test-Path -LiteralPath $_ })
-    if ($found.Count -eq 0) { throw "No test project src/$mod.Tests/$mod.Tests.csproj under any repo in $workspace" }
+    # A mod is a repo of its own in the workspace, or a mods/<name> folder of a repo that holds
+    # several (the repo this common/ is checked out in first).
+    $repos = @(Get-ChildItem -LiteralPath $workspace -Directory)
+    $modFolders = @((Split-Path $commonRoot -Parent), $repos.FullName) | Select-Object -Unique |
+        ForEach-Object { $mods = Join-Path $_ 'mods'; if (Test-Path -LiteralPath $mods) { (Get-ChildItem -LiteralPath $mods -Directory).FullName } }
+    $found = @(@($modFolders) + @($repos.FullName) | ForEach-Object { Join-Path $_ "src\$mod.Tests\$mod.Tests.csproj" } | Where-Object { Test-Path -LiteralPath $_ })
+    if ($found.Count -eq 0) { throw "No test project src/$mod.Tests/$mod.Tests.csproj under any repo or mods/ folder in $workspace" }
     $projects += [pscustomobject]@{ Mod = $mod; Csproj = $found[0]; Dll = Join-Path (Split-Path $found[0]) "bin\Release\$mod.Tests.dll" }
 }
 
