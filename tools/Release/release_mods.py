@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Release every mod that has changed since its last release.
 
-    python oni-mods-common/tools/Release/release_mods.py [repo ...] [--plan] [--bump patch|minor|major]
+    python common/tools/Release/release_mods.py [mod ...] [--plan] [--bump patch|minor|major]
                                                           [--bump-for repo=level ...] [--root DIR]
 
 With no names, looks at every mod under --root: a folder holding src/<Mod>/mod_info.yaml, either

@@ -2,7 +2,8 @@
 
     python tools/Translations/translations.py [mod-folder ...] [--build]
 
-For each mod repo next to this one (or the ones named) whose csproj sets UseTranslations,
+For each mod (a repo next to this one, or a mods/<name> folder of the repo this common is in; or
+the ones named) whose csproj sets UseTranslations,
 runs StringsTemplate on src/<Mod>/bin/Release/<Mod>.dll: rewrites src/<Mod>/translations/<Mod>.pot
 from the strings compiled into the DLL and checks every <locale>.po there against it (missing,
 stale, empty, obsolete entries, and entries the game would refuse). --build runs a Release build
@@ -34,7 +35,9 @@ def game_managed_dir():
 
 
 def mod_projects(names):
-    folders = [os.path.join(ROOT, n) for n in names] if names else sorted(glob.glob(os.path.join(ROOT, "*")))
+    found = sorted(glob.glob(os.path.join(ROOT, "*"))) + sorted(glob.glob(os.path.join(ROOT, "mods", "*")))
+    folders = [os.path.join(ROOT, "mods", n) if os.path.isdir(os.path.join(ROOT, "mods", n)) else os.path.join(ROOT, n)
+               for n in names] if names else found
     for folder in folders:
         for csproj in glob.glob(os.path.join(folder, "src", "*", "*.csproj")):
             text = open(csproj, encoding="utf-8").read()
