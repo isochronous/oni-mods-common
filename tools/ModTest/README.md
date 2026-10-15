@@ -17,8 +17,12 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
   tools); `-Steam` adds more for one run.
 - Registers local mod folders the game has not seen yet (a freshly built mod), using the game's own
   folder-name hash as the entry version so the first launch does not ask for a restart.
-- Launches through Steam, waits for the game to exit (surviving a mod-triggered restart), then puts
-  the backup back and deletes it. The oni-data-dump.*.json files the data-dump mod wrote during the
+- Launches through Steam, follows the game it started (through a mod-triggered restart, which goes
+  through the game's Restarter) and puts the backup back the moment that game exits, so a game
+  launched by hand straight after gets the normal loadout. The restored file is dated when it comes
+  back. Neither the test loadout nor the restored one carries the game's "mod load in progress" mark,
+  which a game closed before the main menu leaves and which starts the next boot in mod safe mode.
+  The backup is deleted once restored. The oni-data-dump.*.json files the data-dump mod wrote during the
   session are deleted too unless `-KeepDumps` is given. Mod folders, configs and saves are never touched.
 - `-Omit` leaves named mods out of the loadout without editing the list, e.g. `-Omit VentFreezeFix` to confirm a bug still reproduces without the fix.
 - `-Only` enables a single mod and nothing else, e.g. `-Only VentFreezeFix` to test it in isolation. It replaces the list and cannot be combined with `-Mods` or `-Omit`.

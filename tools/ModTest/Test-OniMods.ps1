@@ -217,6 +217,7 @@ foreach ($id in @($wanted.Keys)) {
     Write-Host "Registered new local mod '$id' ($title)"
 }
 $data.mods = $list.ToArray()
+$data.mod_load_in_progress = $false
 $json = $data | ConvertTo-Json -Depth 6
 
 $enabled = @($data.mods | Where-Object { $_.enabledForDlc.Count -gt 0 } | ForEach-Object { $_.label.title })
@@ -234,31 +235,57 @@ if ($DryRun) {
 
 $backup = "$modsJson.modtest-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 Copy-Item -LiteralPath $modsJson -Destination $backup
+# The game marks mods.json "mod_load_in_progress" as it boots and clears it at the main menu; a game
+# closed before then leaves it set, and the next boot starts in mod safe mode with every mod off.
+# A launched game closed early is the usual cause here, so neither the test loadout nor the player's
+# loadout put back afterwards carries it.
+$backupText = [IO.File]::ReadAllText($backup, $utf8)
+[IO.File]::WriteAllText($backup, ($backupText -replace '("mod_load_in_progress"\s*:\s*)true', '${1}false'), $utf8)
 Write-Host "Backed up mods.json to $backup"
 $started = Get-Date
+# The game this run started, followed through the game's own restarts; the loadout goes back the
+# moment it exits, so a game the player launches afterwards gets the normal loadout. (Waiting for no
+# game at all held the test loadout in place for a game launched soon after, and that game ran with it.)
+$game = $null
 try {
     [IO.File]::WriteAllText($modsJson, $json, $utf8)
     Write-Host 'Launching Oxygen Not Included through Steam...'
     Start-Process "steam://rungameid/$OniAppId"
     $deadline = (Get-Date).AddSeconds(180)
-    while (-not (Test-OniRunning) -and (Get-Date) -lt $deadline) { Start-Sleep 2 }
-    if (-not (Test-OniRunning)) { throw 'The game did not start within 3 minutes.' }
+    while (-not $game -and (Get-Date) -lt $deadline) {
+        Start-Sleep 2
+        $game = Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Select-Object -First 1
+    }
+    if (-not $game) { throw 'The game did not start within 3 minutes.' }
     Write-Host 'Game running; waiting for it to exit...'
-    $quietSince = $null
     while ($true) {
-        if (Test-OniRunning) { $quietSince = $null }
-        elseif ($null -eq $quietSince) { $quietSince = Get-Date }
-        elseif (((Get-Date) - $quietSince).TotalSeconds -ge 20) { break }
-        Start-Sleep 3
+        while (-not $game.HasExited) { Start-Sleep -Milliseconds 250 }
+        $exited = Get-Date
+        Write-Host "Game exited at $($exited.ToString('HH:mm:ss.fff'))."
+        # A restart after a mod change goes through the game's Restarter, which the game starts
+        # before it quits, so it is there by now: follow the game it starts.
+        $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $restarter) { Start-Sleep -Milliseconds 500; $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1 }
+        if (-not $restarter) { break }
+        Write-Host 'The game is restarting itself; following it...'
+        $game = $null
+        $deadline = (Get-Date).AddSeconds(60)
+        while (-not $game -and (Get-Date) -lt $deadline) {
+            Start-Sleep 1
+            $game = Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -gt $exited } | Select-Object -First 1
+        }
+        if (-not $game) { break }
     }
 }
 finally {
-    if (Test-OniRunning) {
+    if ($game -and -not $game.HasExited) {
         Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
     } else {
         Copy-Item -LiteralPath $backup -Destination $modsJson -Force
+        # A copy keeps the backup's old date; dated now, the file shows when the loadout came back.
+        (Get-Item -LiteralPath $modsJson).LastWriteTime = Get-Date
         Remove-Item -LiteralPath $backup -Force
-        Write-Host 'Restored the normal loadout; backup removed.'
+        Write-Host "Restored the normal loadout at $((Get-Date).ToString('HH:mm:ss.fff')); backup removed."
         if (-not $KeepDumps) {
             # The data-dump mod rewrites its json files on every launch; the ones from this session are single-use.
             $dumps = @(Get-ChildItem -LiteralPath $ProfileLink -Filter 'oni-data-dump.*.json' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -gt $started })

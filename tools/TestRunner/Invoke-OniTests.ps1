@@ -219,6 +219,7 @@ function Set-Mods {
         Write-Host "Registered new local mod '$id' ($title)"
     }
     $json.mods = $list.ToArray()
+    $json.mod_load_in_progress = $false
     [IO.File]::WriteAllText($modsJson, ($json | ConvertTo-Json -Depth 10), $utf8)
     [IO.File]::WriteAllText((Join-Path $runDir 'mods.json.used'), ($json | ConvertTo-Json -Depth 10), $utf8)
 }
@@ -232,6 +233,14 @@ if (Test-Path $backup) {
 } else {
     Copy-Item $modsJson $backup
 }
+# The game marks mods.json "mod_load_in_progress" as it boots and clears it at the main menu; a game
+# closed before then leaves it set, and the next boot starts in mod safe mode with every mod off.
+# A launched game closed early is the usual cause here, so neither the test loadout nor the player's
+# loadout put back afterwards carries it.
+$backupText = [IO.File]::ReadAllText($backup, $utf8)
+[IO.File]::WriteAllText($backup, ($backupText -replace '("mod_load_in_progress"\s*:\s*)true', '${1}false'), $utf8)
+# The real loadout, kept with the run, so a list lost later can be told apart from one this run lost.
+Copy-Item $backup (Join-Path $runDir 'mods.json.real') -Force
 $launcherStatus = 'not-started'
 $t0 = Get-Date
 try {
@@ -260,8 +269,14 @@ try {
 }
 finally {
     Copy-Item $backup $modsJson -Force
-    Remove-Item $backup -Force
-    Write-Host 'Restored mods.json.'
+    # A copy keeps the backup's old date; dated now, the file shows when the loadout came back.
+    (Get-Item $modsJson).LastWriteTime = Get-Date
+    if ((Get-FileHash $modsJson).Hash -ne (Get-FileHash $backup).Hash) {
+        Write-Warning "mods.json does not match the backup after the restore; the backup is left at $backup."
+    } else {
+        Remove-Item $backup -Force
+        Write-Host 'Restored mods.json.'
+    }
 }
 
 # --- report ------------------------------------------------------------------------------------
