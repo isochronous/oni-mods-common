@@ -18,6 +18,14 @@ namespace Isochronous.TestRunner
 	{
 		private const float HudWaitSeconds = 60f;
 
+		/// <summary>
+		/// Game seconds a loaded colony runs before it is loaded again. Torn down at once (a test that
+		/// skips straight after a load, then another fresh-save test), the game's own start-up was
+		/// still going: Game.StopBE threw and the scheduler threw every frame after, a hung session.
+		/// GameFlowManager alone waits four seconds after a load before it starts.
+		/// </summary>
+		private const double SettleBeforeReloadSeconds = 5;
+
 		private bool started;
 		private double gameSeconds;
 
@@ -71,6 +79,8 @@ namespace Isochronous.TestRunner
 				{
 					// The scene change destroys this driver; Game_OnSpawn_Patch attaches a new one,
 					// which resumes at this test.
+					while (gameSeconds < SettleBeforeReloadSeconds)
+						yield return null;
 					Session.NextIndex = i;
 					Session.Reloads++;
 					Debug.Log(Session.Tag + "loading the fixture again for " + test.Id);
@@ -80,7 +90,12 @@ namespace Isochronous.TestRunner
 				Session.NextIndex = i + 1;
 				Session.SaveIsFresh = false;
 				yield return RunOne(test);
-				yield return FixtureArea.Clear(FixtureArea.Current);
+				// A box the next test works in too stays up; only its inside is cleared.
+				TestCase next = i + 1 < Session.Tests.Count ? Session.Tests[i + 1] : null;
+				if (FixtureArea.BoxStanding && test.Boxed && next != null && next.Boxed && !next.FreshSave)
+					yield return FixtureArea.ClearInside();
+				else
+					yield return FixtureArea.Clear(FixtureArea.Current);
 			}
 			Session.Finish("done", Session.Passed + " passed, " + Session.Failed + " failed, " + Session.Errors + " errors, " + Session.Timeouts + " timeouts, " + Session.Skipped + " skipped");
 		}
@@ -96,6 +111,8 @@ namespace Isochronous.TestRunner
 			Harness.Unpause();
 			Harness.EnsureInstantBuild();
 			FixtureArea.Current = FixtureArea.Find(FixtureArea.Width, FixtureArea.Height);
+			FixtureArea.BoxStanding = false;
+			FixtureArea.LifeSupport = null;
 			int centre = FixtureArea.Current.Cell(FixtureArea.Width / 2, FixtureArea.Height / 2);
 			Harness.LookAt(centre, 14f);
 			Harness.ParkMouse();

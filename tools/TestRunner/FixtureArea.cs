@@ -10,7 +10,7 @@ namespace Isochronous.TestRunner
 	/// of the active world, all of it revealed and buildable, with the most cells that are already
 	/// empty (not solid, no object on any layer), underground cells counting double so a cave beats
 	/// open space when one is big enough. Cleared before the first test and after every test:
-	/// every object in it destroyed (Duplicants excepted) and every solid cell turned to vacuum.
+	/// every object and loose item in it destroyed (Duplicants excepted) and every solid cell turned to vacuum.
 	/// </summary>
 	public static class FixtureArea
 	{
@@ -18,6 +18,15 @@ namespace Isochronous.TestRunner
 		public const int Height = 10;
 
 		public static CellRect Current;
+
+		/// <summary>True while the Duplicants' box stands over the whole area (TestKit.Dupes.Box).</summary>
+		public static bool BoxStanding;
+
+		/// <summary>The box's dev life support, kept when only the inside is cleared.</summary>
+		public static GameObject LifeSupport;
+
+		/// <summary>The cells inside the box's walls.</summary>
+		public static CellRect Inside => new CellRect(Current.X + 1, Current.Y + 1, Current.W - 2, Current.H - 2);
 
 		public static CellRect Find(int w, int h)
 		{
@@ -80,10 +89,23 @@ namespace Isochronous.TestRunner
 			return false;
 		}
 
+		/// <summary>The inside of the box cleared for the next boxed test; the walls, the life support and the air stay.</summary>
+		public static IEnumerator ClearInside()
+		{
+			return Clear(Inside, LifeSupport);
+		}
+
 		/// <summary>Everything out of the rectangle: objects destroyed, solids turned to vacuum, then two frames for the sim and the spawners to settle.</summary>
 		public static IEnumerator Clear(CellRect rect)
 		{
-			int destroyed = 0, replaced = 0;
+			BoxStanding = false;
+			LifeSupport = null;
+			return Clear(rect, null);
+		}
+
+		private static IEnumerator Clear(CellRect rect, GameObject keep)
+		{
+			int destroyed = 0;
 			try
 			{
 				var objects = new HashSet<GameObject>();
@@ -92,7 +114,7 @@ namespace Isochronous.TestRunner
 					for (int layer = 0; layer < (int)ObjectLayer.NumLayers; layer++)
 					{
 						GameObject go = Grid.Objects[cell, layer];
-						if (go != null && go.GetComponent<MinionIdentity>() == null)
+						if (go != null && go != keep && go.GetComponent<MinionIdentity>() == null)
 							objects.Add(go);
 					}
 				}
@@ -101,26 +123,57 @@ namespace Isochronous.TestRunner
 					Util.KDestroyGameObject(go);
 					destroyed++;
 				}
-				foreach (int cell in rect.Cells)
-				{
-					if (Grid.Solid[cell])
-					{
-						SimMessages.ReplaceElement(cell, SimHashes.Vacuum, CellEventLogger.Instance.SandBoxTool, 0f);
-						replaced++;
-					}
-				}
 			}
 			catch (System.Exception e)
 			{
 				Debug.LogWarning(Session.Tag + "clearing " + rect + " threw: " + e);
 			}
-			if (replaced > 0)
+			// The buildings go at the end of the frame. A tile taken away while its neighbours still
+			// stand leaves its mass in the cell as a natural tile (the game's rule for mass with nowhere
+			// to fall), a moment after it goes; the solids are turned to vacuum after that, and again
+			// for any that turned solid since.
+			yield return null;
+			yield return null;
+			int replaced = 0;
+			float deadline = Time.realtimeSinceStartup + 10f;
+			float nextSend = 0f;
+			while (true)
 			{
-				float deadline = Time.realtimeSinceStartup + 10f;
-				while (Time.realtimeSinceStartup < deadline && AnySolid(rect))
-					yield return null;
-				if (AnySolid(rect))
-					Debug.LogWarning(Session.Tag + "solid cells remain in " + rect + " after 10 s");
+				bool solid = false;
+				try
+				{
+					// Loose items: what Duplicants dropped or left, what a test dropped for them, and what
+					// the buildings dropped as they went. Only the top item of a cell is on its object
+					// layer; the partitioner has them all.
+					foreach (int cell in rect.Cells)
+						GameUtil.ClearCell(cell, deleteMinions: false);
+					bool send = Time.realtimeSinceStartup >= nextSend;
+					foreach (int cell in rect.Cells)
+					{
+						if (!Grid.Solid[cell])
+							continue;
+						solid = true;
+						if (send)
+						{
+							SimMessages.ReplaceElement(cell, SimHashes.Vacuum, CellEventLogger.Instance.SandBoxTool, 0f);
+							replaced++;
+						}
+					}
+					if (send)
+						nextSend = Time.realtimeSinceStartup + 1f;
+				}
+				catch (System.Exception e)
+				{
+					Debug.LogWarning(Session.Tag + "clearing " + rect + " threw: " + e);
+				}
+				if (!solid)
+					break;
+				if (Time.realtimeSinceStartup > deadline)
+				{
+					Debug.LogWarning(Session.Tag + "solid cells remain in " + rect + " after 10 s: " + DescribeSolid(rect));
+					break;
+				}
+				yield return null;
 			}
 			yield return null;
 			yield return null;
@@ -128,12 +181,20 @@ namespace Isochronous.TestRunner
 				Debug.Log(Session.Tag + "cleared " + rect + ": " + destroyed + " object(s) destroyed, " + replaced + " solid cell(s) replaced");
 		}
 
-		private static bool AnySolid(CellRect rect)
+		/// <summary>The solid cells of the rectangle, with their element, mass and what is built there, for the log.</summary>
+		private static string DescribeSolid(CellRect rect)
 		{
+			var parts = new List<string>();
 			foreach (int cell in rect.Cells)
-				if (Grid.Solid[cell])
-					return true;
-			return false;
+			{
+				if (!Grid.Solid[cell])
+					continue;
+				GameObject tile = Grid.Objects[cell, (int)ObjectLayer.FoundationTile];
+				GameObject building = Grid.Objects[cell, (int)ObjectLayer.Building];
+				parts.Add(Cells.Describe(cell) + " " + Grid.Element[cell].id + " " + Grid.Mass[cell].ToString("0.#") + " kg"
+					+ (tile != null ? " tile " + tile.name : "") + (building != null ? " building " + building.name : ""));
+			}
+			return string.Join("; ", parts);
 		}
 	}
 }

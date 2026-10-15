@@ -29,7 +29,8 @@ status (launch, load or crash: read `Player.log` in the run folder), 3 for build
 
 The fixture is `fixtures/testbed-so.sav` or `fixtures/testbed-base.sav` by the game's current mode
 (`-Fixture` overrides); see `fixtures/README.md`. The harness picks a 40x10 test area in the fixture
-world itself and clears it before the first test and after every test.
+world itself and clears it (objects, loose items and solid cells; Duplicants are a test's to remove) before
+the first test and after every test.
 
 Launcher options:
 
@@ -103,6 +104,22 @@ public static class WireDrags
   `t.Skip(reason)`.
 - `t.InstantBuild(on)` turns the debug instant build off or on for the test (restored at cleanup);
   sandbox's own Instant Build setting is a separate switch, `SandboxToolParameterMenu.instance.settings.InstantBuild`.
+- `t.Dupes`, for a test that needs work done by hand (the fixture has no Duplicants):
+  `Box()` walls the fixture area (or `Box(rect)`) with tiles, fills the inside with air and puts a
+  dev life support in its top left corner, and returns the inside, whose bottom row is the floor;
+  `Spawn(n, cell)` makes Duplicants there as the sandbox spawner does, with only their base trait,
+  every attribute at 20, a schedule of work at every hour, and their needs topped up while the test
+  runs; `Grant(skillIds...)` masters skills without points; `Drop(material, kg, cell)` leaves a
+  loose pile to fetch (an element or an item); `Remove(dupe)` and `RemoveAll()`. Every Duplicant
+  spawned is removed at cleanup. Wait a game second after `Box()` before spawning. Walls and life
+  support already standing are kept and the air filled again, so `Box()` is cheap the second time.
+- `[OniTest(Boxed = true)]`: the test works in the box over the whole area. When the next test is
+  boxed too, only the inside is cleared between them (the life support stays); otherwise the whole
+  area is, as usual.
+- `t.ResearchAll()` researches every tech the way the game finishes one, so tools and menus offer
+  everything without instant build. It lasts until the fixture is loaded again.
+- `t.Speed(n)` sets the game speed, 1 to 3, for the rest of the test (restored at cleanup); speed 3
+  for tests that wait on Duplicants.
 - `t.Screenshot(name)` (yield it) writes `artifacts/<Class>.<Method>-<name>.png` and lists it in the
   result; something to look at, never an oracle.
 - `t.PointAt(cell)` puts the locked mouse over a cell, for a test that needs the cursor or its hover

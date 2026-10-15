@@ -212,6 +212,7 @@ namespace Isochronous.TestRunner
 		public readonly int Layer;
 		public readonly bool FreshSave;
 		public readonly bool Explicit;
+		public readonly bool Boxed;
 
 		public TestCase(string assemblyName, Type type, MethodInfo method, OniTestAttribute attr)
 		{
@@ -221,6 +222,7 @@ namespace Isochronous.TestRunner
 			Name = attr.Name ?? method.Name;
 			FreshSave = attr.FreshSave;
 			Explicit = attr.Explicit;
+			Boxed = attr.Boxed;
 			TimeoutSeconds = attr.Timeout > 0 ? attr.Timeout : Session.TestTimeoutSeconds;
 			LayerAttribute layer = method.GetCustomAttribute<LayerAttribute>() ?? type.GetCustomAttribute<LayerAttribute>();
 			Layer = layer != null ? layer.Layer : -1;

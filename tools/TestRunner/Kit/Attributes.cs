@@ -25,6 +25,13 @@ namespace Isochronous.TestKit
 		/// </summary>
 		public bool Explicit { get; set; }
 
+		/// <summary>
+		/// The test works in the Duplicants' box over the fixture area (t.Dupes.Box()): when the next
+		/// test is boxed too, only the inside is cleared after it, and the walls, the life support and
+		/// the air stay for that test.
+		/// </summary>
+		public bool Boxed { get; set; }
+
 		public OniTestAttribute(string name = null)
 		{
 			Name = name;

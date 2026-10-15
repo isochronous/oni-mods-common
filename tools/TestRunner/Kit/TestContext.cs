@@ -18,6 +18,7 @@ namespace Isochronous.TestKit
 		public OniAssert Assert { get; }
 		public World World { get; }
 		public Tools Tools { get; }
+		public Dupes Dupes { get; }
 
 		private readonly List<System.Action> cleanups = new List<System.Action>();
 		private readonly List<Regex> allowedLogErrors = new List<Regex>();
@@ -30,6 +31,7 @@ namespace Isochronous.TestKit
 			Assert = new OniAssert();
 			World = new World(this);
 			Tools = new Tools(this);
+			Dupes = new Dupes(this);
 		}
 
 		/// <summary>The whole fixture area (cleared before the test).</summary>
@@ -102,6 +104,39 @@ namespace Isochronous.TestKit
 				if (DebugHandler.InstantBuildMode != was)
 					DebugHandler.ToggleInstantBuildMode();
 			});
+		}
+
+		/// <summary>
+		/// Every tech researched, the way the game finishes one when its points are in: each marked
+		/// done and announced, so build menus and tools see it. Lasts until the fixture is loaded again
+		/// (FreshSave), so later tests see the colony researched too.
+		/// </summary>
+		public void ResearchAll()
+		{
+			int done = 0;
+			foreach (Tech tech in Db.Get().Techs.resources)
+			{
+				TechInstance instance = Research.Instance.Get(tech);
+				if (instance == null || instance.IsComplete())
+					continue;
+				instance.Purchased();
+				Game.Instance.Trigger((int)GameHashes.ResearchComplete, tech);
+				done++;
+			}
+			if (done > 0)
+				Log("researched " + done + " techs");
+		}
+
+		/// <summary>
+		/// The game's speed for the rest of the test, 1 to 3 as the speed buttons set it (the harness
+		/// runs at 1). For tests that wait on Duplicants. Restored at cleanup.
+		/// </summary>
+		public void Speed(int speed)
+		{
+			SpeedControlScreen screen = SpeedControlScreen.Instance;
+			int was = screen.GetSpeed();
+			screen.SetSpeed(Mathf.Clamp(speed, 1, 3) - 1);
+			Cleanup(() => screen.SetSpeed(was));
 		}
 
 		/// <summary>
