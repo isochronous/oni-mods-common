@@ -21,7 +21,8 @@ With no repo names, looks at every folder next to oni-mods-common that holds a m
   - release.py then builds, zips, tags and creates the GitHub release with the zip attached.
 
 Mods with uncommitted changes to tracked files are skipped, never stashed or committed; so
-is a repo with no git remote, which marks a local-only mod that is never released.
+is a repo with no git remote, which marks a local-only mod that is never released, and a
+mod with publish/retired.txt (its text, the reason, is shown), which is released no more.
 --plan only prints what would happen. A mod that is on the Steam Workshop (id in
 publish/workshop-id.txt, or else found by title among your published items) gets that item
 updated with the same zip right after the GitHub release (see release.py); --no-workshop
@@ -106,6 +107,9 @@ def plan_for(repo, level):
     """Returns (action, detail). action is 'skip', 'first', 'bump' or 'as-is'."""
     if not git(repo, "remote", check=False):
         return "skip", "local-only mod (no git remote)"
+    retired = os.path.join(repo, "publish", "retired.txt")
+    if os.path.exists(retired):
+        return "skip", "retired: " + (open(retired, encoding="utf-8").read().strip() or "no longer released")
     if git(repo, "status", "--porcelain", "--untracked-files=no"):
         return "skip", "uncommitted changes to tracked files"
     git(repo, "fetch", "--quiet", "--tags", check=False)
