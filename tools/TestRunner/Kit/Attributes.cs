@@ -39,6 +39,15 @@ namespace Isochronous.TestKit
 		/// </summary>
 		public bool NoColony { get; set; }
 
+		/// <summary>
+		/// The test runs in a world freshly generated from this coordinate (as the destination screen
+		/// takes it, e.g. "SNDST-C-100-0-0-0") instead of the fixture: from the main menu the game
+		/// generates it with every mod of the run active and loads the colony. Consecutive tests with
+		/// one coordinate share the world. Nothing in it is cleared or boxed: t.Area is not for such a
+		/// test; t.Generated tells what was generated. A coordinate of the other mode skips the test.
+		/// </summary>
+		public string Worldgen { get; set; }
+
 		public OniTestAttribute(string name = null)
 		{
 			Name = name;

@@ -34,6 +34,23 @@ namespace Isochronous.TestKit
 			Dupes = new Dupes(this);
 		}
 
+		/// <summary>
+		/// For a test with [OniTest(Worldgen = ...)]: the world it runs in, as generated (the coordinate
+		/// the game applied, the cluster, errors the worldgen reported, how long it took). Null on the fixture.
+		/// </summary>
+		public Isochronous.TestRunner.GeneratedWorld Generated => Isochronous.TestRunner.Worldgen.Current;
+
+		/// <summary>
+		/// The camera on the cell, zoomed to the orthographic size (smaller is closer; 14 shows the
+		/// whole fixture area), a few frames given to settle. For a screenshot of something particular,
+		/// such as a problem spot in a generated world.
+		/// </summary>
+		public Wait LookAt(int cell, float size = 10f)
+		{
+			Isochronous.TestRunner.Harness.LookAt(cell, size);
+			return new FrameWait(5);
+		}
+
 		/// <summary>The whole fixture area (cleared before the test).</summary>
 		public CellRect Area => Isochronous.TestRunner.FixtureArea.Current;
 

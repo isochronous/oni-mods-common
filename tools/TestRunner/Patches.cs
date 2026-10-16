@@ -13,7 +13,8 @@ namespace Isochronous.TestRunner
 	{
 		public static void Postfix()
 		{
-			if (Session.Active && !Session.Started && Session.MenuSeenAt < 0f)
+			// Every arrival at the menu: after a launch, and when a run comes back to generate a world.
+			if (Session.Active)
 				Session.MenuSeenAt = Time.realtimeSinceStartup;
 		}
 	}
@@ -27,6 +28,7 @@ namespace Isochronous.TestRunner
 			if (!Session.Active || !Session.Started || Session.Finished)
 				return;
 			Debug.Log(Session.Tag + "colony loaded after " + (Time.realtimeSinceStartup - Session.StartedAt).ToString("F0") + " s real time");
+			Worldgen.OnColonySpawned();
 			Session.SaveIsFresh = true;
 			__instance.gameObject.AddComponent<TestBehaviour>();
 		}
@@ -101,11 +103,31 @@ namespace Isochronous.TestRunner
 					Session.PollQueue();
 				return;
 			}
-			if (!Session.Started && Session.MenuSeenAt >= 0f && Time.realtimeSinceStartup - Session.MenuSeenAt >= MenuSettleSeconds)
+			bool menuSettled = MainMenu.Instance != null && Session.MenuSeenAt >= 0f && Time.realtimeSinceStartup - Session.MenuSeenAt >= MenuSettleSeconds;
+			if (!Session.Started && menuSettled)
 			{
 				Session.Start();
 				return;
 			}
+			if (Session.Started && menuSettled)
+			{
+				// Back at the menu for a world: write off the tests of one that failed, or start the next.
+				if (Worldgen.Failure != null)
+				{
+					string why = Worldgen.Failure;
+					Worldgen.Failure = null;
+					Worldgen.Pending = null;
+					Session.WriteOff("fail", "the world could not be generated: " + why);
+					Session.Continue();
+					return;
+				}
+				if (Worldgen.Pending != null && !Worldgen.Generating)
+				{
+					Worldgen.Begin(MainMenu.Instance);
+					return;
+				}
+			}
+			Worldgen.Watch();
 			if (Time.realtimeSinceStartup - Session.StartedAt > Session.TimeoutSeconds)
 				Session.Finish("timeout", "no end of session after " + Session.TimeoutSeconds + " s real time");
 		}

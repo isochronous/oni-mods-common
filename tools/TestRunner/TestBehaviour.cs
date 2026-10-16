@@ -47,7 +47,46 @@ namespace Isochronous.TestRunner
 				return;
 			started = true;
 			Debug.Log(Session.Tag + "first update, time scale " + Time.timeScale + (NoColony ? ", no colony" : ""));
-			StartCoroutine(NoColony ? RunWithoutColony() : RunAll());
+			StartCoroutine(Guarded(NoColony ? RunWithoutColony() : RunAll()));
+		}
+
+		/// <summary>
+		/// Steps the driver's own coroutine by hand, nested ones included, so an exception the driver
+		/// did not expect ends the run at once ("runner-error" with the exception) instead of silently
+		/// ending a Unity coroutine and leaving the game idle until the session timeout.
+		/// </summary>
+		private static IEnumerator Guarded(IEnumerator root)
+		{
+			var stack = new Stack<IEnumerator>();
+			stack.Push(root);
+			while (stack.Count > 0)
+			{
+				bool more;
+				object current = null;
+				try
+				{
+					more = stack.Peek().MoveNext();
+					if (more)
+						current = stack.Peek().Current;
+				}
+				catch (Exception e)
+				{
+					Debug.LogWarning(Session.Tag + "the driver failed: " + e);
+					Session.Finish("runner-error", "the driver failed: " + e.GetType().Name + ": " + e.Message);
+					yield break;
+				}
+				if (!more)
+				{
+					stack.Pop();
+					continue;
+				}
+				if (current is IEnumerator nested)
+				{
+					stack.Push(nested);
+					continue;
+				}
+				yield return current;
+			}
 		}
 
 		private IEnumerator RunWithoutColony()
@@ -68,6 +107,8 @@ namespace Isochronous.TestRunner
 
 		private IEnumerator RunAll()
 		{
+			if (Worldgen.Current != null)
+				yield return Worldgen.Embark();
 			float deadline = Time.realtimeSinceStartup + HudWaitSeconds;
 			while (PlayerController.Instance == null || UtilityBuildTool.Instance == null || SelectTool.Instance == null
 				|| SpeedControlScreen.Instance == null || ClusterManager.Instance == null || Camera.main == null)
@@ -91,16 +132,21 @@ namespace Isochronous.TestRunner
 				Session.Finish("runner-error", e.ToString());
 				yield break;
 			}
-			yield return FixtureArea.Clear(FixtureArea.Current);
+			// A generated world is the thing under test: nothing in it is cleared.
+			bool generated = Worldgen.Current != null;
+			if (!generated)
+				yield return FixtureArea.Clear(FixtureArea.Current);
 			for (int i = Session.NextIndex; i < Session.Tests.Count; i++)
 			{
 				if (Session.Finished)
 					yield break;
 				TestCase test = Session.Tests[i];
-				// Each mod's tests start on a fresh load, so nothing one mod's tests left behind
-				// (liquid in the area, heat, a changed setting) reaches the next mod's.
+				// Each mod's tests start on a fresh load (or a fresh generation), so nothing one mod's
+				// tests left behind (liquid in the area, heat, a changed setting) reaches the next mod's;
+				// and a test in a generated world needs that world, one on the fixture the fixture.
 				bool nextMod = Session.LastAssembly != null && test.AssemblyName != Session.LastAssembly;
-				if ((test.FreshSave || nextMod) && !Session.SaveIsFresh)
+				bool otherWorld = test.Worldgen != (generated ? Worldgen.Current.Coordinate : null);
+				if (otherWorld || ((test.FreshSave || nextMod) && !Session.SaveIsFresh))
 				{
 					// The scene change destroys this driver; Game_OnSpawn_Patch attaches a new one,
 					// which resumes at this test.
@@ -108,14 +154,17 @@ namespace Isochronous.TestRunner
 						yield return null;
 					Session.NextIndex = i;
 					Session.Reloads++;
-					Debug.Log(Session.Tag + "loading the fixture again for " + test.Id + (nextMod ? " (the next mod's tests)" : ""));
-					LoadScreen.DoLoad(Session.SavePath);
+					Debug.Log(Session.Tag + (test.Worldgen != null ? "generating a world" : "loading the fixture") + " again for " + test.Id
+						+ (otherWorld ? " (it needs " + (test.Worldgen ?? "the fixture") + ")" : nextMod ? " (the next mod's tests)" : ""));
+					Session.Continue();
 					yield break;
 				}
 				Session.NextIndex = i + 1;
 				Session.SaveIsFresh = false;
 				Session.LastAssembly = test.AssemblyName;
 				yield return RunOne(test);
+				if (generated)
+					continue;
 				// A box the next test works in too stays up; only its inside is cleared.
 				TestCase next = i + 1 < Session.Tests.Count ? Session.Tests[i + 1] : null;
 				if (FixtureArea.BoxStanding && test.Boxed && next != null && next.Boxed && !next.FreshSave)
@@ -123,7 +172,7 @@ namespace Isochronous.TestRunner
 				else
 					yield return FixtureArea.Clear(FixtureArea.Current);
 			}
-			Session.Finish("done", Session.Passed + " passed, " + Session.Failed + " failed, " + Session.Errors + " errors, " + Session.Timeouts + " timeouts, " + Session.Skipped + " skipped");
+			Session.Finish("done", Session.Summary());
 		}
 
 		private void Setup()
@@ -136,14 +185,19 @@ namespace Isochronous.TestRunner
 			Harness.IgnorePhysicalInput();
 			Harness.Unpause();
 			Harness.EnsureInstantBuild();
-			FixtureArea.Current = FixtureArea.Find(FixtureArea.Width, FixtureArea.Height);
 			FixtureArea.BoxStanding = false;
 			FixtureArea.LifeSupport = null;
-			int centre = FixtureArea.Current.Cell(FixtureArea.Width / 2, FixtureArea.Height / 2);
-			Harness.LookAt(centre, 14f);
+			if (Worldgen.Current == null)
+			{
+				FixtureArea.Current = FixtureArea.Find(FixtureArea.Width, FixtureArea.Height);
+				int centre = FixtureArea.Current.Cell(FixtureArea.Width / 2, FixtureArea.Height / 2);
+				Harness.LookAt(centre, 14f);
+			}
+			else
+				FixtureArea.Current = default;
 			Harness.ParkMouse();
 			Harness.ForceFocus();
-			Debug.Log(Session.Tag + "fixture area " + FixtureArea.Current + ", focus " + KInputManager.isFocused
+			Debug.Log(Session.Tag + (Worldgen.Current != null ? "generated world " + Worldgen.Current.Applied : "fixture area " + FixtureArea.Current) + ", focus " + KInputManager.isFocused
 				+ ", instant build " + DebugHandler.InstantBuildMode + ", paused " + SpeedControlScreen.Instance.IsPaused
 				+ ", mouse locked at " + KInputManager.lockedMousePos
 				+ "; sandbox " + Game.Instance.SandboxModeActive + ", sandbox menu " + (SandboxToolParameterMenu.instance != null)

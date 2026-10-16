@@ -110,6 +110,21 @@ public static class WireDrags
   registrations). A run whose tests are all marked so loads no save: after a launch they run at the
   main menu, in a live game wherever it is. `t.Area`, `t.World`, `t.Tools` and `t.Dupes` are not for
   such a test.
+- `[OniTest(Worldgen = "SNDST-C-100-0-0-0")]`: the test runs in a world freshly generated from that
+  coordinate (as the destination screen takes it) with every mod of the run active, instead of the
+  fixture. The harness goes to the main menu, applies the coordinate, runs the game's own worldgen
+  screen (about 20 s for a Spaced Out cluster), lets the colony load, embarks with the Duplicants
+  offered and presses Begin on the opening message, then runs the test. Consecutive tests with one
+  coordinate share the world; a later fixture test loads the fixture again. Nothing in a generated
+  world is cleared, and `t.Area` is not for such a test. `t.Generated` tells what was generated (the
+  applied coordinate, the cluster, worldgen errors, seconds). A coordinate of the other mode skips
+  the test; a failed generation fails its tests and the run goes on; a worldgen thread silent for
+  300 s ends the session. Generation is real game time: raise `-TimeoutSec` for runs with several worlds.
+- `t.LookAt(cell, size)` points the camera at a cell (orthographic size: 14 shows the fixture area,
+  8 a close-up), for a `t.Screenshot` of something particular. In a generated world, lift the fog of
+  war first (`Grid.Reveal`) or the picture is black. Natural Backwalls' `Generated.Overview`
+  (explicit) photographs the start area and one spot per biome; its `StartingAsteroid` photographs
+  each hole it finds before it fails.
 - Yield `t.Frames(n)`, `t.WaitGameSeconds(s)` (scaled sim time), `t.WaitRealSeconds(s)`,
   `t.WaitUntil(cond, timeout, what)` (a timeout fails the test with `what`), or a kit coroutine
   such as `wire.Path(...)`. Plain `yield return null` is one frame.

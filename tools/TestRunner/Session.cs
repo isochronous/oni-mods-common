@@ -362,6 +362,39 @@ namespace Isochronous.TestRunner
 				driver.AddComponent<TestBehaviour>().NoColony = true;
 				return;
 			}
+			NextIndex = 0;
+			Continue();
+		}
+
+		/// <summary>
+		/// Moves the run on to Tests[NextIndex] from wherever the game is: the end of the run, a world
+		/// to generate (the main menu first, if the game is in a colony), or the fixture to load.
+		/// Tests whose coordinate the game's mode cannot generate are skipped here.
+		/// </summary>
+		public static void Continue()
+		{
+			while (NextIndex < Tests.Count && Tests[NextIndex].Worldgen != null)
+			{
+				string mismatch = Worldgen.ModeMismatch(Tests[NextIndex].Worldgen);
+				if (mismatch == null)
+					break;
+				WriteOff("skipped", mismatch);
+			}
+			if (NextIndex >= Tests.Count)
+			{
+				Finish("done", Summary());
+				return;
+			}
+			TestCase next = Tests[NextIndex];
+			if (next.Worldgen != null)
+			{
+				Worldgen.Pending = next.Worldgen;
+				Debug.Log(Tag + next.Id + " needs a world generated from " + next.Worldgen);
+				// At the main menu the per-frame watchdog opens the worldgen screen once the menu has settled.
+				if (MainMenu.Instance == null)
+					Worldgen.LeaveColony();
+				return;
+			}
 			if (!File.Exists(SavePath))
 			{
 				Finish("no-save", "file not found: " + SavePath);
@@ -369,6 +402,23 @@ namespace Isochronous.TestRunner
 			}
 			Debug.Log(Tag + "loading " + SavePath);
 			LoadScreen.DoLoad(SavePath);
+		}
+
+		/// <summary>Records the run of tests at NextIndex that share its coordinate as not run, with the reason, and moves past them.</summary>
+		public static void WriteOff(string status, string message)
+		{
+			string coordinate = Tests[NextIndex].Worldgen;
+			while (NextIndex < Tests.Count && Tests[NextIndex].Worldgen == coordinate)
+			{
+				var result = new TestResult(Tests[NextIndex]) { Status = status, Message = message };
+				Write(result);
+				NextIndex++;
+			}
+		}
+
+		public static string Summary()
+		{
+			return Passed + " passed, " + Failed + " failed, " + Errors + " errors, " + Timeouts + " timeouts, " + Skipped + " skipped";
 		}
 
 		private static void Quit(string why)
@@ -403,9 +453,12 @@ namespace Isochronous.TestRunner
 		public readonly bool Explicit;
 		public readonly bool Boxed;
 		public readonly bool NoColony;
+		/// <summary>The coordinate of the generated world the test runs in, or null for the fixture.</summary>
+		public readonly string Worldgen;
 
 		public TestCase(string assemblyName, Type type, MethodInfo method, OniTestAttribute attr)
 		{
+			Worldgen = string.IsNullOrWhiteSpace(attr.Worldgen) ? null : attr.Worldgen.Trim();
 			AssemblyName = assemblyName;
 			Type = type;
 			Method = method;
