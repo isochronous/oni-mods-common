@@ -6,8 +6,9 @@
 --auto picks the largest opaque connected component in the atlas (typically the
 building's main sprite) instead of an explicit crop. The caption is white bold text on
 a translucent black band, the same closed-caption style as the other isochronous mods.
-Requires Pillow. Atlases are extracted with UnityPy from sharedassets0.assets (Texture2D
-named <kanim>_0) and are Klei art: keep them untracked, commit only the composed preview.
+Requires Pillow. Atlases come out of the game with ../Kanim/kanim.py extract <kanim> --out <folder>
+(or kanim.py render for a building drawn from several parts) and are Klei art: keep them
+untracked, commit only the composed preview.
 """
 import argparse, sys
 from PIL import Image, ImageDraw, ImageFont

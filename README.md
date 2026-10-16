@@ -24,7 +24,7 @@ Then the mod csproj (at `src/<ModName>/<ModName>.csproj`) reduces to:
 </Project>
 ```
 
-Build with `dotnet build src/<ModName> -c Release`. A successful build deploys the DLL, `mod.yaml`, `mod_info.yaml`, and any `assets/` and `anim/` folders (custom kanims live at `anim/assets/<name>/`; see `tools/MakeKanim` for generating one from a PNG; its "place" anim must be the white outline the game tints as the construction ghost, which `kanim_writer.place_outline` derives from the sprite) to `Documents\Klei\OxygenNotIncluded\mods\local\<ModName>`.
+Build with `dotnet build src/<ModName> -c Release`. A successful build deploys the DLL, `mod.yaml`, `mod_info.yaml`, and any `assets/` and `anim/` folders (custom kanims live at `anim/assets/<name>/`; see [Kanims](#kanims) for making one; its "place" anim must be the white outline the game tints as the construction ghost, which `kanim.place_outline` derives from the sprite) to `Documents\Klei\OxygenNotIncluded\mods\local\<ModName>`.
 
 ## Knobs
 
@@ -100,20 +100,27 @@ The zip must contain `mod.yaml`, `mod_info.yaml`, the DLL, and `preview.png` at 
 
 ## Workshop preview images
 
-`tools/MakePreview/make_preview.py` (Pillow) composes the 256x256 preview used by every isochronous mod: a game sprite centred on a transparent canvas with a white caption on a translucent black band. Sprites come from the game's kanim textures, which UnityPy extracts from `OxygenNotIncluded_Data/sharedassets0.assets` (Texture2D named `<kanim>_0`, e.g. `critter_sensor_0`); keep the extracted atlases untracked since they are Klei art, and commit only the composed preview.
+`tools/MakePreview/make_preview.py` (Pillow) composes the 256x256 preview used by every isochronous mod: a game sprite centred on a transparent canvas with a white caption on a translucent black band. Sprites come from the game's kanim textures (`python tools/Kanim/kanim.py extract critter_sensor --out <folder>` copies `critter_sensor_0.png` and its build and anim out of the game); keep the extracted atlases untracked since they are Klei art, and commit only the composed preview.
 
 ```
-python -m pip install UnityPy Pillow
 python tools/MakePreview/make_preview.py critter_sensor_0.png preview.png --auto --no-shadow --rotate 180 --text "4-bit"
 ```
 
-Buildings drawn from several parts (the fridge, for one) only have the parts in their atlas. `tools/MakePreview/render_kanim.py` (Pillow, numpy) assembles one animation frame the way the game does, from the texture plus the `<kanim>_build` and `<kanim>_anim` TextAssets, and writes a transparent PNG to feed to `make_preview.py`:
+Buildings drawn from several parts (the fridge, for one) only have the parts in their atlas; `kanim.py render` assembles a frame to feed to `make_preview.py` (see below).
+
+## Kanims
+
+`tools/Kanim/kanim.py` reads, writes, renders and extracts Klei kanims, from the command line or imported by a mod's art script (`mods/<name>/tools/`). A `<kanim>` argument is a kanim folder (a mod's `src/<Mod>/anim/assets/<name>`) or a vanilla kanim's name; vanilla kanims are read from the installed game's `sharedassets0.assets` and cached in the temp folder (the game folder is `--game`, else `ONI_GAME_FOLDER`, else the Steam folders the builds look in).
 
 ```
-python tools/MakePreview/render_kanim.py fridge_0.png fridge_build.bytes fridge_anim.bytes fridge.png --anim off --scale 1 --skip sweep
+python tools/Kanim/kanim.py list logic_ribbon_reader                 # anims, symbols and their frames
+python tools/Kanim/kanim.py dump logic_ribbon_reader --anim 5_1      # every element of a frame: symbol, layer, alpha, matrix, position
+python tools/Kanim/kanim.py render fridge fridge.png --anim off --scale 1 --hide sweep
+python tools/Kanim/kanim.py extract fridge critter_sensor --out <folder>
+python tools/Kanim/kanim.py make sprite.png <mod>/src/<Mod>/anim/assets/my_building --name my_building
 ```
 
-`--list` prints the animation and symbol names; `--skip` leaves out symbols such as the sweep marker.
+`make` builds a one-sprite building kanim from a PNG. Art scripts import `write_kanim` for several symbols and anims, `read_kanim` and `vanilla` to start from a vanilla kanim, `render` to measure or preview the result, and `drift` for a `--check` option that compares a fresh build with the committed files; the module's docstring has the details and the file format. The tools need `python -m pip install -r tools/requirements.txt`.
 
 ## Testing a mod in isolation
 
