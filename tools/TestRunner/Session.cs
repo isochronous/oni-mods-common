@@ -20,6 +20,8 @@ namespace Isochronous.TestRunner
 	///   --onitest-timeout=SECONDS      real time allowed for the whole session before it is called a hang (default 600)
 	///   --onitest-test-timeout=SECONDS default real time per test (default 60; [OniTest(Timeout = n)] overrides)
 	///   --onitest-keep=1               leave the colony open when the tests are done instead of quitting
+	///   --onitest-server=DIR           stay up after the run and take further runs from DIR/queue
+	///                                  (see Server below); quit after IdleSeconds with none
 	/// </summary>
 	public static class Session
 	{
@@ -39,6 +41,15 @@ namespace Isochronous.TestRunner
 		public static float StartedAt;
 		/// <summary>Real time the main menu appeared, or -1 before that.</summary>
 		public static float MenuSeenAt = -1f;
+
+		/// <summary>The live-session folder (--onitest-server), or null for a one-run session.</summary>
+		public static string ServerDir;
+		/// <summary>Real seconds a live session waits for the next run before it quits.</summary>
+		public const float IdleSeconds = 15f;
+		/// <summary>Real time the last run finished, while the session waits for the next.</summary>
+		public static float IdleSince = -1f;
+		/// <summary>The test assembly of the last test run on the current load: the next assembly gets a fresh load.</summary>
+		public static string LastAssembly;
 
 		public static readonly List<TestCase> Tests = new List<TestCase>();
 		/// <summary>Index of the next test to run; survives a scene change, so a reload resumes here.</summary>
@@ -75,16 +86,22 @@ namespace Isochronous.TestRunner
 					case "--onitest-test-timeout": if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double tt) && tt > 0) TestTimeoutSeconds = tt; break;
 					case "--onitest-keep": Keep = value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase); break;
 					case "--onitest-trace": Trace = value == "1"; break;
+					case "--onitest-server": ServerDir = value; break;
 				}
 			}
 			Active = !string.IsNullOrEmpty(Dir) && !string.IsNullOrEmpty(SavePath);
 			StartedAt = Time.realtimeSinceStartup;
 		}
 
+		/// <summary>True when every selected test is [OniTest(NoColony = true)]: the run loads no save.</summary>
+		public static bool AllNoColony => Tests.Count > 0 && Tests.TrueForAll(test => test.NoColony);
+
 		/// <summary>
 		/// Loads every DLL under DIR/tests and lists its [OniTest] methods: public static, returning
 		/// IEnumerator, taking one TestContext. Order: assembly name, class, declaration order. Called
-		/// once the colony is up, so every mod a test references has been loaded by the game.
+		/// at the main menu or once the colony is up; the game loads every mod at boot, so whatever a
+		/// test references is there. The DLLs are loaded from their bytes, so a live session takes a
+		/// rebuilt test assembly of the same name as a new one.
 		/// </summary>
 		public static void Discover()
 		{
@@ -101,7 +118,7 @@ namespace Isochronous.TestRunner
 			Array.Sort(dlls, string.CompareOrdinal);
 			foreach (string dll in dlls)
 			{
-				Assembly asm = Assembly.LoadFrom(dll);
+				Assembly asm = Assembly.Load(File.ReadAllBytes(dll));
 				Type[] types;
 				try
 				{
@@ -196,8 +213,180 @@ namespace Isochronous.TestRunner
 			}
 			if (Keep)
 				Debug.Log(Tag + "leaving the game open (--onitest-keep)");
+			else if (ServerDir != null)
+			{
+				IdleSince = Time.realtimeSinceStartup;
+				WriteState("idle");
+				Debug.Log(Tag + "waiting up to " + IdleSeconds + " s for the next run in " + ServerDir);
+			}
 			else
 				App.Quit();
+		}
+
+		// --- live session ------------------------------------------------------------------------
+		//
+		// A launcher whose loadout matches the running game's drops a request file in DIR/queue
+		// instead of starting the game again; the game takes it (renames it .taken), loads the
+		// fixture fresh and runs it like the first. DIR/state says what the game is doing, for the
+		// launchers and the warden that restores the player's mods.json once the game exits. A
+		// request named quit.req ends the session at once; no request for IdleSeconds ends it too.
+
+		private static string QueueDir => Path.Combine(ServerDir, "queue");
+
+		/// <summary>"busy &lt;deadline&gt;", "idle &lt;since&gt;" or "quitting", with Unix seconds, for the launcher and the warden.</summary>
+		public static void WriteState(string state)
+		{
+			if (ServerDir == null)
+				return;
+			try
+			{
+				long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+				string line = state == "busy" ? "busy " + (now + (long)TimeoutSeconds) : state == "idle" ? "idle " + now : state;
+				File.WriteAllText(Path.Combine(ServerDir, "state"), line + "\n");
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning(Tag + "cannot write the session state: " + e.Message);
+			}
+		}
+
+		/// <summary>
+		/// Called every frame while the session is idle: takes the next request, or quits after
+		/// IdleSeconds with none. Returns true when a run has started.
+		/// </summary>
+		public static bool PollQueue()
+		{
+			string[] requests;
+			try
+			{
+				requests = Directory.Exists(QueueDir) ? Directory.GetFiles(QueueDir, "*.req") : new string[0];
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning(Tag + "cannot read the queue: " + e.Message);
+				requests = new string[0];
+			}
+			Array.Sort(requests, string.CompareOrdinal);
+			foreach (string request in requests)
+			{
+				if (Path.GetFileName(request).Equals("quit.req", StringComparison.OrdinalIgnoreCase))
+				{
+					TryDelete(request);
+					Quit("asked to quit");
+					return false;
+				}
+				string taken = Path.ChangeExtension(request, ".taken");
+				Dictionary<string, string> fields;
+				try
+				{
+					File.Move(request, taken);
+					fields = ReadRequest(taken);
+				}
+				catch (Exception e)
+				{
+					Debug.LogWarning(Tag + "cannot take " + request + ": " + e.Message);
+					continue;
+				}
+				Begin(fields);
+				return true;
+			}
+			if (Time.realtimeSinceStartup - IdleSince > IdleSeconds)
+				Quit("no run for " + IdleSeconds + " s");
+			return false;
+		}
+
+		private static Dictionary<string, string> ReadRequest(string path)
+		{
+			var fields = new Dictionary<string, string>();
+			foreach (string line in File.ReadAllLines(path))
+			{
+				int eq = line.IndexOf('=');
+				if (eq > 0)
+					fields[line.Substring(0, eq).Trim()] = line.Substring(eq + 1).Trim();
+			}
+			return fields;
+		}
+
+		/// <summary>A fresh run in the live game: the run's settings, every count back to zero, the tests found again.</summary>
+		private static void Begin(Dictionary<string, string> fields)
+		{
+			fields.TryGetValue("dir", out Dir);
+			fields.TryGetValue("save", out SavePath);
+			Filters.Clear();
+			if (fields.TryGetValue("filter", out string filter))
+				foreach (string f in filter.Split(';'))
+					if (f.Trim().Length > 0)
+						Filters.Add(f.Trim());
+			if (fields.TryGetValue("timeout", out string timeout) && double.TryParse(timeout, NumberStyles.Float, CultureInfo.InvariantCulture, out double t) && t > 0)
+				TimeoutSeconds = t;
+			if (fields.TryGetValue("test-timeout", out string testTimeout) && double.TryParse(testTimeout, NumberStyles.Float, CultureInfo.InvariantCulture, out double tt) && tt > 0)
+				TestTimeoutSeconds = tt;
+			Trace = fields.TryGetValue("trace", out string trace) && trace == "1";
+			Tests.Clear();
+			NextIndex = 0;
+			Passed = Failed = Errors = Timeouts = Skipped = 0;
+			Reloads = 0;
+			LastAssembly = null;
+			SaveIsFresh = false;
+			IdleSince = -1f;
+			StartedAt = Time.realtimeSinceStartup;
+			Finished = false;
+			WriteState("busy");
+			Debug.Log(Tag + "next run: tests from " + Dir + (Filters.Count > 0 ? " matching " + string.Join(";", Filters) : "") + ", fixture " + SavePath);
+			Start();
+		}
+
+		/// <summary>
+		/// Starts a run where the game is: the tests found, then either the no-colony driver (a run
+		/// of NoColony tests only, which loads no save) or the fixture loaded (the colony's spawn
+		/// attaches the driver).
+		/// </summary>
+		public static void Start()
+		{
+			Started = true;
+			try
+			{
+				Discover();
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning(Tag + e);
+				Finish("runner-error", e.ToString());
+				return;
+			}
+			if (AllNoColony)
+			{
+				Debug.Log(Tag + "every selected test needs no colony: running them without loading a save");
+				var driver = new GameObject("OniTestNoColonyDriver");
+				UnityEngine.Object.DontDestroyOnLoad(driver);
+				driver.AddComponent<TestBehaviour>().NoColony = true;
+				return;
+			}
+			if (!File.Exists(SavePath))
+			{
+				Finish("no-save", "file not found: " + SavePath);
+				return;
+			}
+			Debug.Log(Tag + "loading " + SavePath);
+			LoadScreen.DoLoad(SavePath);
+		}
+
+		private static void Quit(string why)
+		{
+			Debug.Log(Tag + "ending the live session: " + why);
+			WriteState("quitting");
+			App.Quit();
+		}
+
+		private static void TryDelete(string path)
+		{
+			try
+			{
+				File.Delete(path);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -213,6 +402,7 @@ namespace Isochronous.TestRunner
 		public readonly bool FreshSave;
 		public readonly bool Explicit;
 		public readonly bool Boxed;
+		public readonly bool NoColony;
 
 		public TestCase(string assemblyName, Type type, MethodInfo method, OniTestAttribute attr)
 		{
@@ -223,6 +413,7 @@ namespace Isochronous.TestRunner
 			FreshSave = attr.FreshSave;
 			Explicit = attr.Explicit;
 			Boxed = attr.Boxed;
+			NoColony = attr.NoColony;
 			TimeoutSeconds = attr.Timeout > 0 ? attr.Timeout : Session.TestTimeoutSeconds;
 			LayerAttribute layer = method.GetCustomAttribute<LayerAttribute>() ?? type.GetCustomAttribute<LayerAttribute>();
 			Layer = layer != null ? layer.Layer : -1;

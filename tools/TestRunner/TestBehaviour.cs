@@ -29,6 +29,12 @@ namespace Isochronous.TestRunner
 		private bool started;
 		private double gameSeconds;
 
+		/// <summary>
+		/// Set on the driver Session.Start makes for a run of [OniTest(NoColony = true)] tests: it runs
+		/// them where the game is (the main menu after a launch) with no fixture, then goes away.
+		/// </summary>
+		public bool NoColony;
+
 		/// <summary>Scaled game time since the colony loaded, for the per-test gameSeconds figure.</summary>
 		public double GameSeconds => gameSeconds;
 
@@ -40,8 +46,24 @@ namespace Isochronous.TestRunner
 			if (started)
 				return;
 			started = true;
-			Debug.Log(Session.Tag + "first update, time scale " + Time.timeScale);
-			StartCoroutine(RunAll());
+			Debug.Log(Session.Tag + "first update, time scale " + Time.timeScale + (NoColony ? ", no colony" : ""));
+			StartCoroutine(NoColony ? RunWithoutColony() : RunAll());
+		}
+
+		private IEnumerator RunWithoutColony()
+		{
+			yield return null;
+			Harness.ForceFocus();
+			for (int i = Session.NextIndex; i < Session.Tests.Count; i++)
+			{
+				if (Session.Finished)
+					break;
+				Session.NextIndex = i + 1;
+				yield return RunOne(Session.Tests[i]);
+			}
+			if (!Session.Finished)
+				Session.Finish("done", Session.Passed + " passed, " + Session.Failed + " failed, " + Session.Errors + " errors, " + Session.Timeouts + " timeouts, " + Session.Skipped + " skipped");
+			Destroy(gameObject);
 		}
 
 		private IEnumerator RunAll()
@@ -75,7 +97,10 @@ namespace Isochronous.TestRunner
 				if (Session.Finished)
 					yield break;
 				TestCase test = Session.Tests[i];
-				if (test.FreshSave && !Session.SaveIsFresh)
+				// Each mod's tests start on a fresh load, so nothing one mod's tests left behind
+				// (liquid in the area, heat, a changed setting) reaches the next mod's.
+				bool nextMod = Session.LastAssembly != null && test.AssemblyName != Session.LastAssembly;
+				if ((test.FreshSave || nextMod) && !Session.SaveIsFresh)
 				{
 					// The scene change destroys this driver; Game_OnSpawn_Patch attaches a new one,
 					// which resumes at this test.
@@ -83,12 +108,13 @@ namespace Isochronous.TestRunner
 						yield return null;
 					Session.NextIndex = i;
 					Session.Reloads++;
-					Debug.Log(Session.Tag + "loading the fixture again for " + test.Id);
+					Debug.Log(Session.Tag + "loading the fixture again for " + test.Id + (nextMod ? " (the next mod's tests)" : ""));
 					LoadScreen.DoLoad(Session.SavePath);
 					yield break;
 				}
 				Session.NextIndex = i + 1;
 				Session.SaveIsFresh = false;
+				Session.LastAssembly = test.AssemblyName;
 				yield return RunOne(test);
 				// A box the next test works in too stays up; only its inside is cleared.
 				TestCase next = i + 1 < Session.Tests.Count ? Session.Tests[i + 1] : null;

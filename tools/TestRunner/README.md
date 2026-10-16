@@ -22,10 +22,24 @@ pwsh common/tools/TestRunner/Invoke-OniTests.ps1 -Mods DirectAutomationBridges -
 The launcher builds `<repo>/src/<Mod>.Tests/<Mod>.Tests.csproj` (which builds and deploys the mod
 and this harness), checks the test DLL against the game assemblies with `tools/ModCheck`, copies it
 into `runs/<label>-<stamp>/tests/`, rewrites `mods.json` so that only TestRunner, the mods under
-test and `-With` are enabled, launches the game through Steam, waits for it to quit, restores
-`mods.json` and prints a line per test plus the session status. Steam must be running. Exit code 0
-when every test passed, 1 when one failed, errored or timed out, 2 when the session never produced a
-status (launch, load or crash: read `Player.log` in the run folder), 3 for build or check failures.
+test and `-With` are enabled, launches the game through Steam, waits for the run's results and
+prints a line per test plus the session status. Steam must be running. Exit code 0 when every test
+passed, 1 when one failed, errored or timed out, 2 when the session never produced a status (launch,
+load or crash: read `Player.log` in the run folder), 3 for build or check failures.
+
+**The game stays up between runs.** After a run the game waits 15 s for another. A run whose
+loadout matches the running game's (the mode, the mods, `-With`, `-Steam`, `-Trace`, and every file
+of each deployed local mod, the harness and their shared configs) is handed to it: it loads the run's
+fixture fresh and runs the tests, loading the test DLLs from their bytes, so changed tests need no
+restart (about 10 s instead of 40). Any other loadout, a rebuilt mod included, ends the running game
+and launches a new one. With no run for 15 s the game quits by itself, and a detached warden
+(`Watch-OniGame.ps1`, started with the game) puts the player's `mods.json` back once it has exited
+and removes the session folder, `%LOCALAPPDATA%\IsochronousOniTests\live` (the warden's log is next
+to it). `-KeepGame` launches a game of its own and keeps the old behaviour.
+
+**One run at a time.** Runs started side by side (several agents at once) queue on a machine-wide
+lock and say "waiting for it to finish"; `-BuildOnly` builds and checks without a game session and
+takes the lock too, as builds share the harness's output.
 
 The fixture is `fixtures/testbed-so.sav` or `fixtures/testbed-base.sav` by the game's current mode
 (`-Fixture` overrides); see `fixtures/README.md`. The harness picks a 40x10 test area in the fixture
@@ -43,13 +57,14 @@ Launcher options:
 | `-TimeoutSec n` | Real seconds the whole session may take (default 600). |
 | `-TestTimeoutSec n` | Default real seconds per test (default 60); `[OniTest(Timeout = n)]` overrides it. |
 | `-KeepGame` | Leave the colony open after the tests; the launcher waits until the game is closed. |
+| `-BuildOnly` | Build the test project and check it against the game assemblies, then stop. |
 | `-Label name` | The run folder's prefix (`runs/<label>-<stamp>`). |
 | `-Trace` | Log the grid marks the game makes during tests (`Diagnostics.cs`). |
 | `-NoBuild`, `-NoCheck`, `-BuildArgs` | Skip the build or the ModCheck pass, or pass extra arguments to `dotnet build`. |
 
-The game must not be running (the launcher refuses), and Steam must be. If a run is killed before
-it ends, `mods.json.onitest-backup` holds the player's mod list: the next run restores it first, or
-copy it over `mods.json` by hand.
+The game must not be running, other than the live session's own (the launcher refuses), and Steam
+must be. If a run or its warden is killed before the end, `mods.json.onitest-backup` holds the
+player's mod list: the next run restores it first, or copy it over `mods.json` by hand.
 
 ## Writing tests
 
@@ -86,8 +101,15 @@ public static class WireDrags
   few seconds, not a restart), unless no test has run since the last load. For tests that change
   the colony outside the test area, such as one run on a player's save. Only a change of mods or
   mod settings needs a new launch. The status line counts the reloads.
+- Each mod's tests start on a fresh load of the fixture: when a run moves on to the next test
+  assembly, the fixture is loaded again, so nothing one mod's tests left (liquid, heat, a setting)
+  reaches the next mod's.
 - `[OniTest(Explicit = true)]`: left out of a run with no `-Filter`, run only when a filter selects
   it. For long tests kept for when they are needed.
+- `[OniTest(NoColony = true)]`: the test needs no colony (an options dialog, strings,
+  registrations). A run whose tests are all marked so loads no save: after a launch they run at the
+  main menu, in a live game wherever it is. `t.Area`, `t.World`, `t.Tools` and `t.Dupes` are not for
+  such a test.
 - Yield `t.Frames(n)`, `t.WaitGameSeconds(s)` (scaled sim time), `t.WaitRealSeconds(s)`,
   `t.WaitUntil(cond, timeout, what)` (a timeout fails the test with `what`), or a kit coroutine
   such as `wire.Path(...)`. Plain `yield return null` is one frame.
@@ -167,3 +189,11 @@ starter and a timeout cannot stop it, so the driver calls `MoveNext` itself insi
 interprets the yielded value (a nested enumerator, a kit `Wait` polled per frame, a Unity yield
 instruction, or null for a frame) and checks the deadline at every step. Errors the game logs during
 a test are captured through `Application.logMessageReceivedThreaded`.
+
+A live session (`--onitest-server=DIR`, given by the launcher unless `-KeepGame`): when a run ends,
+`Session.Finish` writes `DIR/state` (`idle <since>`) instead of quitting, and `App.LateUpdate` polls
+`DIR/queue` each frame. A launcher writes `<run>.req` (key=value lines: the run folder, fixture,
+filter and timeouts) and waits for the game to rename it `.taken`; the game resets the session's
+counts, finds the tests again and loads the fixture (or, for a run of no-colony tests, adds a
+driver where it is). `quit.req`, or no request for 15 s, ends the session with `App.Quit`. The
+warden ends a game idle for over a minute or busy three minutes past its deadline.

@@ -20,7 +20,9 @@ namespace Isochronous.TestRunner
 				return;
 			Debug.Log(Session.Tag + "will load " + Session.SavePath + " and run tests from " + Session.Dir
 				+ (Session.Filters.Count > 0 ? " matching " + string.Join(";", Session.Filters) : "")
-				+ ", session timeout " + Session.TimeoutSeconds + " s, test timeout " + Session.TestTimeoutSeconds + " s");
+				+ ", session timeout " + Session.TimeoutSeconds + " s, test timeout " + Session.TestTimeoutSeconds + " s"
+				+ (Session.ServerDir != null ? ", then staying up for further runs from " + Session.ServerDir : ""));
+			Session.WriteState("busy");
 			// No crash dialog during a run: its ReportErrorDialog calls App.QuitCode(1) when the scene
 			// change destroys it, which ended runs without a word. Exceptions still go to the log.
 			KCrashReporter.ignoreAll = true;

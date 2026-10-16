@@ -81,8 +81,10 @@ namespace Isochronous.TestRunner
 	}
 
 	/// <summary>
-	/// Runs in every scene: starts the load once the main menu has settled, the way the Load screen
-	/// does it minus its dialogs, and calls a session that takes too long in real time a hang.
+	/// Runs in every scene: starts the run once the main menu has settled (loading the fixture the
+	/// way the Load screen does minus its dialogs, unless no test needs a colony), calls a session
+	/// that takes too long in real time a hang, and between the runs of a live session takes the
+	/// next request.
 	/// </summary>
 	[HarmonyPatch(typeof(App), "LateUpdate")]
 	public static class App_LateUpdate_Patch
@@ -91,18 +93,17 @@ namespace Isochronous.TestRunner
 
 		public static void Postfix()
 		{
-			if (!Session.Active || Session.Finished)
+			if (!Session.Active)
 				return;
+			if (Session.Finished)
+			{
+				if (Session.ServerDir != null && !Session.Keep && Session.IdleSince >= 0f)
+					Session.PollQueue();
+				return;
+			}
 			if (!Session.Started && Session.MenuSeenAt >= 0f && Time.realtimeSinceStartup - Session.MenuSeenAt >= MenuSettleSeconds)
 			{
-				Session.Started = true;
-				if (!File.Exists(Session.SavePath))
-				{
-					Session.Finish("no-save", "file not found: " + Session.SavePath);
-					return;
-				}
-				Debug.Log(Session.Tag + "loading " + Session.SavePath);
-				LoadScreen.DoLoad(Session.SavePath);
+				Session.Start();
 				return;
 			}
 			if (Time.realtimeSinceStartup - Session.StartedAt > Session.TimeoutSeconds)

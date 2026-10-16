@@ -32,6 +32,13 @@ namespace Isochronous.TestKit
 		/// </summary>
 		public bool Boxed { get; set; }
 
+		/// <summary>
+		/// The test needs no colony (a mod's options dialog, its strings, its registrations): a run
+		/// whose tests are all marked so loads no save and runs them where the game is, at the main
+		/// menu after a launch. t.Area, t.World, t.Tools and t.Dupes are not for such a test.
+		/// </summary>
+		public bool NoColony { get; set; }
+
 		public OniTestAttribute(string name = null)
 		{
 			Name = name;
