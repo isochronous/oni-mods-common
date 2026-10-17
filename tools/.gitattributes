@@ -1,0 +1,7 @@
+# ICON: complete text-surface coverage (v3 §11.2). Every generated or runtime text path this
+# substrate owns checks out LF, whatever the repository-wide rule says. Verified with
+# `git check-attr text eol -- <path>`, never by reading these lines.
+.context/** text eol=lf
+# ICON: retro logs are append-mostly; union-merge concurrent appends across branches.
+.context/retrospectives/*.md merge=union
+.context/retrospectives/archive/*.md merge=union

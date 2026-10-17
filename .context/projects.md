@@ -5,9 +5,4 @@ row is never deleted or reordered on your behalf.
 
 | Name | Path |
 |------|------|
-| ModCheck | `tools/ModCheck` |
-| SaveRunner | `tools/SaveRunner` |
-| TestRunner | `tools/TestRunner` |
-| StringsTemplate | `tools/Translations/StringsTemplate` |
-| WorkshopUpload | `tools/WorkshopUpload` |
-| WorldgenDriver | `tools/WorldgenDriver` |
+| tools | `tools` |

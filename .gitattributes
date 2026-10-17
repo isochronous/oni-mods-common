@@ -5,3 +5,32 @@
 # ICON: retro logs are append-mostly; union-merge concurrent appends across branches.
 .context/retrospectives/*.md merge=union
 .context/retrospectives/archive/*.md merge=union
+AGENTS.md text eol=lf
+CLAUDE.md text eol=lf
+commands/** text eol=lf
+skills/** text eol=lf
+agents/** text eol=lf
+hooks.json text eol=lf
+hooks/** text eol=lf
+bin/** text eol=lf
+.githooks/** text eol=lf
+.claude/rules/** text eol=lf
+.claude/commands/** text eol=lf
+.github/instructions/** text eol=lf
+plugin.json text eol=lf
+.claude-plugin/plugin.json text eol=lf
+# ICON: binary outputs, declared so a future one is not text-converted by omission. Nothing here
+# generates one today; these lines come last so they win over the tree patterns above.
+*.png -text
+*.jpg -text
+*.gif -text
+*.ico -text
+*.pdf -text
+*.zip -text
+*.gz -text
+*.woff -text
+*.woff2 -text
+# ICON: ledger rows are append-only and never revised; union-merge concurrent imports across branches.
+.context/ledger/*.jsonl merge=union
+# ICON: the friction log is append-only dated sections; union-merge concurrent additions across branches (a retired entry a union brings back is refused by duplicate-block-id).
+.context/domains/tooling-friction.md merge=union
