@@ -223,8 +223,13 @@ def main():
     # top and bottom keep the text a tenth of the image from that edge (split: a twenty-fifth,
     # inside the frame); a number places its centre.
     if split:
+        # The bottom line sits on the margin by its box, which keeps the font's descent below its
+        # ink; the top line comes down so its ink is as far from the top as the bottom line's is
+        # from the bottom.
         margin = int(full * 0.04)
-        tops = [margin, full - margin - masks[-1].height]
+        bottom_top = full - margin - masks[-1].height
+        gap = full - (bottom_top + masks[-1].getbbox()[3])
+        tops = [gap - masks[0].getbbox()[1], bottom_top]
     else:
         block = sum(m.height for m in masks) + gap * (len(masks) - 1)
         margin = int(full * 0.1)
