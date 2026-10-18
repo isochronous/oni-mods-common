@@ -1,0 +1,304 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "Index of WorldgenDriver's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains"
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "WorldgenDriver domain",
+   "description": "WorldgenDriver's mod class in Mod.cs, the Driver state and --worldgen options in Driver.cs, the seven patches in Patches.cs, the Invoke-Worldgen.ps1 functions, files read and written, business rules, code paths and per-coordinate states",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview"
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities"
+    },
+    {
+     "id": "domains/entities.md#key-entities/worldgendrivermod",
+     "title": "WorldgenDriverMod"
+    },
+    {
+     "id": "domains/entities.md#key-entities/driver",
+     "title": "Driver"
+    },
+    {
+     "id": "domains/entities.md#key-entities/patches-patches-cs",
+     "title": "Patches (`Patches.cs`)"
+    },
+    {
+     "id": "domains/entities.md#key-entities/invoke-worldgen-ps1",
+     "title": "Invoke-Worldgen.ps1"
+    },
+    {
+     "id": "domains/entities.md#files-read-and-written",
+     "title": "Files read and written"
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules"
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths"
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions"
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "WorldgenDriver glossary",
+   "description": "WorldgenDriver glossary: abbreviations (ONI, DLC, JSONL, cluster prefixes), terms to avoid with their replacements, and definitions of coordinate, applied coordinate, game modes, session, driver, launcher, watchdog, stage and percent, stories and mixing, Klei folder",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms"
+    },
+    {
+     "id": "domains/glossary.md#terms-to-avoid",
+     "title": "Terms to Avoid"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/coordinate",
+     "title": "Coordinate"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/applied-coordinate",
+     "title": "Applied coordinate"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/spaced-out-mode-and-base-game-mode",
+     "title": "Spaced Out mode and base-game mode"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/session",
+     "title": "Session"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/driver",
+     "title": "Driver"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/launcher",
+     "title": "Launcher"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/watchdog",
+     "title": "Watchdog"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/stage-and-percent",
+     "title": "Stage and percent"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/stories-and-mixing",
+     "title": "Stories and mixing"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/klei-folder",
+     "title": "Klei folder"
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "WorldgenDriver",
+   "description": "WorldgenDriver's purpose, its two halves (the mod and the Invoke-Worldgen.ps1 launcher), the mod's metadata, who uses it and for what, and a map of Mod.cs, Patches.cs, Driver.cs, WorldgenDriver.csproj and README.md",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is"
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are"
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "Index of WorldgenDriver's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards"
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "WorldgenDriver code style",
+   "description": "WorldgenDriver's code style for the C# mod and Invoke-Worldgen.ps1: indentation and braces per language, the net48 build and mod metadata in WorldgenDriver.csproj and mod_info.yaml, imports, comment rules, Driver.Active guards and control flow",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting"
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation"
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length"
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces"
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain"
+    },
+    {
+     "id": "standards/code-style.md#imports-includes",
+     "title": "Imports/Includes"
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments"
+    },
+    {
+     "id": "standards/code-style.md#comments/when-to-comment",
+     "title": "When to Comment"
+    },
+    {
+     "id": "standards/code-style.md#comments/when-not-to-comment",
+     "title": "When NOT to Comment"
+    },
+    {
+     "id": "standards/code-style.md#control-structures",
+     "title": "Control Structures"
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "WorldgenDriver error handling",
+   "description": "WorldgenDriver's error handling: principles, the result status table with where each is raised, patch exception handling, worldgen error collection, result writing in Driver.cs, logging, launcher recovery and backup restore in Invoke-Worldgen.ps1, anti-patterns",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles"
+    },
+    {
+     "id": "standards/error-handling.md#result-statuses",
+     "title": "Result statuses"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/patches",
+     "title": "Patches"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/worldgen-errors",
+     "title": "Worldgen errors"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/result-file",
+     "title": "Result file"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/logging",
+     "title": "Logging"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/launcher",
+     "title": "Launcher"
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid"
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "WorldgenDriver naming conventions",
+   "description": "WorldgenDriver's naming rules: file, run output and Klei-folder names, class, patch class and member naming, PowerShell parameters, functions and variables, --worldgen options, result statuses, result JSON fields and coordinate format",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/classes",
+     "title": "Classes"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/members",
+     "title": "Members"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/powershell",
+     "title": "PowerShell"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions",
+     "title": "Project-Specific Conventions"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/command-line-options",
+     "title": "Command-line options"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/result-statuses",
+     "title": "Result statuses"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/result-json",
+     "title": "Result JSON"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/coordinates",
+     "title": "Coordinates"
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related"
+    }
+   ]
+  }
+ ]
+}

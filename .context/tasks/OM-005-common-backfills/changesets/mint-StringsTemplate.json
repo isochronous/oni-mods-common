@@ -1,0 +1,14 @@
+{
+ "task": "OM-005",
+ "why": "mint the StringsTemplate node tag vocabulary for the tag backfill",
+ "node": "tools/Translations/StringsTemplate",
+ "ops": [
+  {
+   "mode": "create",
+   "target": "tags.md",
+   "title": "Tags",
+   "description": "The StringsTemplate node tag dictionary: each term that records here may carry, with the one sentence saying what a record must be about to earn it",
+   "body": "## code-style\n\nA record earns this term when it is about the house style in which the tool's C# source code is written.\n\n## tool-build\n\nA record earns this term when it is about building the tool with dotnet from its project file and the output that build produces.\n\n## command-line\n\nA record earns this term when it is about the arguments and options the tool is started with and how it reads them.\n\n## exit-codes\n\nA record earns this term when it is about the exit code the tool's process ends with and what each value means.\n\n## console-output\n\nA record earns this term when it is about the lines the tool prints to the console and how they are worded.\n\n## exception-handling\n\nA record earns this term when it is about where the tool catches exceptions and what it does once it has caught one.\n\n## assembly-resolution\n\nA record earns this term when it is about how the tool finds the game assemblies that a loaded mod DLL references.\n\n## translations\n\nA record earns this term when it is about translating a mod's player-visible strings and checking its translation files.\n\n## mod-strings\n\nA record earns this term when it is about the player-visible text a mod defines in ModStrings and the translations of that text.\n\n## translation-template\n\nA record earns this term when it is about the .pot template the tool writes from the mod's strings.\n\n## refused-translation\n\nA record earns this term when it is about the rules by which the game rejects a translation or a whole po file at load.\n\n## mod-options\n\nA record earns this term when it is about the player-facing settings a mod exposes on its options screen and how the mod reads them.\n"
+  }
+ ]
+}

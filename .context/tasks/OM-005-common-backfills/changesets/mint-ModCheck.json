@@ -1,0 +1,14 @@
+{
+ "task": "OM-005",
+ "why": "mint the ModCheck node tag vocabulary for the tag backfill",
+ "node": "tools/ModCheck",
+ "ops": [
+  {
+   "mode": "create",
+   "target": "tags.md",
+   "title": "Tags",
+   "description": "The ModCheck node tag dictionary: each term that records here may carry, with the one sentence saying what a record must be about to earn it",
+   "body": "## code-style\n\nA record earns this term when it is about the house style in which the tool's C# source code is written.\n\n## tool-build\n\nA record earns this term when it is about building the tool with dotnet from its project file and the output that build produces.\n\n## command-line\n\nA record earns this term when it is about the arguments and options the tool is started with and how it reads them.\n\n## exit-codes\n\nA record earns this term when it is about the exit code the tool's process ends with and what each value means.\n\n## console-output\n\nA record earns this term when it is about the lines the tool prints to the console and how they are worded.\n\n## exception-handling\n\nA record earns this term when it is about where the tool catches exceptions and what it does once it has caught one.\n\n## assembly-resolution\n\nA record earns this term when it is about how the tool finds the game assemblies that a loaded mod DLL references.\n\n## game-update-compatibility\n\nA record earns this term when it is about keeping mods and their tests working after a game update changes the game's own code.\n\n## type-load-check\n\nA record earns this term when it is about the check that sets up each type's interface maps and static constructor to catch vtable setup failures.\n\n## jit-check\n\nA record earns this term when it is about the check that compiles every method body with PrepareMethod to catch members the game no longer has.\n\n## runtime-mismatch\n\nA record earns this term when it is about the differences between the check's .NET 8 host and the game's Mono runtime that the check has to allow for.\n"
+  }
+ ]
+}

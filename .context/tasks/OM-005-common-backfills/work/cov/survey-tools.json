@@ -1,0 +1,25 @@
+{
+  "survey_id": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "node": "C:/dev/ONI-Mods/common/tools",
+  "store_root": "C:/dev/ONI-Mods/common",
+  "window": {
+    "declared": 1000,
+    "read": 109,
+    "rho": 0.02,
+    "shortened": true
+  },
+  "owed": {
+    "door": 0,
+    "person": 0
+  },
+  "candidates": [],
+  "splits": [],
+  "splits_unfinished": [],
+  "splits_stranded": [],
+  "split_journals_unreadable": [],
+  "split_findings": [],
+  "not_proposed": {
+    "no_candidate": [],
+    "rule_scoped": []
+  }
+}

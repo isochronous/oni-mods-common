@@ -1,0 +1,640 @@
+{
+ "store_root": "C:/dev/ONI-Mods/common",
+ "documents": [
+  {
+   "node": "tools/ModCheck",
+   "path": "domains/README.md",
+   "source_path": "tools/ModCheck/.context/domains/README.md",
+   "id": "domains/README.md",
+   "format": "narrative",
+   "title": "Domains",
+   "description": "ModCheck domains index: links to the entities and glossary documents, each with the subjects it covers, from Program and the type-load and JIT checks to the abbreviations and output terms",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/README.md",
+     "id": "domains/README.md#domains",
+     "address": "domains",
+     "heading": "Domains",
+     "level": 2,
+     "ordinal": 1,
+     "title": "Domains",
+     "description": null,
+     "tags": []
+    }
+   ]
+  },
+  {
+   "node": "tools/ModCheck",
+   "path": "domains/entities.md",
+   "source_path": "tools/ModCheck/.context/domains/entities.md",
+   "id": "domains/entities.md",
+   "format": "narrative",
+   "title": "ModCheck domain",
+   "description": "ModCheck's entities: the Program class in Program.cs and its members, the type-load and JIT checks, inputs, output and exit codes, warning and skip rules, terminology, key code paths and the script that calls it",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#overview",
+     "address": "overview",
+     "heading": "Overview",
+     "level": 2,
+     "ordinal": 1,
+     "title": "Overview",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#key-entities",
+     "address": "key-entities",
+     "heading": "Key Entities",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Key Entities",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#key-entities/program",
+     "address": "key-entities/program",
+     "heading": "Program",
+     "level": 3,
+     "ordinal": 3,
+     "title": "Program",
+     "description": "the whole tool: argument handling, assembly resolution, the type and method loops and the exit code.",
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#key-entities/the-two-checks",
+     "address": "key-entities/the-two-checks",
+     "heading": "The two checks",
+     "level": 3,
+     "ordinal": 4,
+     "title": "The two checks",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#key-entities/inputs",
+     "address": "key-entities/inputs",
+     "heading": "Inputs",
+     "level": 3,
+     "ordinal": 5,
+     "title": "Inputs",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#key-entities/output",
+     "address": "key-entities/output",
+     "heading": "Output",
+     "level": 3,
+     "ordinal": 6,
+     "title": "Output",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#business-rules",
+     "address": "business-rules",
+     "heading": "Business Rules",
+     "level": 2,
+     "ordinal": 7,
+     "title": "Business Rules",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#domain-terminology",
+     "address": "domain-terminology",
+     "heading": "Domain Terminology",
+     "level": 2,
+     "ordinal": 8,
+     "title": "Domain Terminology",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#key-code-paths",
+     "address": "key-code-paths",
+     "heading": "Key Code Paths",
+     "level": 2,
+     "ordinal": 9,
+     "title": "Key Code Paths",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/entities.md",
+     "id": "domains/entities.md#related",
+     "address": "related",
+     "heading": "Related",
+     "level": 2,
+     "ordinal": 10,
+     "title": "Related",
+     "description": null,
+     "tags": []
+    }
+   ]
+  },
+  {
+   "node": "tools/ModCheck",
+   "path": "domains/glossary.md",
+   "source_path": "tools/ModCheck/.context/domains/glossary.md",
+   "id": "domains/glossary.md",
+   "format": "narrative",
+   "title": "ModCheck glossary",
+   "description": "ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it appears in ModCheck's output or code",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/glossary.md",
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "address": "abbreviations-and-acronyms",
+     "heading": "Abbreviations and Acronyms",
+     "level": 2,
+     "ordinal": 1,
+     "title": "Abbreviations and Acronyms",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/glossary.md",
+     "id": "domains/glossary.md#cross-domain-terms",
+     "address": "cross-domain-terms",
+     "heading": "Cross-Domain Terms",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Cross-Domain Terms",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/glossary.md",
+     "id": "domains/glossary.md#cross-domain-terms/vtable-setup-failure",
+     "address": "cross-domain-terms/vtable-setup-failure",
+     "heading": "VTable setup failure",
+     "level": 3,
+     "ordinal": 3,
+     "title": "VTable setup failure",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/glossary.md",
+     "id": "domains/glossary.md#cross-domain-terms/missing-member",
+     "address": "cross-domain-terms/missing-member",
+     "heading": "Missing member",
+     "level": 3,
+     "ordinal": 4,
+     "title": "Missing member",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/glossary.md",
+     "id": "domains/glossary.md#cross-domain-terms/managed-directory",
+     "address": "cross-domain-terms/managed-directory",
+     "heading": "Managed directory",
+     "level": 3,
+     "ordinal": 5,
+     "title": "Managed directory",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/glossary.md",
+     "id": "domains/glossary.md#cross-domain-terms/warning",
+     "address": "cross-domain-terms/warning",
+     "heading": "Warning",
+     "level": 3,
+     "ordinal": 6,
+     "title": "Warning",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "domains/glossary.md",
+     "id": "domains/glossary.md#related",
+     "address": "related",
+     "heading": "Related",
+     "level": 2,
+     "ordinal": 7,
+     "title": "Related",
+     "description": null,
+     "tags": []
+    }
+   ]
+  },
+  {
+   "node": "tools/ModCheck",
+   "path": "overview.md",
+   "source_path": "tools/ModCheck/.context/overview.md",
+   "id": "overview.md",
+   "format": "narrative",
+   "title": "ModCheck",
+   "description": "What ModCheck is: the .NET 8 console tool's two checks, its exit codes, who runs it and the dotnet run command, then a map of Program.cs, ModCheck.csproj, build output and its store documents",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "overview.md",
+     "id": "overview.md#what-this-is",
+     "address": "what-this-is",
+     "heading": "What this is",
+     "level": 2,
+     "ordinal": 1,
+     "title": "What this is",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "overview.md",
+     "id": "overview.md#where-things-are",
+     "address": "where-things-are",
+     "heading": "Where things are",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Where things are",
+     "description": null,
+     "tags": []
+    }
+   ]
+  },
+  {
+   "node": "tools/ModCheck",
+   "path": "standards/README.md",
+   "source_path": "tools/ModCheck/.context/standards/README.md",
+   "id": "standards/README.md",
+   "format": "narrative",
+   "title": "Standards",
+   "description": "ModCheck standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and toolchain to exit codes and output vocabulary",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/README.md",
+     "id": "standards/README.md#standards",
+     "address": "standards",
+     "heading": "Standards",
+     "level": 2,
+     "ordinal": 1,
+     "title": "Standards",
+     "description": null,
+     "tags": []
+    }
+   ]
+  },
+  {
+   "node": "tools/ModCheck",
+   "path": "standards/code-style.md",
+   "source_path": "tools/ModCheck/.context/standards/code-style.md",
+   "id": "standards/code-style.md",
+   "format": "narrative",
+   "title": "Code Style Guide",
+   "description": "ModCheck's C# code style: tabs and Allman braces, C# 9 on .NET 8 with no packages in ModCheck.csproj, using order, the single static Program class layout in Program.cs, and what comments must say",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/code-style.md",
+     "id": "standards/code-style.md#formatting",
+     "address": "formatting",
+     "heading": "Formatting",
+     "level": 2,
+     "ordinal": 1,
+     "title": "Formatting",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/code-style.md",
+     "id": "standards/code-style.md#language-and-toolchain",
+     "address": "language-and-toolchain",
+     "heading": "Language and Toolchain",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Language and Toolchain",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/code-style.md",
+     "id": "standards/code-style.md#imports",
+     "address": "imports",
+     "heading": "Imports",
+     "level": 2,
+     "ordinal": 3,
+     "title": "Imports",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/code-style.md",
+     "id": "standards/code-style.md#structure",
+     "address": "structure",
+     "heading": "Structure",
+     "level": 2,
+     "ordinal": 4,
+     "title": "Structure",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/code-style.md",
+     "id": "standards/code-style.md#comments",
+     "address": "comments",
+     "heading": "Comments",
+     "level": 2,
+     "ordinal": 5,
+     "title": "Comments",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/code-style.md",
+     "id": "standards/code-style.md#related",
+     "address": "related",
+     "heading": "Related",
+     "level": 2,
+     "ordinal": 6,
+     "title": "Related",
+     "description": null,
+     "tags": []
+    }
+   ]
+  },
+  {
+   "node": "tools/ModCheck",
+   "path": "standards/error-handling.md",
+   "source_path": "tools/ModCheck/.context/standards/error-handling.md",
+   "id": "standards/error-handling.md",
+   "format": "narrative",
+   "title": "Error Handling Conventions",
+   "description": "How ModCheck handles and reports errors: principles, the exit code table, every OK, FAIL and WARN output line, per-type try/catch, loader exceptions, the ECall host-artifact rule, unwrapping, assembly resolution in Program.cs, anti-patterns",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#principles",
+     "address": "principles",
+     "heading": "Principles",
+     "level": 2,
+     "ordinal": 1,
+     "title": "Principles",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#exit-codes",
+     "address": "exit-codes",
+     "heading": "Exit Codes",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Exit Codes",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#output-lines",
+     "address": "output-lines",
+     "heading": "Output Lines",
+     "level": 2,
+     "ordinal": 3,
+     "title": "Output Lines",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#handling-patterns",
+     "address": "handling-patterns",
+     "heading": "Handling Patterns",
+     "level": 2,
+     "ordinal": 4,
+     "title": "Handling Patterns",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#handling-patterns/per-type-isolation",
+     "address": "handling-patterns/per-type-isolation",
+     "heading": "Per-type isolation",
+     "level": 3,
+     "ordinal": 5,
+     "title": "Per-type isolation",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#handling-patterns/loader-exceptions",
+     "address": "handling-patterns/loader-exceptions",
+     "heading": "Loader exceptions",
+     "level": 3,
+     "ordinal": 6,
+     "title": "Loader exceptions",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#handling-patterns/host-artifacts",
+     "address": "handling-patterns/host-artifacts",
+     "heading": "Host artifacts",
+     "level": 3,
+     "ordinal": 7,
+     "title": "Host artifacts",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#handling-patterns/unwrapping",
+     "address": "handling-patterns/unwrapping",
+     "heading": "Unwrapping",
+     "level": 3,
+     "ordinal": 8,
+     "title": "Unwrapping",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#handling-patterns/assembly-resolution",
+     "address": "handling-patterns/assembly-resolution",
+     "heading": "Assembly resolution",
+     "level": 3,
+     "ordinal": 9,
+     "title": "Assembly resolution",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "address": "anti-patterns-to-avoid",
+     "heading": "Anti-Patterns to Avoid",
+     "level": 2,
+     "ordinal": 10,
+     "title": "Anti-Patterns to Avoid",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/error-handling.md",
+     "id": "standards/error-handling.md#related",
+     "address": "related",
+     "heading": "Related",
+     "level": 2,
+     "ordinal": 11,
+     "title": "Related",
+     "description": null,
+     "tags": []
+    }
+   ]
+  },
+  {
+   "node": "tools/ModCheck",
+   "path": "standards/naming-conventions.md",
+   "source_path": "tools/ModCheck/.context/standards/naming-conventions.md",
+   "id": "standards/naming-conventions.md",
+   "format": "narrative",
+   "title": "Naming Conventions",
+   "description": "Naming in ModCheck: the ModCheck.csproj and Program.cs file names, C# casing for types, methods, locals and counters, the two positional arguments, and the stage words and OK, FAIL and WARN prefixes in output",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/naming-conventions.md",
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "address": "files-and-directories",
+     "heading": "Files and Directories",
+     "level": 2,
+     "ordinal": 1,
+     "title": "Files and Directories",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/naming-conventions.md",
+     "id": "standards/naming-conventions.md#code-naming",
+     "address": "code-naming",
+     "heading": "Code Naming",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Code Naming",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/naming-conventions.md",
+     "id": "standards/naming-conventions.md#command-line",
+     "address": "command-line",
+     "heading": "Command Line",
+     "level": 2,
+     "ordinal": 3,
+     "title": "Command Line",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/naming-conventions.md",
+     "id": "standards/naming-conventions.md#output-vocabulary",
+     "address": "output-vocabulary",
+     "heading": "Output Vocabulary",
+     "level": 2,
+     "ordinal": 4,
+     "title": "Output Vocabulary",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools/ModCheck",
+     "path": "standards/naming-conventions.md",
+     "id": "standards/naming-conventions.md#related",
+     "address": "related",
+     "heading": "Related",
+     "level": 2,
+     "ordinal": 5,
+     "title": "Related",
+     "description": null,
+     "tags": []
+    }
+   ]
+  }
+ ],
+ "excluded": {
+  "not_carried": [
+   "OM-004"
+  ],
+  "destination": []
+ },
+ "problems": []
+}

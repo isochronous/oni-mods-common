@@ -1,0 +1,292 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "Index of WorkshopUpload's domain documents: a link to the entities document and one to the glossary, each with a line listing the commands, files, rules or terms it covers",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains"
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "WorkshopUpload domain",
+   "description": "WorkshopUpload's Program.Main, a table of its seven commands and their methods in Program.cs, the helpers, the two app id constants, files read and written, business rules, code paths and item visibility states",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview"
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities"
+    },
+    {
+     "id": "domains/entities.md#key-entities/program-main",
+     "title": "Program.Main"
+    },
+    {
+     "id": "domains/entities.md#key-entities/commands",
+     "title": "Commands"
+    },
+    {
+     "id": "domains/entities.md#key-entities/helpers",
+     "title": "Helpers"
+    },
+    {
+     "id": "domains/entities.md#key-entities/constants",
+     "title": "Constants"
+    },
+    {
+     "id": "domains/entities.md#files-read-and-written",
+     "title": "Files read and written"
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules"
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths"
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions"
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "WorkshopUpload glossary",
+   "description": "WorkshopUpload glossary: abbreviations (UGC, ONI, DLC, EResult), terms to avoid with their replacements, and definitions of legacy item, uploader app, consumer app, Steam Cloud staging, tags, visibility and change note",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms"
+    },
+    {
+     "id": "domains/glossary.md#terms-to-avoid",
+     "title": "Terms to Avoid"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/legacy-item",
+     "title": "Legacy item"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/uploader-app-636750",
+     "title": "Uploader app (636750)"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/consumer-app-457140",
+     "title": "Consumer app (457140)"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/steam-cloud-staging",
+     "title": "Steam Cloud staging"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/tags",
+     "title": "Tags"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/visibility",
+     "title": "Visibility"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/change-note",
+     "title": "Change note"
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "WorkshopUpload",
+   "description": "WorkshopUpload's purpose (legacy ISteamRemoteStorage publishing for the game), the app ids it runs under, its seven commands and its callers, and a map of Program.cs, WorkshopUpload.csproj, steam_appid.txt and steam_api64.dll",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is"
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are"
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "Index of WorkshopUpload's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards"
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "WorkshopUpload code style",
+   "description": "WorkshopUpload's code style for Program.cs and WorkshopUpload.csproj: indentation, line length, Allman braces, .NET 8 and Steamworks.NET project settings, steam_appid.txt, the build command, imports, comment rules and control flow",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting"
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation"
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length"
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces"
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain"
+    },
+    {
+     "id": "standards/code-style.md#imports-includes",
+     "title": "Imports/Includes"
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments"
+    },
+    {
+     "id": "standards/code-style.md#comments/when-to-comment",
+     "title": "When to Comment"
+    },
+    {
+     "id": "standards/code-style.md#comments/when-not-to-comment",
+     "title": "When NOT to Comment"
+    },
+    {
+     "id": "standards/code-style.md#control-structures",
+     "title": "Control Structures"
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "WorkshopUpload error handling",
+   "description": "WorkshopUpload's error handling: principles, the exit code table (0, 1, 2), stdout and stderr routing, Steam init and call-result checks, Await timeouts, the Check and UploadToCloud throws, the legacy-API rule and anti-patterns",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles"
+    },
+    {
+     "id": "standards/error-handling.md#exit-codes",
+     "title": "Exit codes"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/steam-initialisation",
+     "title": "Steam initialisation"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/steam-call-results",
+     "title": "Steam call results"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/update-calls",
+     "title": "Update calls"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/warnings-that-do-not-stop-the-run",
+     "title": "Warnings that do not stop the run"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/exceptions",
+     "title": "Exceptions"
+    },
+    {
+     "id": "standards/error-handling.md#rules-the-code-enforces",
+     "title": "Rules the code enforces"
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid"
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "WorkshopUpload naming conventions",
+   "description": "WorkshopUpload's naming rules: project and Steam file names, command-to-method mapping, helper, constant and variable naming in Program.cs, command and option spelling, visibility words, tags, Steam Cloud file names and Info output labels",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/methods",
+     "title": "Methods"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/constants",
+     "title": "Constants"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/variables",
+     "title": "Variables"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions",
+     "title": "Project-Specific Conventions"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/command-line",
+     "title": "Command line"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/steam-cloud-names",
+     "title": "Steam Cloud names"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/output",
+     "title": "Output"
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related"
+    }
+   ]
+  }
+ ]
+}

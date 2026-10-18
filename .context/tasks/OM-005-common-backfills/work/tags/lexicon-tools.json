@@ -1,0 +1,19 @@
+{
+ "documents": [
+  {
+   "id": "overview.md",
+   "title": "tools",
+   "description": "What the shared tools folder holds and which tools call others, one entry per tool folder from Kanim/kanim.py and MakePreview to Release/release.py, requirements.txt, and which six folders are child nodes",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is"
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are"
+    }
+   ]
+  }
+ ]
+}
