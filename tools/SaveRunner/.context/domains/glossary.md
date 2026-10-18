@@ -1,7 +1,8 @@
 ---
 doc_id: doc-7f969f33e853
-description: "Terms a newcomer to SaveRunner needs: run, probe, game and real seconds, status file, loadout, menu settle, and the abbreviations in the probe columns"
+description: "SaveRunner glossary: the abbreviations ONI, SMI, STT, SO and NMF used in probe columns and code, and definitions of run, probe, game versus real seconds, status file, loadout and menu settle"
 ---
+
 # SaveRunner glossary
 
 Terms a newcomer to SaveRunner needs. Entity detail is in [entities](entities.md).

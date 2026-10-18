@@ -1,0 +1,15 @@
+{
+  "task": "OM-005",
+  "why": "a generated description for every document, saying what that document contains",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools",
+  "ops": [
+    {
+      "target": "overview.md",
+      "mode": "describe",
+      "description": "What the shared tools folder holds and which tools call others, one entry per tool folder from Kanim/kanim.py and MakePreview to Release/release.py, requirements.txt, and which six folders are child nodes"
+    }
+  ],
+  "base": {
+    "overview.md": "sha256:234355785e27fa0485f86dd9736829c7d909651d098825db359252da93ca06ef"
+  }
+}

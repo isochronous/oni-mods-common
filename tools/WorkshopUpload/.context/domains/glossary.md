@@ -1,7 +1,8 @@
 ---
 doc_id: doc-7dcc2a05f7ea
-description: "WorkshopUpload (the legacy Steam Workshop publisher): terms a newcomer needs: legacy item, uploader app, consumer app, Steam Cloud staging, tags, visibility"
+description: "WorkshopUpload glossary: abbreviations (UGC, ONI, DLC, EResult), terms to avoid with their replacements, and definitions of legacy item, uploader app, consumer app, Steam Cloud staging, tags, visibility and change note"
 ---
+
 # WorkshopUpload glossary
 
 Terms a newcomer to WorkshopUpload needs. The tool's own things are in [entities](entities.md).

@@ -1,6 +1,6 @@
 ---
 doc_id: doc-78306051e4cf
-description: "TestRunner's real things: the harness mod, Session, TestBehaviour, patches, FixtureArea, Worldgen, Reflect, the test kit, the launcher and warden, files, rules and states"
+description: "TestRunner's entities: TestRunnerMod, Session members, TestCase and TestResult, TestBehaviour, each patch, Harness, FixtureArea, Worldgen, Reflect, the Kit/ types, Invoke-OniTests.ps1 options, Watch-OniGame.ps1, files, rules, code paths and session states"
 applies_to:
   - "*.cs"
   - "Kit/**/*.cs"
@@ -8,6 +8,7 @@ applies_to:
   - "*.csproj"
   - "*.yaml"
 ---
+
 # TestRunner domain
 
 ## Overview

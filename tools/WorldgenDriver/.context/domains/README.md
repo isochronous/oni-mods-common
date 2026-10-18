@@ -1,7 +1,8 @@
 ---
 doc_id: doc-651756a16319
-description: "TODO(owner): the subject knowledge WorldgenDriver keeps here."
+description: "Index of WorldgenDriver's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers"
 ---
+
 # Domains
 
 ## Domains

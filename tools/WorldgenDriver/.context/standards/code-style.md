@@ -1,12 +1,13 @@
 ---
 doc_id: doc-01fc74e4c079
-description: "WorldgenDriver (the unattended worldgen mod and its PowerShell launcher): C# 9 on net48 with tabs and Allman braces, PowerShell with four spaces, shared build files, patch guards and comments"
+description: "WorldgenDriver's code style for the C# mod and Invoke-Worldgen.ps1: indentation and braces per language, the net48 build and mod metadata in WorldgenDriver.csproj and mod_info.yaml, imports, comment rules, Driver.Active guards and control flow"
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
   - "*.yaml"
 ---
+
 # WorldgenDriver code style
 
 WorldgenDriver is two programs in one folder: a development-only game mod in C# (`Mod.cs`, `Patches.cs`, `Driver.cs`) and the PowerShell launcher that drives it (`Invoke-Worldgen.ps1`). Each follows its own conventions below.

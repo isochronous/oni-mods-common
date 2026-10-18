@@ -1,7 +1,8 @@
 ---
 doc_id: doc-07e2a407bc4b
-description: "TODO(owner): the subject knowledge TestRunner keeps here."
+description: "TestRunner domains index: links to the entities and glossary documents, each with what it covers, from the harness, kit, launcher, warden, files, rules and states to the terms a newcomer needs"
 ---
+
 # Domains
 
 ## Domains

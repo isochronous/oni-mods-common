@@ -1,10 +1,11 @@
 ---
 doc_id: doc-af4f639c22ff
-description: "WorkshopUpload (the legacy Steam Workshop publisher): command, option, method, constant and Steam Cloud file naming"
+description: "WorkshopUpload's naming rules: project and Steam file names, command-to-method mapping, helper, constant and variable naming in Program.cs, command and option spelling, visibility words, tags, Steam Cloud file names and Info output labels"
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # WorkshopUpload naming conventions
 
 ## Files and Directories

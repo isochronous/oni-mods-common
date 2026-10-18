@@ -1,6 +1,6 @@
 ---
 doc_id: doc-8c9b5ab0992a
-description: "How TestRunner turns problems into results: test statuses, session statuses, launcher exit codes 0 to 3, hand-stepped coroutines, mods.json restore and logging"
+description: "How TestRunner turns problems into results: the five test statuses, session statuses from Session.Finish, Invoke-OniTests.ps1 exit codes 0 to 3, hand-stepped coroutines, side-file writes, crash dialog, loadout backup and warden, the run mutex, logging"
 applies_to:
   - "*.cs"
   - "Kit/**/*.cs"
@@ -8,6 +8,7 @@ applies_to:
   - "*.csproj"
   - "*.yaml"
 ---
+
 # Error Handling Conventions
 
 ## Principles

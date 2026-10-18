@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what WorldgenDriver is."
+description: WorldgenDriver's purpose, its two halves (the mod and the Invoke-Worldgen.ps1 launcher), the mod's metadata, who uses it and for what, and a map of Mod.cs, Patches.cs, Driver.cs, WorldgenDriver.csproj and README.md
 ---
+
 # WorldgenDriver
 
 ## What this is

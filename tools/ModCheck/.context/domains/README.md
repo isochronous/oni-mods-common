@@ -1,7 +1,8 @@
 ---
 doc_id: doc-de7cb544ba6b
-description: "TODO(owner): the subject knowledge ModCheck keeps here."
+description: "ModCheck domains index: links to the entities and glossary documents, each with the subjects it covers, from Program and the type-load and JIT checks to the abbreviations and output terms"
 ---
+
 # Domains
 
 ## Domains

@@ -1,10 +1,11 @@
 ---
 doc_id: doc-1533a2e8de9a
-description: "StringsTemplate (the translation template writer and checker): Program.Main and its helpers, the files it reads and writes, the rules it enforces and its code paths"
+description: StringsTemplate's Program.Main and its helpers in Program.cs (Entry, Collect, WritePot, CheckOptionKeys, CheckPo, ReadPo and the parameter and link checks), the files it reads and writes, its business rules, terms and code paths
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # StringsTemplate domain
 
 ## Overview

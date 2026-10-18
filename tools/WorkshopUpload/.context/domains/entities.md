@@ -1,10 +1,11 @@
 ---
 doc_id: doc-435cfd6110bc
-description: "WorkshopUpload (the legacy Steam Workshop publisher): the seven commands, helpers, app ids, files read and written, rules and code paths"
+description: WorkshopUpload's Program.Main, a table of its seven commands and their methods in Program.cs, the helpers, the two app id constants, files read and written, business rules, code paths and item visibility states
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # WorkshopUpload domain
 
 ## Overview

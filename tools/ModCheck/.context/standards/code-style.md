@@ -1,10 +1,11 @@
 ---
 doc_id: doc-11cf3f1ecd90
-description: "C# code style for the ModCheck console tool: formatting, toolchain, structure and comments, with references to Program.cs"
+description: "ModCheck's C# code style: tabs and Allman braces, C# 9 on .NET 8 with no packages in ModCheck.csproj, using order, the single static Program class layout in Program.cs, and what comments must say"
 applies_to:
   - "Program.cs"
   - "ModCheck.csproj"
 ---
+
 # Code Style Guide
 
 ## Formatting

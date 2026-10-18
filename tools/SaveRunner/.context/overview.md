@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what SaveRunner is."
+description: "What SaveRunner is: the dev mod and launcher that replay a player's save unattended with saving blocked, with and without a mod, then a file map of Mod.cs, Runner.cs, Patches.cs, RunBehaviour.cs, Invoke-SaveRun.ps1 and SaveRunner.csproj"
 ---
+
 # SaveRunner
 
 ## What this is

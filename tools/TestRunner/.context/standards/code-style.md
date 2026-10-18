@@ -1,12 +1,13 @@
 ---
 doc_id: doc-f1aa1ec42c48
-description: "C# and PowerShell style for the TestRunner harness mod and test kit: formatting, toolchain, namespaces, file layout, patches, Reflect and comments"
+description: "TestRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through TestRunner.csproj, the harness and kit namespaces, file layout, the Session.Active guard, Harmony patch form, private members through Reflect.cs, comments"
 applies_to:
   - "*.cs"
   - "Kit/**/*.cs"
   - "*.ps1"
   - "*.csproj"
 ---
+
 # Code Style Guide
 
 ## Formatting

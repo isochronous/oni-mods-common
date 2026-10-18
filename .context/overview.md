@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what common is."
+description: "What common (oni-mods-common) is and how every mod csproj imports it, then a map of its files: oni-mod.props, oni-mod.targets, ilrepack-plib.targets, src/Translations.cs, README.md, the ignore rules and its one child node"
 ---
+
 # common
 
 ## What this is

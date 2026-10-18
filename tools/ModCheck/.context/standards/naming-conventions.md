@@ -1,10 +1,11 @@
 ---
 doc_id: doc-b5a7b9c0a575
-description: "Naming in ModCheck: project and file names, C# member casing, the two positional arguments and the output prefixes"
+description: "Naming in ModCheck: the ModCheck.csproj and Program.cs file names, C# casing for types, methods, locals and counters, the two positional arguments, and the stage words and OK, FAIL and WARN prefixes in output"
 applies_to:
   - "Program.cs"
   - "ModCheck.csproj"
 ---
+
 # Naming Conventions
 
 ## Files and Directories

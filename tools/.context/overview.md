@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what tools is."
+description: What the shared tools folder holds and which tools call others, one entry per tool folder from Kanim/kanim.py and MakePreview to Release/release.py, requirements.txt, and which six folders are child nodes
 ---
+
 # tools
 
 ## What this is

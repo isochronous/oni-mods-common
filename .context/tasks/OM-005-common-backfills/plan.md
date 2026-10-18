@@ -19,7 +19,7 @@
 - units/: specs and reports; changesets/: drafted change-sets; work/: survey, answers and journal files
 
 ## Progress
-- [ ] Phase A: overviews and README indexes
+- [x] Phase A: 8 change-sets applied (8 overviews, 12 README indexes), no TODO(owner) left; strict check 0 block, 1 advise (META.md aggregator); committed 0b0f3c2
 - [ ] Phase B: descriptions
 - [ ] Phase C: coverage
 - [ ] Phase D: tags

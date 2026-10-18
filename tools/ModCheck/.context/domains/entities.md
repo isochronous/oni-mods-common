@@ -1,10 +1,11 @@
 ---
 doc_id: doc-cba1a5728ae1
-description: "ModCheck's real things: Program and its helpers, the type-load and JIT checks, inputs, output lines, exit codes, the rules it enforces and its caller in TestRunner"
+description: "ModCheck's entities: the Program class in Program.cs and its members, the type-load and JIT checks, inputs, output and exit codes, warning and skip rules, terminology, key code paths and the script that calls it"
 applies_to:
   - "Program.cs"
   - "ModCheck.csproj"
 ---
+
 # ModCheck domain
 
 ## Overview

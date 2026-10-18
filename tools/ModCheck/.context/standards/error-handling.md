@@ -1,10 +1,11 @@
 ---
 doc_id: doc-731b834a4b0c
-description: "How ModCheck reports failures: exit codes 0, 1 and 2, the OK, FAIL and WARN output lines, per-type isolation and the ECall warning rule"
+description: "How ModCheck handles and reports errors: principles, the exit code table, every OK, FAIL and WARN output line, per-type try/catch, loader exceptions, the ECall host-artifact rule, unwrapping, assembly resolution in Program.cs, anti-patterns"
 applies_to:
   - "Program.cs"
   - "ModCheck.csproj"
 ---
+
 # Error Handling Conventions
 
 ## Principles

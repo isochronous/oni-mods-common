@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what TestRunner is."
+description: "What TestRunner is: the harness mod and Invoke-OniTests.ps1 launcher that run [OniTest] tests unattended in the real game, then a file map of Session.cs, TestBehaviour.cs, Patches.cs, Kit/, fixtures/, Watch-OniGame.ps1 and the other sources"
 ---
+
 # TestRunner
 
 ## What this is

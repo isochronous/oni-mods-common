@@ -1,7 +1,8 @@
 ---
 doc_id: doc-c232feeeb4ec
-description: "TODO(owner): the subject knowledge SaveRunner keeps here."
+description: "SaveRunner domains index: links to the entities and glossary documents, each with what it covers, from the mod, patches, probe, launcher and run states to the probe-column abbreviations and run terms"
 ---
+
 # Domains
 
 ## Domains

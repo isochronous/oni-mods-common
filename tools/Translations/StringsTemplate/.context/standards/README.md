@@ -1,7 +1,8 @@
 ---
 doc_id: doc-8a60b3d665fd
-description: "TODO(owner): the standards StringsTemplate holds itself to."
+description: "Index of StringsTemplate's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers"
 ---
+
 # Standards
 
 ## Standards

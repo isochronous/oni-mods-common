@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what ModCheck is."
+description: "What ModCheck is: the .NET 8 console tool's two checks, its exit codes, who runs it and the dotnet run command, then a map of Program.cs, ModCheck.csproj, build output and its store documents"
 ---
+
 # ModCheck
 
 ## What this is

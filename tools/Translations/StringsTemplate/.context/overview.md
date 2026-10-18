@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what StringsTemplate is."
+description: StringsTemplate's purpose, command line, checks and exit codes, who runs it and when, and a map of its files (Program.cs, StringsTemplate.csproj and the Release build output) and its .context documents
 ---
+
 # StringsTemplate
 
 ## What this is

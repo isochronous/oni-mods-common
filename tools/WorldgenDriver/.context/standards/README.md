@@ -1,7 +1,8 @@
 ---
 doc_id: doc-d44de2454fdc
-description: "TODO(owner): the standards WorldgenDriver holds itself to."
+description: "Index of WorldgenDriver's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers"
 ---
+
 # Standards
 
 ## Standards

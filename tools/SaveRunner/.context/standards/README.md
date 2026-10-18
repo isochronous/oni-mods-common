@@ -1,7 +1,8 @@
 ---
 doc_id: doc-ae982a298f79
-description: "TODO(owner): the standards SaveRunner holds itself to."
+description: "SaveRunner standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and patches to run statuses, options and CSV columns"
 ---
+
 # Standards
 
 ## Standards

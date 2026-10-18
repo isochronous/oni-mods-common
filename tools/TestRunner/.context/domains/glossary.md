@@ -1,7 +1,8 @@
 ---
 doc_id: doc-4d8a297d3589
-description: "Terms a newcomer to TestRunner needs: harness, kit, fixture, fixture area, layer, live session, warden, wait, box, loadout, generated world"
+description: "TestRunner glossary: the abbreviations ONI, SO, HUD and DLL, and definitions of harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world and self-check"
 ---
+
 # TestRunner glossary
 
 Terms a newcomer to TestRunner needs. Entity detail is in [entities](entities.md).

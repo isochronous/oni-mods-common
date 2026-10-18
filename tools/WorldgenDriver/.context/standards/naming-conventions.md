@@ -1,12 +1,13 @@
 ---
 doc_id: doc-ed918e244212
-description: "WorldgenDriver (the unattended worldgen mod and its PowerShell launcher): file, patch class, option, status, JSON field and PowerShell naming"
+description: "WorldgenDriver's naming rules: file, run output and Klei-folder names, class, patch class and member naming, PowerShell parameters, functions and variables, --worldgen options, result statuses, result JSON fields and coordinate format"
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
   - "*.yaml"
 ---
+
 # WorldgenDriver naming conventions
 
 ## Files and Directories

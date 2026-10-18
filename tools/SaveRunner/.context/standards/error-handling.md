@@ -1,12 +1,13 @@
 ---
 doc_id: doc-f968aa1e0e91
-description: "How SaveRunner ends and reports a run: the four status values, the driver try/catch, optional hooks, crash dialog, launcher throws, mods.json restore and logging"
+description: "How SaveRunner ends and reports a run: the four status values Runner.Finish writes, the RunBehaviour try/catch, optional quit-trace hooks, crash dialog flags, command-line parsing, Invoke-SaveRun.ps1 throws and loadout restore, logging, anti-patterns"
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
   - "*.yaml"
 ---
+
 # Error Handling Conventions
 
 ## Principles

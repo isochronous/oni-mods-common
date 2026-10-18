@@ -1,10 +1,11 @@
 ---
 doc_id: doc-dc570c7ff4d7
-description: "WorkshopUpload (the legacy Steam Workshop publisher): tabs, Allman braces, .NET 8 with Steamworks.NET, one Program.cs, comment and control-flow rules"
+description: "WorkshopUpload's code style for Program.cs and WorkshopUpload.csproj: indentation, line length, Allman braces, .NET 8 and Steamworks.NET project settings, steam_appid.txt, the build command, imports, comment rules and control flow"
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # WorkshopUpload code style
 
 WorkshopUpload is one C# file, `tools/WorkshopUpload/Program.cs`, plus its project file, `steam_appid.txt` and Valve's `steam_api64.dll`. These are the conventions that file follows.

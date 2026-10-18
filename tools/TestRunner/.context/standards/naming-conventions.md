@@ -1,6 +1,6 @@
 ---
 doc_id: doc-e555d0ee573e
-description: "Naming in TestRunner: files, namespaces, patches, Reflect handles, waits, attributes, test classes and ids, --onitest-* options, launcher parameters, run folders and result fields"
+description: "Naming in TestRunner: files and run folders, the two namespaces, patch classes, Reflect handles, Wait classes, attributes, test classes and ids, the --onitest-* options, Invoke-OniTests.ps1 parameters, live-session request files and result fields"
 applies_to:
   - "*.cs"
   - "Kit/**/*.cs"
@@ -8,6 +8,7 @@ applies_to:
   - "*.csproj"
   - "*.yaml"
 ---
+
 # Naming Conventions
 
 ## Files and Directories

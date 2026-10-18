@@ -1,12 +1,13 @@
 ---
 doc_id: doc-706c134736e2
-description: "SaveRunner's real things: the mod, Runner, patches, RunBehaviour, FridgeProbe, the launcher with its parameters, files read and written, rules and run states"
+description: "SaveRunner's entities: SaveRunnerMod, Runner and its members, each Harmony patch in Patches.cs, RunBehaviour and FridgeProbe, Invoke-SaveRun.ps1 and its parameters, files read and written, business rules, code paths and run state transitions"
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
   - "*.yaml"
 ---
+
 # SaveRunner domain
 
 ## Overview

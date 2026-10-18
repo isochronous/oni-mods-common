@@ -1,10 +1,11 @@
 ---
 doc_id: doc-d57d9d21981a
-description: "StringsTemplate (the translation template writer and checker): tabs, Allman braces, C# 9 on .NET 8, one Program.cs, comment rules and control flow"
+description: "StringsTemplate's code style for Program.cs and StringsTemplate.csproj: indentation, line length, Allman braces, C# 9 on .NET 8 project settings, the build command, the using block, when to comment and control-flow patterns"
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # StringsTemplate code style
 
 StringsTemplate is one C# file, `tools/Translations/StringsTemplate/Program.cs`, plus its project file. These are the conventions that file follows.

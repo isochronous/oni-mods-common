@@ -1,6 +1,7 @@
 ---
-description: "TODO(owner): one line saying what WorkshopUpload is."
+description: WorkshopUpload's purpose (legacy ISteamRemoteStorage publishing for the game), the app ids it runs under, its seven commands and its callers, and a map of Program.cs, WorkshopUpload.csproj, steam_appid.txt and steam_api64.dll
 ---
+
 # WorkshopUpload
 
 ## What this is

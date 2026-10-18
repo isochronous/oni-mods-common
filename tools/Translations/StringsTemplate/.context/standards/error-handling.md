@@ -1,10 +1,11 @@
 ---
 doc_id: doc-c4b68e21b1de
-description: "StringsTemplate (the translation template writer and checker): exit codes 0/1/2, the FAIL, MISSING, STALE, REFUSED, EMPTY and OBSOLETE report lines, and the one FormatException catch"
+description: "StringsTemplate's error handling: its principles, the exit code table (0, 1, 2), the report keywords and which count toward failure, the FormatException catch in CheckPo, mod loading, option-key checks and anti-patterns"
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # StringsTemplate error handling
 
 StringsTemplate is a console checker run by a script, so its error handling is its output and its exit code. A problem is a line on the console and a count that decides the exit code.

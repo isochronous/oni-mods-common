@@ -1,0 +1,57 @@
+{
+  "task": "OM-005",
+  "why": "a generated description for every document, saying what that document contains",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "ops": [
+    {
+      "target": "domains/README.md",
+      "mode": "describe",
+      "description": "Index of StringsTemplate's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "describe",
+      "description": "StringsTemplate's Program.Main and its helpers in Program.cs (Entry, Collect, WritePot, CheckOptionKeys, CheckPo, ReadPo and the parameter and link checks), the files it reads and writes, its business rules, terms and code paths"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "describe",
+      "description": "StringsTemplate glossary: abbreviations (pot, po, LocString, PLib), terms to avoid with their replacements, and definitions of ModStrings, key (msgctxt), stale, refused, obsolete and the Managed directory, with where each is used"
+    },
+    {
+      "target": "overview.md",
+      "mode": "describe",
+      "description": "StringsTemplate's purpose, command line, checks and exit codes, who runs it and when, and a map of its files (Program.cs, StringsTemplate.csproj and the Release build output) and its .context documents"
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "describe",
+      "description": "Index of StringsTemplate's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "describe",
+      "description": "StringsTemplate's code style for Program.cs and StringsTemplate.csproj: indentation, line length, Allman braces, C# 9 on .NET 8 project settings, the build command, the using block, when to comment and control-flow patterns"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "describe",
+      "description": "StringsTemplate's error handling: its principles, the exit code table (0, 1, 2), the report keywords and which count toward failure, the FormatException catch in CheckPo, mod loading, option-key checks and anti-patterns"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "describe",
+      "description": "StringsTemplate's naming rules: folder, project and output file names, type, method, variable and field naming in Program.cs, how translation keys are built and sorted, report line keywords and positional argument order"
+    }
+  ],
+  "base": {
+    "domains/README.md": "sha256:681e32430eadc4ba0bd37170ce27a27606a5e2b9b89875b2ebec4d0809bcd28e",
+    "domains/entities.md": "sha256:261f15f080402bd23caa2bd8948b942a6156784e21c4e3c45ab53849db2972f3",
+    "domains/glossary.md": "sha256:b0f75afe7a0669b7ce31809084cf4bb16e5d9ff451583fb9171d1e2292db31bb",
+    "overview.md": "sha256:a01ac6db206c14828014166731527b21ee935540b8b862216fbffcef54a17a10",
+    "standards/README.md": "sha256:ee969cf00bd677ee07242c72fb1aa5bed6d7b984331c479b906a34080a59c124",
+    "standards/code-style.md": "sha256:07bd982175a9a9ac0580594b2380b94eccbbf5b73bb06befe862b4303e747a34",
+    "standards/error-handling.md": "sha256:f3074f1ebae7ce6b83ebdfaa8ceb3d29e8300e955c90c45ebdee817e8499c4f6",
+    "standards/naming-conventions.md": "sha256:091490a6aeec4367ea9bffce1a8f3c06a6e93f72654ea1f57cd31442876aaa9e"
+  }
+}

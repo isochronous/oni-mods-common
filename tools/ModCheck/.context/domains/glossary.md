@@ -1,7 +1,8 @@
 ---
 doc_id: doc-c4dec2d4a3f7
-description: "Terms a newcomer to ModCheck needs: VTable setup failure, missing member, ECall, managed directory, JIT check"
+description: "ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it appears in ModCheck's output or code"
 ---
+
 # ModCheck glossary
 
 Terms a newcomer to ModCheck needs. Entity detail is in [entities](entities.md).

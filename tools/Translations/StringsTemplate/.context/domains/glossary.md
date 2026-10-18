@@ -1,7 +1,8 @@
 ---
 doc_id: doc-32e91bfd48ae
-description: "StringsTemplate (the translation template writer and checker): terms a newcomer needs: ModStrings, key, pot, po, stale, refused, obsolete, Managed directory"
+description: "StringsTemplate glossary: abbreviations (pot, po, LocString, PLib), terms to avoid with their replacements, and definitions of ModStrings, key (msgctxt), stale, refused, obsolete and the Managed directory, with where each is used"
 ---
+
 # StringsTemplate glossary
 
 Terms a newcomer to StringsTemplate needs. The tool's own things are in [entities](entities.md).

@@ -1,12 +1,13 @@
 ---
 doc_id: doc-bf18c260f56c
-description: "WorldgenDriver (the unattended worldgen mod and its PowerShell launcher): the result statuses, how patches and the result writer handle errors, logging, and how the launcher recovers and restores backups"
+description: "WorldgenDriver's error handling: principles, the result status table with where each is raised, patch exception handling, worldgen error collection, result writing in Driver.cs, logging, launcher recovery and backup restore in Invoke-Worldgen.ps1, anti-patterns"
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
   - "*.yaml"
 ---
+
 # WorldgenDriver error handling
 
 WorldgenDriver runs unattended: nobody watches the game, so every outcome has to become a result line or a log line. The mod turns each way a generation can end into a status; the launcher turns each way a session can end into a restart or a stop.

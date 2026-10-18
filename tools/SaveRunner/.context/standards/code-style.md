@@ -1,11 +1,12 @@
 ---
 doc_id: doc-b16e31474a05
-description: "C# and PowerShell style for the SaveRunner dev mod: formatting, toolchain, file layout, inert-without-argument rule, Harmony patch conventions and comments"
+description: "SaveRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through SaveRunner.csproj, the one-concern-per-file layout and how to add a probe, the Runner.Active guard, Harmony patch form and comments"
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
 ---
+
 # Code Style Guide
 
 ## Formatting

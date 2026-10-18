@@ -1,12 +1,13 @@
 ---
 doc_id: doc-8cec0a95808d
-description: "WorldgenDriver (the unattended worldgen mod and its PowerShell launcher): the mod class, Driver state, seven Harmony patches, launcher functions, files read and written, rules and code paths"
+description: WorldgenDriver's mod class in Mod.cs, the Driver state and --worldgen options in Driver.cs, the seven patches in Patches.cs, the Invoke-Worldgen.ps1 functions, files read and written, business rules, code paths and per-coordinate states
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
   - "*.yaml"
 ---
+
 # WorldgenDriver domain
 
 ## Overview

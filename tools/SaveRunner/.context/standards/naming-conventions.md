@@ -1,12 +1,13 @@
 ---
 doc_id: doc-6fac7cccfdc2
-description: "Naming in SaveRunner: files, patch classes, Runner state, probes, the --saverun-* options, launcher parameters, run folders and CSV columns"
+description: "Naming in SaveRunner: C# file and type names, the <Type>_<Method>_Patch classes, Runner state fields, probe names, the --saverun-* game options and how Invoke-SaveRun.ps1 parameters map to them, run folders and CSV columns"
 applies_to:
   - "*.cs"
   - "*.ps1"
   - "*.csproj"
   - "*.yaml"
 ---
+
 # Naming Conventions
 
 ## Files and Directories

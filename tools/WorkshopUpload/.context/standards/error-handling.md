@@ -1,10 +1,11 @@
 ---
 doc_id: doc-42a5e5cee89e
-description: "WorkshopUpload (the legacy Steam Workshop publisher): exit codes 0/1/2, Steam result checks, Await timeouts, Check and UploadToCloud throws, and the legacy-API-only rule"
+description: "WorkshopUpload's error handling: principles, the exit code table (0, 1, 2), stdout and stderr routing, Steam init and call-result checks, Await timeouts, the Check and UploadToCloud throws, the legacy-API rule and anti-patterns"
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # WorkshopUpload error handling
 
 WorkshopUpload is a console tool run by a person or by `tools/Release/release.py`. Its error handling is its exit code and what it prints. A failed Steam call must stop the run: a half-applied Workshop update is worse than none.

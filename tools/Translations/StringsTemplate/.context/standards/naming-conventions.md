@@ -1,10 +1,11 @@
 ---
 doc_id: doc-718fdd9d28d5
-description: "StringsTemplate (the translation template writer and checker): file, method, variable and translation key naming, output file names and report keywords"
+description: "StringsTemplate's naming rules: folder, project and output file names, type, method, variable and field naming in Program.cs, how translation keys are built and sorted, report line keywords and positional argument order"
 applies_to:
   - "*.cs"
   - "*.csproj"
 ---
+
 # StringsTemplate naming conventions
 
 ## Files and Directories

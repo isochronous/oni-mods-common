@@ -1,0 +1,15 @@
+{
+  "task": "OM-005",
+  "why": "a generated description for every document, saying what that document contains",
+  "node": "C:/dev/ONI-Mods/common",
+  "ops": [
+    {
+      "target": "overview.md",
+      "mode": "describe",
+      "description": "What common (oni-mods-common) is and how every mod csproj imports it, then a map of its files: oni-mod.props, oni-mod.targets, ilrepack-plib.targets, src/Translations.cs, README.md, the ignore rules and its one child node"
+    }
+  ],
+  "base": {
+    "overview.md": "sha256:04c4e797fb1d6fa08d7e93ae4e68d2c34ffe52f7417eec290607e81facb6bb4a"
+  }
+}
