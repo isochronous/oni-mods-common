@@ -21,8 +21,9 @@ Terms a newcomer to ModCheck needs. Entity detail is in [entities](entities.md).
 **Id:** blk-497458e05560
 
 ### VTable setup failure
-**Id:** blk-7d3bfdfef868  
-**Definition**: the runtime error `VTable setup of type X failed` raised when a type's virtual or interface methods cannot be laid out, typically because a game interface or base class changed under the mod. `GetInterfaceMap` is how the check provokes it.  
+**Id:** blk-7d3bfdfef868
+
+**Definition**: the runtime error `VTable setup of type X failed` raised when a type's virtual or interface methods cannot be laid out, which a game update causes by changing an interface or base class that the mod's type implements or derives from. `GetInterfaceMap` is how the check provokes it.  
 **Used in**: ModCheck output (`FAIL type ...`).
 
 ### Missing member

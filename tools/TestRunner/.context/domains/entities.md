@@ -82,8 +82,9 @@ TestRunner runs a mod's in-game tests in the real game with nobody at the keyboa
 **Location**: `Worldgen.cs`
 
 ### Reflect and Diagnostics
-**Id:** blk-741c81a8a7c1  
-**Description**: `Reflect` is the list of private game members used, with `SelfCheck`. `Diagnostics` traces the grid marks the game makes during tests (`--onitest-trace=1`).  
+**Id:** blk-741c81a8a7c1
+
+**Description**: `Reflect` is the list of private game members the kit and tests use, with `SelfCheck`; `Worldgen.cs` reads two buttons with its own `AccessTools.Field` calls. `Diagnostics` traces the grid marks the game makes during tests (`--onitest-trace=1`).  
 **Location**: `Reflect.cs`, `Diagnostics.cs`
 
 ### The kit (`Isochronous.TestKit`)

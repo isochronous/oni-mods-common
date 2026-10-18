@@ -31,14 +31,14 @@ applies_to:
 **Id:** blk-5068e4f0855f
 
 - Game arguments are `--saverun` followed by `-<option>`, lower case, hyphen-separated, as `--saverun-seconds=N`. `--saverun=FILE` itself names the save. `Runner` reads `--key=value` and a bare `--key` as an empty value.
-- Launcher parameters are PowerShell PascalCase (`-Seconds`, `-Speed`, `-Probe`, `-With`, `-Without`, `-TimeoutSec`, `-Label`, `-OutDir`, `-SteamExe`, `-AppId`) and map to the game arguments one to one.
+- Launcher parameters are PowerShell PascalCase (`-Seconds`, `-Speed`, `-Probe`, `-With`, `-Without`, `-TimeoutSec`, `-Label`, `-OutDir`, `-SteamExe`, `-AppId`). `-Seconds`, `-Speed`, `-Probe` and `-TimeoutSec` map straight to `--saverun-seconds`, `--saverun-speed`, `--saverun-probe` and `--saverun-timeout`. `-Save` becomes `--saverun=<copy of the save in the run folder>`, and the run folder, named from `-OutDir` and `-Label`, gives `--saverun-out=<run folder>/probe.csv`. `-With`, `-Without`, `-SteamExe` and `-AppId` configure only the launcher: the loadout, the Steam path and the app to launch.
 - `-With` and `-Without` take local mod folder names or Workshop item ids, comma-separated.
 - Probe names are lower case plurals of the thing sampled (`fridges`).
 
 ## CSV Columns
 **Id:** blk-885a11539bd3
 
-Header names are camelCase with units spelled in the name (`setpointC`, `cellTempC`, `massKg`, `deltaKJ`), one row per item per game second, sample time first as `t`.
+Header names are camelCase with units spelled in the name (`setpointC`, `cellTempC`, `massKg`, `deltaKJ`), sample time first as `t`. Each game second writes one row per item in a fridge, or one row for a fridge with no items.
 
 ## Related
 **Id:** blk-8e408dfe956d

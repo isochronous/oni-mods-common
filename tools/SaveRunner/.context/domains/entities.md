@@ -81,7 +81,7 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 | the save | read | copied to `runs/<Label>-<stamp>/colony.sav`; the original is never opened by the game |
 | `Documents\Klei\OxygenNotIncluded\mods\mods.json` | read, write, restored | the loadout: current mods, plus SaveRunner and `-With`, minus `-Without`; backup at `mods.json.saverun-backup` |
 | `kplayerprefs.yaml` | read | tells whether the game is in Spaced Out mode so `enabledForDlc` is set to match |
-| `probe.csv` | written by the game | one row per item per game second |
+| `probe.csv` | written by the game | one row per item per game second, or one row for an empty fridge; written only when `--saverun-probe` is given (the launcher always passes `--saverun-out`) |
 | `probe.csv.status` | written by the game | one JSON line when the run ends |
 | `Player.log` | copied | into the run folder after the game exits |
 
@@ -114,7 +114,7 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 | loading | running | `Game.OnSpawn`, `RunBehaviour` added |
 | running | finished (`done`) | game seconds reached |
 | running | finished (`runner-error`) | exception in `RunBehaviour.Update` |
-| loading or running | finished (`timeout`) | real time past `TimeoutSeconds` |
+| waiting for menu, loading or running | finished (`timeout`) | real time since the command line was read passes `TimeoutSeconds` before the run finishes |
 
 ## Related
 **Id:** blk-bf1ccef2e930

@@ -50,7 +50,7 @@ applies_to:
 | `Harness.cs` | the global switches a run throws |
 | `FixtureArea.cs` | choosing and clearing the test area |
 | `Worldgen.cs` | tests in a generated world |
-| `Reflect.cs` | every private game member the code touches |
+| `Reflect.cs` | the private game members the kit and tests touch |
 | `Diagnostics.cs` | opt-in grid-mark tracing |
 | `Kit/` | the test kit |
 | `Invoke-OniTests.ps1`, `Watch-OniGame.ps1` | launcher and warden |
@@ -71,7 +71,9 @@ Every patch starts with `if (!Session.Active) ...`. `Session.Active` is true onl
 ## Private Game Members
 **Id:** blk-7ca12f96cdb9
 
-Reach game internals only through `Reflect.cs`: a `public static readonly FieldInfo` per member from `AccessTools`, with a `///` summary saying what it is for, and a line in `Reflect.SelfCheck()`. `FieldInfo` is used and `FieldRefAccess` is not, because a `FieldRef` dynamic method cannot be built on the CoreCLR host that ModCheck runs on.
+The kit and the tests reach game internals only through `Reflect.cs`: a `public static readonly FieldInfo` per member from `AccessTools`, with a `///` summary saying what it is for, and a line in `Reflect.SelfCheck()`. `FieldInfo` is used and `FieldRefAccess` is not, because a `FieldRef` dynamic method cannot be built on the CoreCLR host that ModCheck runs on.
+
+The harness has two exceptions. `Worldgen.cs` reads `CharacterSelectionController.proceedButton` and `WattsonMessage.button` with its own `AccessTools.Field` calls (`ProceedButton`, `WattsonButton`), and `SelfCheck` does not list them. `Mod.cs` resolves `App.Restart` and `Application.Quit` with `AccessTools.Method` for the quit trace, applied by hand through `TracePatch`. TODO(owner): move the two `Worldgen.cs` fields into `Reflect.cs` and `SelfCheck`.
 
 ## Comments
 **Id:** blk-2536019dd87f

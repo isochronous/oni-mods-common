@@ -13,9 +13,9 @@ WorkshopUpload is a console tool run by a person or by `tools/Release/release.py
 **Id:** blk-57f9d76b2323
 
 1. **Check every Steam result.** Each call-result is awaited and its `EResult` compared with `k_EResultOK`; anything else prints the result and returns 1.
-2. **Fail before touching Steam when the input is wrong.** Usage errors return 2 without initialising Steam.
+2. **Return 2 for a usage error.** No arguments prints the usage and returns 2 before `SteamAPI.Init`. Any other usage error (an unknown command, `update` or `publish` with too few arguments, a missing `--title`) returns 2 inside the `try`, after Steam is initialised, so the `finally` shuts Steam down.
 3. **Always shut Steam down.** `SteamAPI.Shutdown()` is in a `finally` around the dispatch.
-4. **Say what the user needs to do.** Messages name the likely cause (Steam not running, cloud quota, legal agreement).
+4. **Say what the user needs to do.** Messages name what to check: Steam running and logged in, `steam_appid.txt` next to the exe, cloud quota, the Workshop legal agreement.
 
 ## Exit codes
 **Id:** blk-f5665fc1a217
@@ -23,10 +23,10 @@ WorkshopUpload is a console tool run by a person or by `tools/Release/release.py
 | Code | Meaning | Where |
 |------|---------|-------|
 | 0 | the command succeeded | each command method |
-| 1 | `SteamAPI.Init` failed, a Steam result was not OK, or the item is not downloadable/installed | `Main`, `Info`, `Update`, `Publish`, `Download` |
-| 2 | usage error: no command, unknown command, missing arguments, `--title` missing on publish | `Main`, `Update`, `Publish` |
+| 1 | `SteamAPI.Init` failed; a Steam result was not OK (`Info`, `Description`, `List`, `Update`, `Publish`); or `Download` could not leave the item installed as a file (`DownloadItem` refused, not installed, install path is a directory or missing) | `Main`, `Info`, `Description`, `List`, `Update`, `Publish`, `Download` |
+| 2 | usage error: no command, unknown command, `update` or `publish` with too few arguments, `--title` missing on publish | `Main`, `Update`, `Publish` |
 
-Usage text and failures go to standard error (`Console.Error`); progress and results go to standard output.
+`Info` prints `NOT a legacy single-file item` for an item with no file handle and still returns 0 when the Steam result is OK. Usage text, the `SteamAPI.Init` failure and the failure messages of `Description`, `List` and `Download`'s `DownloadItem` call go to standard error (`Console.Error`). The result line of `update` and `publish`, which carries a failed Steam result, and `Download`'s not-installed and bad-path lines go to standard output with the progress output.
 
 ## Handling Patterns
 **Id:** blk-df99a0cd7953

@@ -80,9 +80,10 @@ It is used to reproduce worldgen bug reports and to check a mod build against a 
 | `<Klei folder>\worldgen-driver\list.txt` | launcher writes, mod reads | the coordinates of one session |
 | `<Klei folder>\worldgen-driver\results.jsonl` | mod appends, launcher reads | one JSON line per coordinate; deleted before each session |
 | `runs\<Label>-<stamp>.jsonl`, `...-session<N>.log` | launcher writes | the collected results and each session's `Player.log` |
-| `runs\coverage-*.txt` | input | coordinate lists covering every selectable cluster in both modes |
 
 `<Klei folder>` is `Documents\Klei\OxygenNotIncluded`.
+
+The README mentions `runs/coverage-*.txt` coordinate lists. `runs/` is gitignored, so a checkout has none. TODO(owner): decide whether to commit the coverage lists.
 
 ## Business Rules
 **Id:** blk-016ad7dc25b9

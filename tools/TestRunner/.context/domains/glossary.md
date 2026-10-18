@@ -12,7 +12,7 @@ Terms a newcomer to TestRunner needs. Entity detail is in [entities](entities.md
 | Abbreviation | Full Term | Context |
 |--------------|-----------|---------|
 | ONI | Oxygen Not Included | the game |
-| SO | Spaced Out | the expansion; picks `testbed-so.sav` over `testbed-base.sav` |
+| SO | Spaced Out | the expansion; its mode loads `testbed-so.sav`, the only fixture supplied |
 | HUD | heads-up display | the driver waits up to 60 s for it before the first test |
 | DLL | test assembly | `<Mod>.Tests.dll`, copied to `DIR/tests` |
 
@@ -30,8 +30,9 @@ Terms a newcomer to TestRunner needs. Entity detail is in [entities](entities.md
 **Used in**: every test project.
 
 ### Fixture
-**Id:** blk-4199508c4e2e  
-**Definition**: the save a run loads (`fixtures/testbed-so.sav`, `testbed-base.sav`, or `-Fixture`): sandbox on, no Duplicants, revealed map. Tests never change the file; the launcher copies it into the run folder.  
+**Id:** blk-4199508c4e2e
+
+**Definition**: the save a run loads: `fixtures/testbed-so.sav` in Spaced Out mode (the only fixture supplied), `fixtures/testbed-base.sav` in base-game mode (copy it in first), or the `-Fixture` path: sandbox on, no Duplicants, revealed map. Tests never change the file; the launcher copies it into the run folder.  
 **Used in**: `Session.Continue`, the launcher.
 
 ### Fixture area

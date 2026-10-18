@@ -35,7 +35,7 @@ Everything goes to standard output, one line per event, with a fixed prefix:
 |--------|---------|
 | `OK <type>` | the type stage passed (interface maps resolved, static constructor ran) and the method loop finished; `FAIL jit` lines for its methods print before it |
 | `FAIL type <type>: ...` | type load, interface map or static constructor failure |
-| `FAIL jit <type>.<method>: ...` | a method body could not be compiled, usually a missing method or field |
+| `FAIL jit <type>.<method>: ...` | a method body could not be compiled; `PrepareMethod` threw, for example `MissingMethodException` or `MissingFieldException` for a member the game no longer has |
 | `FAIL loader: <type> :: <message>` | one loader exception from a `ReflectionTypeLoadException` |
 | `FAIL: <exception>` | any other exception while loading the assembly |
 | `WARN <stage> <member>: ...` | a runtime-mismatch artifact, counted separately and not a failure |

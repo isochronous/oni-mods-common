@@ -14,7 +14,7 @@ StringsTemplate is a console checker run by a script, so its error handling is i
 
 1. **Report every problem, then fail.** `CheckPo` and `CheckOptionKeys` print each finding and keep going; `Main` fails after the last check, so one run shows the whole list.
 2. **Name the key.** Every line carries the translation key (`STRINGS.A.B.C`) and the po file it concerns.
-3. **Mirror the game.** A check exists only where the game would drop or refuse the text; the line says what the game would do (`REFUSED`, "the game's reader throws here and drops the whole file").
+3. **Mirror the game where a check stands for it.** The parse `FAIL` says what the game's reader does ("the game's reader throws here and drops the whole file"), and `REFUSED` names the rule the game enforces on the English `{n}` parameters and `<link>` tags. `MISSING`, `STALE`, `EMPTY` and `OBSOLETE` are bookkeeping between the po and the DLL, not game refusals.
 4. **Do not swallow.** The one `catch` in the tool turns a malformed po into a reported failure; nothing is caught and ignored.
 
 ## Exit codes
@@ -77,7 +77,7 @@ The message names the file and line number.
 
 - Printing a problem without counting it, or counting without printing: `EMPTY` and `OBSOLETE` are printed and not counted on purpose; keep that split explicit.
 - Passing a bad po silently. The game drops the whole file on a bad line, so the tool reports it.
-- Writing to standard error or setting other exit codes: `translations.py` reads the standard output and the 0/1/2 codes.
+- Relying on the exit code to say more than pass or fail: `translations.py` runs the tool with its output passed through to the console and counts any non-zero exit as one problem, so it does not tell 1 from 2. Keep the output readable for a person and the exit code non-zero for any problem.
 
 ## Related
 **Id:** blk-e6e4e7300510

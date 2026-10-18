@@ -62,7 +62,7 @@ WorkshopUpload is one C# file, `tools/WorkshopUpload/Program.cs`, plus its proje
 ## Control Structures
 **Id:** blk-9cef3a262ece
 
-- `Main` prints usage and returns 2 before touching Steam, initialises Steam, then dispatches with a `switch` on `args[0]` inside `try`/`finally`.
+- `Main` prints usage and returns 2 when there are no arguments, before touching Steam; it then initialises Steam and dispatches with a `switch` on `args[0]` inside `try`/`finally`. An unknown command and the argument checks of `update` and `publish` return 2 inside the `try`.
 - Each command is a `private static int` method returning its exit code; early `return 1` or `return 2` on the first failed step.
 - `switch` expressions map option strings to enums (`ParseVisibility`).
 - Output uses string interpolation (`$"..."`).

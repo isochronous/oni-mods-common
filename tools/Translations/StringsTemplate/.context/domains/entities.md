@@ -100,7 +100,7 @@ Source: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks an
 
 - **Template and check run**: `Main` -> `Collect` -> `WritePot` -> `CheckOptionKeys` -> `CheckPo` per po -- see `Program.cs`.
 - **Po parse**: `CheckPo` -> `ReadPo` -> `Parameter` -> `Quoted` -- see `Program.cs`.
-- **Caller**: `tools/Translations/translations.py` builds the project (`TOOL` path, line 22) and runs `bin/Release/net8.0/StringsTemplate.dll` (line 53).
+- **Caller**: `main()` in `tools/Translations/translations.py` builds the project at `TOOL`, then runs `bin/Release/net8.0/StringsTemplate.dll` on each mod's DLL with the game's Managed folder and the mod's `translations` folder.
 
 ## State Transitions
 **Id:** blk-5650565fc4ce

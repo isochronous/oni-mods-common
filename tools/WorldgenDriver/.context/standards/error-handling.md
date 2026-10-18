@@ -14,7 +14,7 @@ WorldgenDriver runs unattended: nobody watches the game, so every outcome has to
 ## Principles
 **Id:** blk-6b5e188da28e
 
-1. **Every coordinate gets exactly one result line.** `Driver.Finish` writes it once; the `Finished` and `quitting` flags make a second call do nothing.
+1. **Every coordinate the driver attempts gets exactly one result line.** `Driver.Finish` writes it once; the `Finished` and `quitting` flags make a second call do nothing. A session that ends on `wrong-mode`, `driver-error`, `crash`, `hang` or `stuck-before-start` writes nothing for the coordinates after the current one, and a game the launcher kills (`killed`) or never sees start (`no-process`) leaves its coordinate in flight without a line. The launcher runs those again in the next session and gives up on the group after two sessions in a row with no result.
 2. **Name the failure.** The status says which way it ended (`failed`, `hang`, `crash`), `stage` and `percent` say where, `detail` and `errors` say why.
 3. **A session that cannot trust the game stops.** Hangs, crashes and driver errors quit the game; the launcher starts a new one.
 4. **Never leave the player's setup changed.** The launcher backs up `mods.json` and `kplayerprefs.yaml` and restores them in `finally`.
@@ -64,7 +64,7 @@ WorldgenDriver runs unattended: nobody watches the game, so every outcome has to
 **Id:** blk-64bfa31b7823
 
 - `$ErrorActionPreference = 'Stop'`; preconditions `throw` with a message that says what to do: no coordinates, the game already running, Steam not found, the driver not deployed (names the `dotnet build` command), a local mod folder that does not exist.
-- A result line the game was still writing is skipped with `Write-Warning`; only complete lines count.
+- A line that does not end in `}` (the game was still writing it) is skipped silently; a line that ends in `}` and fails `ConvertFrom-Json` is skipped with `Write-Warning`. Only complete, parsed lines count.
 - A session with no result change for `TimeoutSec + 240` seconds has its game process killed and is reported `killed`; a game that never starts within 120 s is `no-process`.
 - Two sessions in a row without a single result abandon the rest of that group with a warning naming the coordinates.
 - A leftover `*.worldgen-backup` means an earlier run died before restoring: the script puts the backup back first rather than backing up the stripped file.
