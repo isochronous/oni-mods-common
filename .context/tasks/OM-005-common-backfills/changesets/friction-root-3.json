@@ -1,0 +1,21 @@
+{
+  "task": "OM-005",
+  "why": "record friction the OM-005 fix unit met composing change-sets",
+  "node": ".",
+  "ops": [
+    {
+      "mode": "section",
+      "target": "domains/tooling-friction.md",
+      "section": "2026-10-17 write plan: a describe and a document tag on one document cannot share a change-set",
+      "create_section": true,
+      "body": "OM-005 (in common), fix unit 07. `ks write plan --at common` refused a change-set holding a `describe` and a document-level `tag` op on the same document, since both replace its frontmatter, and one holding a `section` rewrite and a `tag` removal on the same heading block, since both replace that block (a section write's `tags` field adds terms but cannot remove them). Expected: two edits to different lines of one region to compose in one change-set. Done instead: split each node's fixes into two files (`fix07-<node>.json` and `fix07-b-<node>.json`) applied one after the other."
+    },
+    {
+      "mode": "section",
+      "target": "domains/tooling-friction.md",
+      "section": "2026-10-17 write plan: a protected plan's confirm digest goes stale when an earlier change-set edits the same file",
+      "create_section": true,
+      "body": "OM-005 (in common). The fix unit planned `fix07-rmterm-TestRunner.json` (a protected `remove` on `tools/TestRunner/.context/tags.md`) while `fix07-mint-TestRunner.json`, which edits the same file, was still unapplied. The digest the plan printed could not ratify the removal after the mint landed, and the plan output gave no warning that a pending write to the same target would invalidate it. Expected: a note in the plan that the confirm digest binds the target's current bytes. Done instead: planned the removal again after the mint and applied it with the new digest."
+    }
+  ]
+}

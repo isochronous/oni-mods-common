@@ -1,3 +1,11 @@
+### OM-005: overviews and the description, coverage and tag backfills over common
+**Id:** blk-2fd7612e80b0
+
+- **Avoid**: Writing an aggregator overview's paths relative to its own folder (`Release/release.py`): source-mention matches store-relative paths, so `tools/.context/overview.md` was unreached by every brief until review 1.1 rewrote them. Also deciding a whole-tool term per node during vocabulary checking: in-game-testing was dropped from TestRunner as a place while steam-workshop, translations and generated-worlds stayed elsewhere, and the review had to impose one rule afterwards.
+- **Repeat**: Driving the six nodes through OM-002's tagwork driver retargeted at the common store (survey, chunks, begin/complete passes, check, write): 10 chunks validated and written in 10-17 rounds per node with no refusal. A review pass, a fix unit, and a confirmation review before closing.
+- **Updated**: Decisions in OM-005's plan.md: whole-tool terms sit at document level on overview, domains/README, entities and glossary of each tool node; a term with one carrier is retired. Six friction entries in the ONI-Mods log.
+
+
 ### OM-004: populate-context over common's six tool nodes
 **Id:** blk-a823ce0beb55
 
