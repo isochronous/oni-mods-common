@@ -191,6 +191,7 @@ def main():
     ap.add_argument("--title", required=True)
     ap.add_argument("--style", choices=sorted(STYLES), default="serif")
     ap.add_argument("--lines", help='the title split into lines with "|", instead of the automatic split')
+    ap.add_argument("--raise-bottom", type=int, default=0, help="split only: pixels of the 512 image to lift the bottom line by, for a title that looks low though its gaps are equal")
     ap.add_argument("--position", default="center", help="top, center, bottom (a tenth of the image from that edge), split (first line at the top, second at the bottom), or the text's centre as a fraction of the height")
     ap.add_argument("--width", type=float, default=0.86, help="the text's width as a fraction of the image (default 0.86)")
     ap.add_argument("--focus", default="0.5,0.5", help="the crop's centre in the background, as fractions (default 0.5,0.5)")
@@ -229,7 +230,7 @@ def main():
         margin = int(full * 0.04)
         bottom_top = full - margin - masks[-1].height
         gap = full - (bottom_top + masks[-1].getbbox()[3])
-        tops = [gap - masks[0].getbbox()[1], bottom_top]
+        tops = [gap - masks[0].getbbox()[1], bottom_top - a.raise_bottom * SCALE]
     else:
         block = sum(m.height for m in masks) + gap * (len(masks) - 1)
         margin = int(full * 0.1)
