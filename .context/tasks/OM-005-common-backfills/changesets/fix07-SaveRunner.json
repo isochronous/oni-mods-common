@@ -1,0 +1,39 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 4.3, 4.7, 4.9 and 2.2: no tags on the file map, no tags from a parenthetical or a single bullet, and an overview description that says the tool loads and runs a save",
+ "node": "tools/SaveRunner",
+ "ops": [
+  {
+   "mode": "describe",
+   "target": "overview.md",
+   "description": "What SaveRunner is: the dev mod and launcher that load and run a player's save unattended with saving blocked, with and without a mod, then a file map of Mod.cs, Runner.cs, Patches.cs, RunBehaviour.cs, Invoke-SaveRun.ps1 and SaveRunner.csproj"
+  },
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "section": "Where things are",
+   "remove": [
+    "mod-build",
+    "mod-entry-point",
+    "harmony-patching",
+    "game-launch"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/code-style.md",
+   "section": "Language and Toolchain",
+   "remove": [
+    "mod-entry-point"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/code-style.md",
+   "section": "Comments",
+   "remove": [
+    "command-line"
+   ]
+  }
+ ]
+}

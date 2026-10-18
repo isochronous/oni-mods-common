@@ -1,0 +1,48 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 7",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:92168e348692e6dd5ec9a5bd5d2de503c80b95e9769e33a616f559022c16c29b",
+    "domains/glossary.md": "sha256:76cab5eb0fd716d9dbf6e912a5cb688cdc006dfa6b3ac3040e44fe8ef2ea7597",
+    "standards/error-handling.md": "sha256:35615b1ea173e6679dc38b9e5581b87a8f3bd381749a0b79e04850dd3cc64bdc",
+    "standards/naming-conventions.md": "sha256:042fc8697648724c60353f62c90c54073fd268a465842dd196c9e9fb4267b488"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "legacy-workshop-item",
+        "steam-app-id",
+        "item-download",
+        "workshop-tags"
+      ],
+      "section": "business-rules"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "workshop-tags"
+      ],
+      "section": "cross-domain-terms/tags"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "command-line"
+      ],
+      "section": "handling-patterns/exceptions"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "console-output"
+      ],
+      "section": "project-specific-conventions/output"
+    }
+  ]
+}

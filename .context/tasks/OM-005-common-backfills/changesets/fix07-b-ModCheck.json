@@ -1,0 +1,12 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 2.4: the glossary description names the abbreviations' context column and where each cross-domain term is used; a change-set of its own because each of these replaces a region (the frontmatter, the file map) that a tag write in fix07-ModCheck.json also replaces",
+ "node": "tools/ModCheck",
+ "ops": [
+  {
+   "mode": "describe",
+   "target": "domains/glossary.md",
+   "description": "ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM with the context of each, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it is used"
+  }
+ ]
+}

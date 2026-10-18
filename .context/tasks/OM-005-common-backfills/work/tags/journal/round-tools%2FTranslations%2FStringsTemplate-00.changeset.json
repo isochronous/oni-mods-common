@@ -1,0 +1,81 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/Translations/StringsTemplate — round 0",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "base": {
+    "domains/README.md": "sha256:f4a31c20b2ce6717985819beef81d9ff0bfd3174ed1de807965d652736be7ce9",
+    "domains/entities.md": "sha256:c0496235ce7949d766fc312d6d81e67ee66d0a1699ddd52de52fa00172fbba1b",
+    "domains/glossary.md": "sha256:826f59604a2ae54ecc308eb0fb8201b462ed8f08177240d757f94f993d840f6a",
+    "overview.md": "sha256:de7f8c2d89f14c497bce0c2778462684a0c2164273018ebc236317b15e37c6ec",
+    "standards/README.md": "sha256:f5bb73d99af3d55c6770b25475ba97369e9ecd1f41fbd9f5c6dd4ef0023495ec",
+    "standards/code-style.md": "sha256:e85022aef07c7b09ed2d79ee7a918674537018759d231fdaeb20224ebc504191",
+    "standards/error-handling.md": "sha256:2ed5b58e0360bd2137145a72d2d17428d54b97969c88c3c3501693da1f1cf991",
+    "standards/naming-conventions.md": "sha256:7f2ab2ba68a0d87cd3211d19dacdc294fddf4000b65308cb5153ccc0f64181bf"
+  },
+  "ops": [
+    {
+      "target": "domains/README.md",
+      "mode": "tag",
+      "add": [
+        "translations",
+        "translation-template",
+        "mod-strings"
+      ]
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "translations"
+      ]
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "translations"
+      ]
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "translations",
+        "translation-template"
+      ]
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "tag",
+      "add": [
+        "code-style",
+        "exception-handling",
+        "exit-codes",
+        "console-output"
+      ]
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "exception-handling",
+        "exit-codes",
+        "console-output"
+      ]
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    }
+  ]
+}

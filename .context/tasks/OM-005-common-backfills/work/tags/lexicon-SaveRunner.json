@@ -1,0 +1,272 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "SaveRunner domains index: links to the entities and glossary documents, each with what it covers, from the mod, patches, probe, launcher and run states to the probe-column abbreviations and run terms",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains"
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "SaveRunner domain",
+   "description": "SaveRunner's entities: SaveRunnerMod, Runner and its members, each Harmony patch in Patches.cs, RunBehaviour and FridgeProbe, Invoke-SaveRun.ps1 and its parameters, files read and written, business rules, code paths and run state transitions",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview"
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities"
+    },
+    {
+     "id": "domains/entities.md#key-entities/saverunnermod",
+     "title": "SaveRunnerMod"
+    },
+    {
+     "id": "domains/entities.md#key-entities/runner",
+     "title": "Runner"
+    },
+    {
+     "id": "domains/entities.md#key-entities/patches",
+     "title": "Patches"
+    },
+    {
+     "id": "domains/entities.md#key-entities/runbehaviour",
+     "title": "RunBehaviour"
+    },
+    {
+     "id": "domains/entities.md#key-entities/fridgeprobe",
+     "title": "FridgeProbe"
+    },
+    {
+     "id": "domains/entities.md#key-entities/invoke-saverun-ps1",
+     "title": "Invoke-SaveRun.ps1"
+    },
+    {
+     "id": "domains/entities.md#key-entities/files-it-reads-and-writes",
+     "title": "Files it reads and writes"
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules"
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths"
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions"
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "SaveRunner glossary",
+   "description": "SaveRunner glossary: the abbreviations ONI, SMI, STT, SO and NMF used in probe columns and code, and definitions of run, probe, game versus real seconds, status file, loadout and menu settle",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/run",
+     "title": "Run"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/probe",
+     "title": "Probe"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/game-seconds-and-real-seconds",
+     "title": "Game seconds and real seconds"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/status-file",
+     "title": "Status file"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/loadout",
+     "title": "Loadout"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/menu-settle",
+     "title": "Menu settle"
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "SaveRunner",
+   "description": "What SaveRunner is: the dev mod and launcher that replay a player's save unattended with saving blocked, with and without a mod, then a file map of Mod.cs, Runner.cs, Patches.cs, RunBehaviour.cs, Invoke-SaveRun.ps1 and SaveRunner.csproj",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is"
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are"
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "SaveRunner standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and patches to run statuses, options and CSV columns",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards"
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "Code Style Guide",
+   "description": "SaveRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through SaveRunner.csproj, the one-concern-per-file layout and how to add a probe, the Runner.Active guard, Harmony patch form and comments",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting"
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation"
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces"
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length"
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain"
+    },
+    {
+     "id": "standards/code-style.md#layout",
+     "title": "Layout"
+    },
+    {
+     "id": "standards/code-style.md#inert-without-the-argument",
+     "title": "Inert Without the Argument"
+    },
+    {
+     "id": "standards/code-style.md#harmony-patches",
+     "title": "Harmony Patches"
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments"
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "Error Handling Conventions",
+   "description": "How SaveRunner ends and reports a run: the four status values Runner.Finish writes, the RunBehaviour try/catch, optional quit-trace hooks, crash dialog flags, command-line parsing, Invoke-SaveRun.ps1 throws and loadout restore, logging, anti-patterns",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles"
+    },
+    {
+     "id": "standards/error-handling.md#run-status",
+     "title": "Run Status"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/driver",
+     "title": "Driver"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/fire-and-forget-file-writes",
+     "title": "Fire-and-forget file writes"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/optional-hooks",
+     "title": "Optional hooks"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/crash-dialog",
+     "title": "Crash dialog"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/command-line",
+     "title": "Command line"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/the-launcher",
+     "title": "The launcher"
+    },
+    {
+     "id": "standards/error-handling.md#logging",
+     "title": "Logging"
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid"
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "Naming Conventions",
+   "description": "Naming in SaveRunner: C# file and type names, the <Type>_<Method>_Patch classes, Runner state fields, probe names, the --saverun-* game options and how Invoke-SaveRun.ps1 parameters map to them, run folders and CSV columns",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming"
+    },
+    {
+     "id": "standards/naming-conventions.md#command-line-and-launcher",
+     "title": "Command Line and Launcher"
+    },
+    {
+     "id": "standards/naming-conventions.md#csv-columns",
+     "title": "CSV Columns"
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related"
+    }
+   ]
+  }
+ ]
+}

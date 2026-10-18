@@ -1,0 +1,39 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 8",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:88b2d819a439d3661b0578bc4699af83500f8b66f40f4d7fe1757d4ff27c2577",
+    "domains/glossary.md": "sha256:0c9c41e2ba2815ea876a9d33c8813ff3298abaaabcca3aecff32e1fd02dc8679",
+    "standards/error-handling.md": "sha256:ce8a4d362402149f1f8a12ce79b7912f7df86534f0d0858c4877882f7730ec0f"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "steam-cloud",
+        "steamworks-api",
+        "release-process"
+      ],
+      "section": "key-code-paths"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "item-visibility"
+      ],
+      "section": "cross-domain-terms/visibility"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "legacy-workshop-item",
+        "item-download"
+      ],
+      "section": "rules-the-code-enforces"
+    }
+  ]
+}

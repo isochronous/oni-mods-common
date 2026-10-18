@@ -1,0 +1,50 @@
+{
+ "store_root": "C:/dev/ONI-Mods/common",
+ "documents": [
+  {
+   "node": "tools",
+   "path": "overview.md",
+   "source_path": "tools/.context/overview.md",
+   "id": "overview.md",
+   "format": "narrative",
+   "title": "tools",
+   "description": "What the shared tools folder holds and which tools call others, one entry per tool folder from Kanim/kanim.py and MakePreview to Release/release.py, requirements.txt, and which six folders are child nodes",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": "tools",
+     "path": "overview.md",
+     "id": "overview.md#what-this-is",
+     "address": "what-this-is",
+     "heading": "What this is",
+     "level": 2,
+     "ordinal": 1,
+     "title": "What this is",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": "tools",
+     "path": "overview.md",
+     "id": "overview.md#where-things-are",
+     "address": "where-things-are",
+     "heading": "Where things are",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Where things are",
+     "description": null,
+     "tags": []
+    }
+   ]
+  }
+ ],
+ "excluded": {
+  "not_carried": [
+   "OM-004"
+  ],
+  "destination": []
+ },
+ "problems": []
+}

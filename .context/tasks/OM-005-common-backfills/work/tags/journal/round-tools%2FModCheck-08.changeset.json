@@ -1,0 +1,30 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/ModCheck — round 8",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\ModCheck",
+  "base": {
+    "domains/entities.md": "sha256:14c5ed5bd23e003209582e7b637d78ac374dab88e41aa924be792bef2843d868",
+    "standards/error-handling.md": "sha256:ffca12f6e0a9c64c767e7577ea8d3f9ad7d50503653b9edd4b91c3346382a586"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "type-load-check",
+        "jit-check",
+        "exception-handling",
+        "exit-codes"
+      ],
+      "section": "key-code-paths"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "assembly-resolution"
+      ],
+      "section": "handling-patterns/assembly-resolution"
+    }
+  ]
+}

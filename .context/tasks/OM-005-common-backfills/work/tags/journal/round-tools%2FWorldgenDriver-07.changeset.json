@@ -1,0 +1,52 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 7",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:600d15b90faae0c8c410f299babd26e53fcd1308e8f572172f86c2bcb5ca78f7",
+    "standards/error-handling.md": "sha256:be0e6ad7d8b34c6a924e4f305185f0217c8ab19074afdff5bd533cdc050a7ba4",
+    "standards/naming-conventions.md": "sha256:36b5e3f6e96781ead0cd5eecaa19bdb9f00360732c43c20646c8d4c05cd38d0e",
+    "domains/glossary.md": "sha256:c000c64943bd85f02d15e238fcde347ae62b2d1ef4e2c5e5bfbb0871832aabb6"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "activation-guard",
+        "game-mode",
+        "mod-loadout",
+        "world-coordinate"
+      ],
+      "section": "business-rules"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "game-launch",
+        "watchdog",
+        "run-result",
+        "mod-loadout"
+      ],
+      "section": "handling-patterns/launcher"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "run-result"
+      ],
+      "section": "project-specific-conventions/result-json"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "game-launch",
+        "run-result"
+      ],
+      "section": "cross-domain-terms/launcher"
+    }
+  ]
+}

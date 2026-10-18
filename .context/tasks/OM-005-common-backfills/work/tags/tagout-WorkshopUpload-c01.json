@@ -1,0 +1,16 @@
+{ "documents": [
+    { "id": "standards/naming-conventions.md", "tags": ["code-style"] }
+  ],
+  "sections": [
+    { "id": "standards/naming-conventions.md#files-and-directories", "tags": ["tool-build", "steam-app-id"] },
+    { "id": "standards/naming-conventions.md#code-naming", "tags": [], "reason": "inherits" },
+    { "id": "standards/naming-conventions.md#code-naming/methods", "tags": ["command-line", "exit-codes"] },
+    { "id": "standards/naming-conventions.md#code-naming/constants", "tags": ["steam-app-id"] },
+    { "id": "standards/naming-conventions.md#code-naming/variables", "tags": ["steamworks-api", "command-line"] },
+    { "id": "standards/naming-conventions.md#project-specific-conventions", "tags": [], "reason": "inherits" },
+    { "id": "standards/naming-conventions.md#project-specific-conventions/command-line", "tags": ["command-line", "item-visibility", "workshop-tags"] },
+    { "id": "standards/naming-conventions.md#project-specific-conventions/steam-cloud-names", "tags": ["steam-cloud"] },
+    { "id": "standards/naming-conventions.md#project-specific-conventions/output", "tags": ["console-output"] },
+    { "id": "standards/naming-conventions.md#related", "tags": [], "reason": "inherits" }
+  ]
+}

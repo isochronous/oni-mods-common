@@ -1,0 +1,57 @@
+{
+  "task": "OM-005",
+  "why": "a generated description for every document, saying what that document contains",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "ops": [
+    {
+      "target": "domains/README.md",
+      "mode": "describe",
+      "description": "SaveRunner domains index: links to the entities and glossary documents, each with what it covers, from the mod, patches, probe, launcher and run states to the probe-column abbreviations and run terms"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "describe",
+      "description": "SaveRunner's entities: SaveRunnerMod, Runner and its members, each Harmony patch in Patches.cs, RunBehaviour and FridgeProbe, Invoke-SaveRun.ps1 and its parameters, files read and written, business rules, code paths and run state transitions"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "describe",
+      "description": "SaveRunner glossary: the abbreviations ONI, SMI, STT, SO and NMF used in probe columns and code, and definitions of run, probe, game versus real seconds, status file, loadout and menu settle"
+    },
+    {
+      "target": "overview.md",
+      "mode": "describe",
+      "description": "What SaveRunner is: the dev mod and launcher that replay a player's save unattended with saving blocked, with and without a mod, then a file map of Mod.cs, Runner.cs, Patches.cs, RunBehaviour.cs, Invoke-SaveRun.ps1 and SaveRunner.csproj"
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "describe",
+      "description": "SaveRunner standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and patches to run statuses, options and CSV columns"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "describe",
+      "description": "SaveRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through SaveRunner.csproj, the one-concern-per-file layout and how to add a probe, the Runner.Active guard, Harmony patch form and comments"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "describe",
+      "description": "How SaveRunner ends and reports a run: the four status values Runner.Finish writes, the RunBehaviour try/catch, optional quit-trace hooks, crash dialog flags, command-line parsing, Invoke-SaveRun.ps1 throws and loadout restore, logging, anti-patterns"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "describe",
+      "description": "Naming in SaveRunner: C# file and type names, the <Type>_<Method>_Patch classes, Runner state fields, probe names, the --saverun-* game options and how Invoke-SaveRun.ps1 parameters map to them, run folders and CSV columns"
+    }
+  ],
+  "base": {
+    "domains/README.md": "sha256:9de85b6dda59909fbc3fb9193bb3b4cbec05415803d6a11515d20739aebfb3d4",
+    "domains/entities.md": "sha256:47b08317f6e58616ab149f66ceaeb4440d954dd8b2292518dfa6ec72a95182b0",
+    "domains/glossary.md": "sha256:8a4b5bc54503413e093d1e26656c731014ba8ae3badd3d1adb3570bfb3712ac9",
+    "overview.md": "sha256:66edbe8db86a7cd8f82b9b6c7a28de068bb66faa815f4e9f65346c176eb5a76a",
+    "standards/README.md": "sha256:48192ffd53297e898ad9ab4fbaf9de371fb18891a379f4256b3e4026ebac9aa4",
+    "standards/code-style.md": "sha256:ea98885f789918c29b0b526f56831a0844d5670f3dc028b5a6232170f709fe53",
+    "standards/error-handling.md": "sha256:75dba7f0e0014937bc63de653936a10191f77c2968310c3bb3d6c890d2298848",
+    "standards/naming-conventions.md": "sha256:7ea5675b6cb1b1e786b06f16fb0d898e1545e518190d4b4aab8acad271fedc7f"
+  }
+}

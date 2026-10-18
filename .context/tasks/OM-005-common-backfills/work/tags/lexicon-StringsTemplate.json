@@ -1,0 +1,300 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "Index of StringsTemplate's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains"
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "StringsTemplate domain",
+   "description": "StringsTemplate's Program.Main and its helpers in Program.cs (Entry, Collect, WritePot, CheckOptionKeys, CheckPo, ReadPo and the parameter and link checks), the files it reads and writes, its business rules, terms and code paths",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview"
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities"
+    },
+    {
+     "id": "domains/entities.md#key-entities/program-main",
+     "title": "Program.Main"
+    },
+    {
+     "id": "domains/entities.md#key-entities/entry",
+     "title": "Entry"
+    },
+    {
+     "id": "domains/entities.md#key-entities/collect",
+     "title": "Collect"
+    },
+    {
+     "id": "domains/entities.md#key-entities/writepot",
+     "title": "WritePot"
+    },
+    {
+     "id": "domains/entities.md#key-entities/checkoptionkeys",
+     "title": "CheckOptionKeys"
+    },
+    {
+     "id": "domains/entities.md#key-entities/checkpo-readpo-parameter-quoted",
+     "title": "CheckPo, ReadPo, Parameter, Quoted"
+    },
+    {
+     "id": "domains/entities.md#key-entities/sameparameters-linkcount-linksmatch",
+     "title": "SameParameters, LinkCount, LinksMatch"
+    },
+    {
+     "id": "domains/entities.md#files-read-and-written",
+     "title": "Files read and written"
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules"
+    },
+    {
+     "id": "domains/entities.md#domain-terminology",
+     "title": "Domain Terminology"
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths"
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions"
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "StringsTemplate glossary",
+   "description": "StringsTemplate glossary: abbreviations (pot, po, LocString, PLib), terms to avoid with their replacements, and definitions of ModStrings, key (msgctxt), stale, refused, obsolete and the Managed directory, with where each is used",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms"
+    },
+    {
+     "id": "domains/glossary.md#terms-to-avoid",
+     "title": "Terms to Avoid"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/modstrings",
+     "title": "ModStrings"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/key-msgctxt",
+     "title": "Key (msgctxt)"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/stale",
+     "title": "Stale"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/refused",
+     "title": "Refused"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/obsolete",
+     "title": "Obsolete"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/managed-directory",
+     "title": "Managed directory"
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "StringsTemplate",
+   "description": "StringsTemplate's purpose, command line, checks and exit codes, who runs it and when, and a map of its files (Program.cs, StringsTemplate.csproj and the Release build output) and its .context documents",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is"
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are"
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "Index of StringsTemplate's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards"
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "StringsTemplate code style",
+   "description": "StringsTemplate's code style for Program.cs and StringsTemplate.csproj: indentation, line length, Allman braces, C# 9 on .NET 8 project settings, the build command, the using block, when to comment and control-flow patterns",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting"
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation"
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length"
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces"
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain"
+    },
+    {
+     "id": "standards/code-style.md#imports-includes",
+     "title": "Imports/Includes"
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments"
+    },
+    {
+     "id": "standards/code-style.md#comments/when-to-comment",
+     "title": "When to Comment"
+    },
+    {
+     "id": "standards/code-style.md#comments/when-not-to-comment",
+     "title": "When NOT to Comment"
+    },
+    {
+     "id": "standards/code-style.md#control-structures",
+     "title": "Control Structures"
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "StringsTemplate error handling",
+   "description": "StringsTemplate's error handling: its principles, the exit code table (0, 1, 2), the report keywords and which count toward failure, the FormatException catch in CheckPo, mod loading, option-key checks and anti-patterns",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles"
+    },
+    {
+     "id": "standards/error-handling.md#exit-codes",
+     "title": "Exit codes"
+    },
+    {
+     "id": "standards/error-handling.md#report-keywords",
+     "title": "Report keywords"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/reading-a-po-file",
+     "title": "Reading a po file"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/loading-the-mod",
+     "title": "Loading the mod"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/option-keys",
+     "title": "Option keys"
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid"
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "StringsTemplate naming conventions",
+   "description": "StringsTemplate's naming rules: folder, project and output file names, type, method, variable and field naming in Program.cs, how translation keys are built and sorted, report line keywords and positional argument order",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/types",
+     "title": "Types"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/methods",
+     "title": "Methods"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/variables",
+     "title": "Variables"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/fields",
+     "title": "Fields"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions",
+     "title": "Project-Specific Conventions"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/translation-keys",
+     "title": "Translation keys"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/report-text",
+     "title": "Report text"
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/command-line",
+     "title": "Command line"
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related"
+    }
+   ]
+  }
+ ]
+}

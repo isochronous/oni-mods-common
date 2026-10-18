@@ -1,0 +1,31 @@
+{
+ "task": "OM-005",
+ "why": "WorkshopUpload's overview and folder indexes were scaffold placeholders; a reader starting at the node now finds what the tool is, where its parts are and what each document holds",
+ "node": "tools/WorkshopUpload",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "What this is",
+   "body": "WorkshopUpload publishes and updates Oxygen Not Included mods on the Steam Workshop as legacy single-file items, and inspects items. The game has no Workshop depot and downloads only items published through the old `ISteamRemoteStorage` API, so this .NET 8 console app over Steamworks.NET publishes and updates through that API only; an item updated through `ISteamUGC` stops being downloadable by the game. It runs as Klei's Oxygen Not Included Uploader (app 636750, chosen by `steam_appid.txt`) with the game (app 457140) as the consumer app, and needs the Steam client running and logged in as the item's owner. Its commands are `info`, `description`, `list`, `update`, `publish`, `cloud` and `download`. `tools/Release/release.py` calls it to push a release zip, preview, description and change note to a mod's Workshop item, and `tools/ModTest/Test-OniMods.ps1` uses `download` to fetch a newly subscribed item for `-Steam`."
+  },
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "Where things are",
+   "body": "Top-level folders and key files:\n\n- `Program.cs`: the whole tool: `Main` and the seven commands, the helpers (`UploadToCloud`, `ParseOptions`, `ParseTags`, `ParseVisibility`, `Check`, `Await`) and the app id constants.\n- `WorkshopUpload.csproj`: the .NET 8 win-x64 console project referencing Steamworks.NET 2024.8.0; copies `steam_appid.txt` and `steam_api64.dll` next to the exe. `release.py` runs the Release build from `bin/Release/net8.0/win-x64/`; `bin/` and `obj/` are ignored by git.\n- `steam_appid.txt`: `636750`, the uploader app id. It stays that value: sharing cloud files under the game's own app id fails.\n- `steam_api64.dll`: Valve's native Steam library for that Steamworks.NET version; the NuGet package does not carry it and the game's own copy is too old.\n- The user-facing guide is the Publishing to the Steam Workshop section of `common/README.md`.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`."
+  },
+  {
+   "mode": "section",
+   "target": "domains/README.md",
+   "section": "Domains",
+   "body": "Documents in this folder:\n\n- [entities](entities.md): `Program.Main`, the seven commands, the helpers, the app id constants, the files read and written, the rules, the key code paths and the states.\n- [glossary](glossary.md): the terms a newcomer needs: legacy item, uploader app (636750), consumer app (457140), Steam Cloud staging, tags, visibility, change note, and the terms to avoid."
+  },
+  {
+   "mode": "section",
+   "target": "standards/README.md",
+   "section": "Standards",
+   "body": "Documents in this folder:\n\n- [code-style](code-style.md): tabs, Allman braces, line length, .NET 8 with Steamworks.NET, the single `Program.cs`, imports, comment rules and control flow.\n- [error-handling](error-handling.md): exit codes 0, 1 and 2, Steam initialisation, Steam call results and `Await` timeouts, update calls, warnings that do not stop a run, the `Check` and `UploadToCloud` throws, and the legacy-API-only rule.\n- [naming-conventions](naming-conventions.md): method, constant and variable naming, commands and options, Steam Cloud file names and output."
+  }
+ ]
+}

@@ -1,0 +1,73 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/Translations/StringsTemplate — round 1",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "base": {
+    "domains/entities.md": "sha256:89ff247a824df98f3fb5ed13aff85a94056c406c1068360315da6a9f33403a99",
+    "domains/glossary.md": "sha256:db06acaa71c10e8579114b387bf1aeb776c53aa52058d87323887329b8950d73",
+    "overview.md": "sha256:2d2bceb6122601ebfa18e5b765e6b5315b2885c5fe0d0d95508f4fe585c3e6fc",
+    "standards/code-style.md": "sha256:316cf878081918c38c73a52e7d1e8b46eccc3d49a2a883f750aff375591a454d",
+    "standards/error-handling.md": "sha256:3576a2153dc977ca0d75911fddf0eb91da0a3339deddd751bf85894f1ba79477",
+    "standards/naming-conventions.md": "sha256:2d4db7f6f60529ef70733a5354c2c9d1213d6f501bc35bb708132fa507b29d23"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "translation-template",
+        "mod-strings",
+        "command-line"
+      ],
+      "section": "overview"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "translation-template",
+        "mod-strings",
+        "mod-options"
+      ],
+      "section": "abbreviations-and-acronyms"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "mod-strings",
+        "command-line",
+        "exit-codes",
+        "mod-options"
+      ],
+      "section": "what-this-is"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "tool-build"
+      ],
+      "section": "language-and-toolchain"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "refused-translation",
+        "mod-strings"
+      ],
+      "section": "principles"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "tool-build",
+        "translation-template",
+        "translations"
+      ],
+      "section": "files-and-directories"
+    }
+  ]
+}

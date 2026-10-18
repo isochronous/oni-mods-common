@@ -1,0 +1,19 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/Translations/StringsTemplate — round 9",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "base": {
+    "domains/entities.md": "sha256:1dcd3a2d383b8843ed71635a3f32288feadea63ac129d2afa72b802337fd35be"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "translation-template",
+        "assembly-resolution"
+      ],
+      "section": "files-read-and-written"
+    }
+  ]
+}

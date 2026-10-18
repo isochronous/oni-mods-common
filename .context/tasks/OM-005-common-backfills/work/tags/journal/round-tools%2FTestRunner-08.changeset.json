@@ -1,0 +1,37 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 8",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:3480e905aba07e6c52e74345aad798c1fdf873cf6c7514c73e74e846de8e1a0a",
+    "domains/entities.md": "sha256:ff9192dccb1563817151ae98cdbc2c36acfadf957c5deff3291d0676f5f6f772",
+    "domains/glossary.md": "sha256:621e2e7e69939be4636dd3107f327b43d3cfbb316f39ec3fe55ecc91bf058eba"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "crash-dialog"
+      ],
+      "section": "handling-patterns/crash-dialog"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "generated-worlds"
+      ],
+      "section": "key-entities/worldgen-and-generatedworld"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "generated-worlds",
+        "game-mode"
+      ],
+      "section": "cross-domain-terms/generated-world"
+    }
+  ]
+}

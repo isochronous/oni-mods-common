@@ -1,0 +1,69 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 0",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:5f9eb7fdf47cb02f48fde3e2d70046bf61e229cddf9f93a78df0ee7fbfff8877",
+    "overview.md": "sha256:58e1d40f00855954ea4a2bb984581b77ff0009a9cfdb38a94f7ef4fea42f211a",
+    "standards/README.md": "sha256:f70cc54b8d12a96efa0f148b1505b06fb4638413d4494fc7588e3bec81acca5b",
+    "standards/code-style.md": "sha256:85b9a0aa5f89ae09ee50ce973ef6bf0ff7e5f29c444556a6096c1e28729257bb",
+    "standards/error-handling.md": "sha256:b28fbc4ae0d33429f12aed848ef7cbcfe0373dd76a6872b999ff5ab816c084ee",
+    "standards/naming-conventions.md": "sha256:b25ddbfadf1348cf4431409a3d8a2409f23dc64819fb81d54d50aa8953bfd285",
+    "domains/glossary.md": "sha256:64f2a595d0fe2ea2826cbd087ccac21488e3e43eb275fb71b97dfb5591dee606"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "generated-worlds"
+      ]
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "generated-worlds"
+      ]
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "tag",
+      "add": [
+        "code-style",
+        "exception-handling"
+      ]
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "exception-handling"
+      ]
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "world-coordinate",
+        "game-mode",
+        "run-result"
+      ],
+      "section": "abbreviations-and-acronyms"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+ "task": "OM-003",
+ "why": "integrate inserted the tools aggregator between common and its six tools, then relabelled the ModCheck row to point at tools and left five rows aimed past it",
+ "node": ".",
+ "ops": [
+  {
+   "mode": "repair",
+   "kind": "correction",
+   "target": "projects.md",
+   "reason": "the tools aggregator now owns the six tool projects (tools/.context/projects.md lists them), so this node has one child, tools; the ModCheck row named tools and the other five pointed through the aggregator",
+   "content": "# Projects\n\nThe pointer table below is read to reconstruct this tree. Rows are added by the write path; a\nrow is never deleted or reordered on your behalf.\n\n| Name | Path |\n|------|------|\n| tools | `tools` |\n"
+  }
+ ]
+}

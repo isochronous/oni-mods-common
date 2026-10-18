@@ -1,0 +1,77 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 0",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/README.md": "sha256:3d6a15b318b9aaff7a845b48bcf29f44d6bf449c4b7c1dd458875777af12c772",
+    "domains/entities.md": "sha256:c497962c6b074cb4f38bab55050c7ecd5e54bc1038abc98ed33232667e7c864a",
+    "domains/glossary.md": "sha256:2a1f7975df96ce51f7b31a5f37853cd3fc4f786e4510de7ef7389952b1d0d080",
+    "overview.md": "sha256:6e3be4ca6ab63cb526d60948ab5305d1a1c75fae52c235fb05a5aff319798a20",
+    "standards/README.md": "sha256:69983f41989569d43314d0f5d1384b046ef8934c2997593490d2ba828f8bcfec",
+    "standards/code-style.md": "sha256:8ad7caea2d67cfaa4de0a870bce689380f9bf526f4a2ede2f81ce116e682c2c6",
+    "standards/error-handling.md": "sha256:b1dfb5606a00f61930fb850975c150fa3e14045e1aa27bfd87a594fdebb7bd9f",
+    "standards/naming-conventions.md": "sha256:cf558ca73cb42b4bc289cebfdf01361cf67b9f0179a6ae44ce1ace29d4f79db8"
+  },
+  "ops": [
+    {
+      "target": "domains/README.md",
+      "mode": "tag",
+      "add": [
+        "steam-workshop"
+      ]
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "steam-workshop"
+      ]
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "steam-workshop"
+      ]
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "steam-workshop",
+        "legacy-workshop-item"
+      ]
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "tag",
+      "add": [
+        "code-style",
+        "exception-handling",
+        "exit-codes"
+      ]
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "exception-handling",
+        "exit-codes"
+      ]
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    }
+  ]
+}

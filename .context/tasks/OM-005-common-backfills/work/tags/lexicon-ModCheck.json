@@ -1,0 +1,232 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "ModCheck domains index: links to the entities and glossary documents, each with the subjects it covers, from Program and the type-load and JIT checks to the abbreviations and output terms",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains"
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "ModCheck domain",
+   "description": "ModCheck's entities: the Program class in Program.cs and its members, the type-load and JIT checks, inputs, output and exit codes, warning and skip rules, terminology, key code paths and the script that calls it",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview"
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities"
+    },
+    {
+     "id": "domains/entities.md#key-entities/program",
+     "title": "Program"
+    },
+    {
+     "id": "domains/entities.md#key-entities/the-two-checks",
+     "title": "The two checks"
+    },
+    {
+     "id": "domains/entities.md#key-entities/inputs",
+     "title": "Inputs"
+    },
+    {
+     "id": "domains/entities.md#key-entities/output",
+     "title": "Output"
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules"
+    },
+    {
+     "id": "domains/entities.md#domain-terminology",
+     "title": "Domain Terminology"
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths"
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "ModCheck glossary",
+   "description": "ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it appears in ModCheck's output or code",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/vtable-setup-failure",
+     "title": "VTable setup failure"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/missing-member",
+     "title": "Missing member"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/managed-directory",
+     "title": "Managed directory"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/warning",
+     "title": "Warning"
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "ModCheck",
+   "description": "What ModCheck is: the .NET 8 console tool's two checks, its exit codes, who runs it and the dotnet run command, then a map of Program.cs, ModCheck.csproj, build output and its store documents",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is"
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are"
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "ModCheck standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and toolchain to exit codes and output vocabulary",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards"
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "Code Style Guide",
+   "description": "ModCheck's C# code style: tabs and Allman braces, C# 9 on .NET 8 with no packages in ModCheck.csproj, using order, the single static Program class layout in Program.cs, and what comments must say",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting"
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain"
+    },
+    {
+     "id": "standards/code-style.md#imports",
+     "title": "Imports"
+    },
+    {
+     "id": "standards/code-style.md#structure",
+     "title": "Structure"
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments"
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "Error Handling Conventions",
+   "description": "How ModCheck handles and reports errors: principles, the exit code table, every OK, FAIL and WARN output line, per-type try/catch, loader exceptions, the ECall host-artifact rule, unwrapping, assembly resolution in Program.cs, anti-patterns",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles"
+    },
+    {
+     "id": "standards/error-handling.md#exit-codes",
+     "title": "Exit Codes"
+    },
+    {
+     "id": "standards/error-handling.md#output-lines",
+     "title": "Output Lines"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/per-type-isolation",
+     "title": "Per-type isolation"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/loader-exceptions",
+     "title": "Loader exceptions"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/host-artifacts",
+     "title": "Host artifacts"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/unwrapping",
+     "title": "Unwrapping"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/assembly-resolution",
+     "title": "Assembly resolution"
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid"
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "Naming Conventions",
+   "description": "Naming in ModCheck: the ModCheck.csproj and Program.cs file names, C# casing for types, methods, locals and counters, the two positional arguments, and the stage words and OK, FAIL and WARN prefixes in output",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming"
+    },
+    {
+     "id": "standards/naming-conventions.md#command-line",
+     "title": "Command Line"
+    },
+    {
+     "id": "standards/naming-conventions.md#output-vocabulary",
+     "title": "Output Vocabulary"
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related"
+    }
+   ]
+  }
+ ]
+}

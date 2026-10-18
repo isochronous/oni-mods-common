@@ -1,0 +1,4 @@
+# ICON: runtime scratch — untracked, machine-local, and disposable only when nothing is outstanding in it: no write transaction, migration landing or coverage split ([IF-1.C]).
+.ks/
+# ICON: the resolver topology cache is an optimization and is never authoritative ([IF-3.F]).
+.topology-cache.json

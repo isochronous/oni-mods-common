@@ -1,0 +1,60 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 3",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/code-style.md": "sha256:32d75e5ba8aa0716b4882bd474c7daf6313bbe2db3ac0956d7364438d40a4417",
+    "standards/error-handling.md": "sha256:9fdc5a8003a116a1debaea317d62d491b1b3926605bd1ee9d358be75023e83e4",
+    "standards/naming-conventions.md": "sha256:6c7bf906f82e9beb2c3bd81ea56ae31e09218e19724a1280c4bb2641957a1646",
+    "domains/entities.md": "sha256:6601293c25b18a8af1eb78a3eb59ce6989f9a8505832c6a32c64b19085666ccc",
+    "domains/glossary.md": "sha256:acd8bbe7282beec147b14dc7bf6a125911bcb9285adc47ebc583d782952e5a12"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "game-update-compatibility"
+      ],
+      "section": "harmony-patches"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "watchdog",
+        "generated-worlds"
+      ],
+      "section": "session-status"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "live-session",
+        "game-launch"
+      ],
+      "section": "command-line-and-launcher"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "test-discovery",
+        "run-result"
+      ],
+      "section": "key-entities/testcase-and-testresult"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "simulated-input"
+      ],
+      "section": "cross-domain-terms/layer"
+    }
+  ]
+}

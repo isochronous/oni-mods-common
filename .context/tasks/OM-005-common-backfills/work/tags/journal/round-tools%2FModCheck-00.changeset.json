@@ -1,0 +1,77 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/ModCheck — round 0",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\ModCheck",
+  "base": {
+    "domains/README.md": "sha256:6d2ee65c92d88877059a3ac4f016fedd2c93bc53568906e77f57d8c65ece4466",
+    "domains/entities.md": "sha256:39d4a21b13c5ee00935302e84c6cc62fd25bfe9d2bdae726b7a00460beabb4d8",
+    "overview.md": "sha256:f24e210e8681ed38a2ebdf40d05efc5881fc5e27771a0b7662207abfe9d15106",
+    "standards/README.md": "sha256:77e55e4df0b84fd9228e1208234aef93da7df084a4880dbe0aa6be801215dbd1",
+    "standards/code-style.md": "sha256:256855fb8cd757f9703e6d517ceb131adedec74ad1cc97b545888b6251a3068e",
+    "standards/error-handling.md": "sha256:c61f27cc8f5fe83edfdea307166bac2e9ccd1cd2e4f938573eff0204fd3c00c5",
+    "standards/naming-conventions.md": "sha256:edf8a957c9ade493734afda54e69982e9e3f1a085dc2b9a545d0612936bc5cd2",
+    "domains/glossary.md": "sha256:8b0352efbf4a726b0078db3d01c4404307bf5d2d581c6eff3e43e4884dec3693"
+  },
+  "ops": [
+    {
+      "target": "domains/README.md",
+      "mode": "tag",
+      "add": [
+        "type-load-check",
+        "jit-check"
+      ]
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "game-update-compatibility"
+      ]
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "game-update-compatibility"
+      ]
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "tag",
+      "add": [
+        "code-style",
+        "exception-handling"
+      ]
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "exception-handling"
+      ]
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "runtime-mismatch",
+        "jit-check"
+      ],
+      "section": "abbreviations-and-acronyms"
+    }
+  ]
+}

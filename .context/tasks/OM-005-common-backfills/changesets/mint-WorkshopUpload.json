@@ -1,0 +1,14 @@
+{
+ "task": "OM-005",
+ "why": "mint the WorkshopUpload node tag vocabulary for the tag backfill",
+ "node": "tools/WorkshopUpload",
+ "ops": [
+  {
+   "mode": "create",
+   "target": "tags.md",
+   "title": "Tags",
+   "description": "The WorkshopUpload node tag dictionary: each term that records here may carry, with the one sentence saying what a record must be about to earn it",
+   "body": "## code-style\n\nA record earns this term when it is about the house style in which the tool's C# source code is written.\n\n## tool-build\n\nA record earns this term when it is about building the tool with dotnet from its project file and the output that build produces.\n\n## command-line\n\nA record earns this term when it is about the arguments and options the tool is started with and how it reads them.\n\n## exit-codes\n\nA record earns this term when it is about the exit code the tool's process ends with and what each value means.\n\n## console-output\n\nA record earns this term when it is about the lines the tool prints to the console and how they are worded.\n\n## exception-handling\n\nA record earns this term when it is about where the tool catches exceptions and what it does once it has caught one.\n\n## steam-workshop\n\nA record earns this term when it is about publishing a mod to its Steam Workshop item or updating that item.\n\n## release-process\n\nA record earns this term when it is about cutting a release of a mod, from version bump and tag to the published download.\n\n## legacy-workshop-item\n\nA record earns this term when it is about the legacy ISteamRemoteStorage single-file items that are the only Workshop items the game can download.\n\n## steam-app-id\n\nA record earns this term when it is about the Steam app ids the tool runs under and the steam_appid.txt file that selects one.\n\n## steam-cloud\n\nA record earns this term when it is about staging files in the user's Steam Cloud before a publish or update refers to them.\n\n## steamworks-api\n\nA record earns this term when it is about calling Steam through Steamworks.NET and checking the result of each call.\n\n## workshop-tags\n\nA record earns this term when it is about the tags a Workshop item carries for the Workshop's browse views.\n\n## item-visibility\n\nA record earns this term when it is about who can see a Workshop item and how its visibility is set.\n\n## item-description\n\nA record earns this term when it is about the text shown on a Workshop item's page and in its change history.\n\n## item-download\n\nA record earns this term when it is about having Steam download a Workshop item and checking what it installed.\n"
+  }
+ ]
+}

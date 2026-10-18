@@ -1,0 +1,13 @@
+{
+ "task": "OM-004",
+ "why": "a review fix left two sentences run together in the launcher parameters bullet",
+ "node": "tools/SaveRunner",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "standards/naming-conventions.md",
+   "section": "Command Line and Launcher",
+   "body": "- Game arguments are `--saverun` followed by `-<option>`, lower case, hyphen-separated, as `--saverun-seconds=N`. `--saverun=FILE` itself names the save. `Runner` reads `--key=value` and a bare `--key` as an empty value.\n- Launcher parameters are PowerShell PascalCase (`-Seconds`, `-Speed`, `-Probe`, `-With`, `-Without`, `-TimeoutSec`, `-Label`, `-OutDir`, `-SteamExe`, `-AppId`). `-Seconds`, `-Speed`, `-Probe` and `-TimeoutSec` map straight to `--saverun-seconds`, `--saverun-speed`, `--saverun-probe` and `--saverun-timeout`. `-Save` becomes `--saverun=<copy of the save in the run folder>`, and the run folder, named from `-OutDir` and `-Label`, gives `--saverun-out=<run folder>/probe.csv`. `-With`, `-Without`, `-SteamExe` and `-AppId` configure only the launcher: the loadout, the Steam path and the app to launch.\n- `-With` and `-Without` take local mod folder names or Workshop item ids, comma-separated.\n- Probe names are lower case plurals of the thing sampled (`fridges`)."
+  }
+ ]
+}

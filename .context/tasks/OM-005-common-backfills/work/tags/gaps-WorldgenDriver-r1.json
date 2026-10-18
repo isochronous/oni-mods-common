@@ -1,0 +1,86 @@
+[
+ {
+  "id": "domains/README.md",
+  "reason": "no-good-match",
+  "suggestion": "index of the domain documents",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md",
+  "reason": "no-good-match",
+  "suggestion": "glossary of the tool's terms",
+  "kept": []
+ },
+ {
+  "id": "domains/README.md#domains",
+  "reason": "no-good-match",
+  "suggestion": "list of the documents in the domains folder",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms",
+  "reason": "no-good-match",
+  "suggestion": "definitions of terms shared across the tool",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms/klei-folder",
+  "reason": "no-good-match",
+  "suggestion": "the game's user data folder",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#related",
+  "reason": "no-good-match",
+  "suggestion": "links to related documents",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting",
+  "reason": "no-good-match",
+  "suggestion": "source formatting rules",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/indentation",
+  "reason": "no-good-match",
+  "suggestion": "indentation",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/line-length",
+  "reason": "no-good-match",
+  "suggestion": "line length",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/braces",
+  "reason": "no-good-match",
+  "suggestion": "brace placement",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#imports-includes",
+  "reason": "no-good-match",
+  "suggestion": "using directive ordering",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#comments",
+  "reason": "no-good-match",
+  "suggestion": "code comments",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#comments/when-to-comment",
+  "reason": "no-good-match",
+  "suggestion": "where comments are required",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#comments/when-not-to-comment",
+  "reason": "no-good-match",
+  "suggestion": "comments to leave out",
+  "kept": []
+ }
+]

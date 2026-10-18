@@ -1,0 +1,14 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 3.1: mint in-game-testing in TestRunner with the ONI-Mods root gloss, so a graph-wide --tag in-game-testing reaches the node its gloss names",
+ "node": "tools/TestRunner",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "tags.md",
+   "section": "in-game-testing",
+   "body": "A record earns this term when it is about testing a mod inside the running game with TestRunner and its [OniTest] coroutines.",
+   "create_section": true
+  }
+ ]
+}

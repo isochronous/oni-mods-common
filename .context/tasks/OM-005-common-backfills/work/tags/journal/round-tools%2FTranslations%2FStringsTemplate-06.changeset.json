@@ -1,0 +1,39 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/Translations/StringsTemplate — round 6",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "base": {
+    "domains/entities.md": "sha256:629950ef31ebaef301204b5a77aba7f63e3df2e09c6551225da243672dca8e16",
+    "domains/glossary.md": "sha256:f0745d57d464901aa7aad58689b24e025712a9cc83060bca8774a11e6ca08d37",
+    "standards/error-handling.md": "sha256:874c44b1eecb96401a4a2c7666be206afab0d8871ca41a2dea49aea6915ea9d7"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "mod-options",
+        "mod-strings"
+      ],
+      "section": "key-entities/checkoptionkeys"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "assembly-resolution",
+        "command-line"
+      ],
+      "section": "cross-domain-terms/managed-directory"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "refused-translation",
+        "translations"
+      ],
+      "section": "anti-patterns-to-avoid"
+    }
+  ]
+}

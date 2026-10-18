@@ -1,0 +1,38 @@
+{
+  "survey_id": "sha256:601f40b59f9f5e5527ca065b2aeac40a8f08e8babba3beca665fe9c8f04907c8",
+  "node": "C:/dev/ONI-Mods/common/tools/ModCheck",
+  "store_root": "C:/dev/ONI-Mods/common",
+  "window": {
+    "declared": 1000,
+    "read": 109,
+    "rho": 0.02,
+    "shortened": true
+  },
+  "owed": {
+    "door": 0,
+    "person": 0
+  },
+  "candidates": [],
+  "splits": [],
+  "splits_unfinished": [],
+  "splits_stranded": [],
+  "split_journals_unreadable": [],
+  "split_findings": [],
+  "not_proposed": {
+    "no_candidate": [
+      {
+        "document": "domains/README.md",
+        "reason": "no resolved token"
+      },
+      {
+        "document": "domains/glossary.md",
+        "reason": "no resolved token"
+      },
+      {
+        "document": "standards/README.md",
+        "reason": "no resolved token"
+      }
+    ],
+    "rule_scoped": []
+  }
+}

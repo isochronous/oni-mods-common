@@ -1,0 +1,63 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 2",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/code-style.md": "sha256:32e0d105bc7cd17af792b1329b69c5d5ffec6acb756994b15d48f405d9dd2e8a",
+    "standards/error-handling.md": "sha256:e475e34d7bf42f987eee957ed5c50403e24c4d15ae2f80cf24bcef09d8d2626e",
+    "standards/naming-conventions.md": "sha256:9401d73b718a606e260aae8ff846ff76064545a57a0250faed57711490a05333",
+    "domains/entities.md": "sha256:5e51151b31d4674341e11e1f12f405bcc1e2669d294f18c307d7083d437017eb",
+    "domains/glossary.md": "sha256:b1d11ae155d52920df2dfb450b03f3d3f77f498ccc6d87d57bb4875452f9b9e8"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "activation-guard"
+      ],
+      "section": "inert-without-the-argument"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "test-assertions",
+        "test-cleanup",
+        "watchdog"
+      ],
+      "section": "test-results"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "reflection",
+        "test-discovery",
+        "test-assertions"
+      ],
+      "section": "code-naming"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "test-discovery",
+        "live-session",
+        "run-result"
+      ],
+      "section": "key-entities/session"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "test-cleanup"
+      ],
+      "section": "cross-domain-terms/fixture-area"
+    }
+  ]
+}

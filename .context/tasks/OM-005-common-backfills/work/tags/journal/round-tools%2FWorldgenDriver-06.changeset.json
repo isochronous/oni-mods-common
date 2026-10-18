@@ -1,0 +1,49 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 6",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:29b9bb458105514096604b70d6bf3b74808509cd7a98acc924a03e5b8136c499",
+    "standards/error-handling.md": "sha256:de9da5521bbe1730d82ac8348fbe48f84a56a5818685b23f5f12693ff55b3ebe",
+    "standards/naming-conventions.md": "sha256:ee9bf1f3e5966089728230425bfea5c1ee2f21566f80c01f1ae88c2ebe54aa11",
+    "domains/glossary.md": "sha256:dfd01ae8b38aa386baac2ade88ab20d25399b2c5e91ef89e672ff5b608d7f8b5"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "mod-loadout",
+        "run-result",
+        "player-log"
+      ],
+      "section": "files-read-and-written"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "logging",
+        "player-log"
+      ],
+      "section": "handling-patterns/logging"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "run-result"
+      ],
+      "section": "project-specific-conventions/result-statuses"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "world-coordinate",
+        "run-result"
+      ],
+      "section": "cross-domain-terms/driver"
+    }
+  ]
+}

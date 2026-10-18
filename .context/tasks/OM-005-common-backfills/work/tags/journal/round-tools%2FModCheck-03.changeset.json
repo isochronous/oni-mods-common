@@ -1,0 +1,47 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/ModCheck — round 3",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\ModCheck",
+  "base": {
+    "domains/entities.md": "sha256:5280cc197d4cfff3db607bdb1490529c8d7ad133a5c30a8d50faf3b95c77b273",
+    "standards/error-handling.md": "sha256:67dbf0a138ccda1b2b7f1da9b7deb13b9ede941fb96f8157fc0460a2b3a2e875",
+    "standards/naming-conventions.md": "sha256:a982b0b23322f195e08fcc7bd683d55ce822c70026c103203b5bcc7e8c2f4c11",
+    "domains/glossary.md": "sha256:49ca64ca8d75b8322716d58a0721d192de40a046f2b3392710fed3fc739c3e90"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "type-load-check",
+        "jit-check"
+      ],
+      "section": "key-entities/the-two-checks"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "console-output"
+      ],
+      "section": "output-lines"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "console-output"
+      ],
+      "section": "output-vocabulary"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "assembly-resolution",
+        "command-line"
+      ],
+      "section": "cross-domain-terms/managed-directory"
+    }
+  ]
+}

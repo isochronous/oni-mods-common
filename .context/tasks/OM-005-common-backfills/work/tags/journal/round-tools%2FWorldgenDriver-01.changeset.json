@@ -1,0 +1,72 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 1",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:e0ac594c51ea88814173347d9583376095fc99cc3cfe93e7dde8e011197875ae",
+    "overview.md": "sha256:3498d9c3335a01fe4de2ce239c6bd3f94f80620dee7817f1ccb6c6ba584127ff",
+    "standards/code-style.md": "sha256:1b4ef70c6dee34693e308192465523d3e5e65917349e081cad27c1d6009605c9",
+    "standards/error-handling.md": "sha256:abc734e378a3d60d2cbf1a0cd777f3a6881fc05cec9d4507a35d3616825bbf2a",
+    "standards/naming-conventions.md": "sha256:1e9b8c69a5359a9e3820509de9d86aa25c441cf5af27f656f83b2bb642da4c59",
+    "domains/glossary.md": "sha256:466f78d7dca69b42905c5bf5385f4ea259d9b1f09309e5c50bef78eb639c20f8"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "game-launch",
+        "activation-guard"
+      ],
+      "section": "overview"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "activation-guard",
+        "game-launch",
+        "game-mode",
+        "mod-loadout"
+      ],
+      "section": "what-this-is"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "mod-build"
+      ],
+      "section": "language-and-toolchain"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "mod-loadout",
+        "watchdog"
+      ],
+      "section": "principles"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "run-result"
+      ],
+      "section": "files-and-directories"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "world-coordinate",
+        "game-launch",
+        "generated-worlds"
+      ],
+      "section": "terms-to-avoid"
+    }
+  ]
+}

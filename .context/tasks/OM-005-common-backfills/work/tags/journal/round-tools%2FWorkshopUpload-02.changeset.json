@@ -1,0 +1,74 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 2",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:20b865a2b5dc91434164ef1d6174065e01637eb608612355c93f8624a167154f",
+    "domains/glossary.md": "sha256:376ae56d8b97b536336072b03671c2234d836f6bab2c5ca4c2a92e790aa6e5fc",
+    "overview.md": "sha256:7a6901173cd7fc01892dd98ea95e03f229821528b2bec8625725eef0e3d9fc56",
+    "standards/code-style.md": "sha256:613d5b9fb6d2610935f173cef54b5064a8863057c0782dbcd4bfd213ad75c48d",
+    "standards/error-handling.md": "sha256:cef0b0d04c5d296fc0a29d6cba46714e8d3b3818544603d85ad6b308bf45789f",
+    "standards/naming-conventions.md": "sha256:20c51be1cd15f0abfb800a279c87ef66c21ad5b40619e84e9bf84c301afc1422"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "exit-codes",
+        "steamworks-api",
+        "console-output"
+      ],
+      "section": "key-entities/program-main"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "legacy-workshop-item",
+        "steam-cloud"
+      ],
+      "section": "terms-to-avoid"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "tool-build",
+        "steam-app-id",
+        "steamworks-api"
+      ],
+      "section": "where-things-are"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "exit-codes",
+        "command-line",
+        "console-output"
+      ],
+      "section": "control-structures"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "console-output",
+        "item-download",
+        "legacy-workshop-item"
+      ],
+      "section": "exit-codes"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "exit-codes"
+      ],
+      "section": "code-naming/methods"
+    }
+  ]
+}

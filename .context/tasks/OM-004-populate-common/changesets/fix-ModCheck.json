@@ -1,0 +1,25 @@
+{
+  "task": "OM-004",
+  "why": "Replace the soft 'usually' and 'typically' wording in the ModCheck documents with what Program.cs states (unit 03 review, N5).",
+  "node": "tools/ModCheck",
+  "ops": [
+    {
+      "mode": "section",
+      "target": "standards/code-style.md",
+      "section": "Comments",
+      "body": "- A block comment at the top of `Program.cs` says what the tool verifies, why it needs .NET 8, and the usage line. Update it with any behaviour change.\n- Comments inside the code give the reason for a rule, which is the runtime difference between the check host (CoreCLR) and the game's Mono: why `BeginInvoke` and `EndInvoke` are skipped on delegates, why the `ECall` message is a warning. No comments that restate the code.\n- Console strings are plain text; the summary line uses an em dash (`runtime-mismatch artifacts, fine in-game`)."
+    },
+    {
+      "mode": "section",
+      "target": "standards/error-handling.md",
+      "section": "Output Lines",
+      "body": "Everything goes to standard output, one line per event, with a fixed prefix:\n\n| Prefix | Meaning |\n|--------|---------|\n| `OK <type>` | the type stage passed (interface maps resolved, static constructor ran) and the method loop finished; `FAIL jit` lines for its methods print before it |\n| `FAIL type <type>: ...` | type load, interface map or static constructor failure |\n| `FAIL jit <type>.<method>: ...` | a method body could not be compiled; `PrepareMethod` threw, for example `MissingMethodException` or `MissingFieldException` for a member the game no longer has |\n| `FAIL loader: <type> :: <message>` | one loader exception from a `ReflectionTypeLoadException` |\n| `FAIL: <exception>` | any other exception while loading the assembly |\n| `WARN <stage> <member>: ...` | a runtime-mismatch artifact, counted separately and not a failure |"
+    },
+    {
+      "mode": "section",
+      "target": "domains/glossary.md",
+      "section": "Cross-Domain Terms/VTable setup failure",
+      "body": "**Definition**: the runtime error `VTable setup of type X failed` raised when a type's virtual or interface methods cannot be laid out, which a game update causes by changing an interface or base class that the mod's type implements or derives from. `GetInterfaceMap` is how the check provokes it.  \n**Used in**: ModCheck output (`FAIL type ...`)."
+    }
+  ]
+}

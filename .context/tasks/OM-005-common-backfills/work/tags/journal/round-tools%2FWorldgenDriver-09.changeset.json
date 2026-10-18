@@ -1,0 +1,27 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 9",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:ea521595987d7860e231b305ef1328ab6f4323fd0f645b494f46c383ab72007e",
+    "domains/glossary.md": "sha256:9ed0936f40116000e8fbe9862e21def6f5722b248da8ea82a81eb5caa40e6db8"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "run-result"
+      ],
+      "section": "state-transitions"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "worldgen-progress"
+      ],
+      "section": "cross-domain-terms/stage-and-percent"
+    }
+  ]
+}

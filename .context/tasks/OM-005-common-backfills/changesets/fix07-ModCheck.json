@@ -1,0 +1,61 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 3.1, 4.3, 4.9 and 2.4: game-update-compatibility on the same four documents as the other nodes' whole-tool terms, no tags on the file map, no single-bullet tags, and a glossary description that matches its columns",
+ "node": "tools/ModCheck",
+ "ops": [
+  {
+   "mode": "tag",
+   "target": "domains/glossary.md",
+   "section": "Cross-Domain Terms/VTable setup failure",
+   "remove": [
+    "game-update-compatibility"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/glossary.md",
+   "section": "Cross-Domain Terms/Missing member",
+   "remove": [
+    "game-update-compatibility"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/glossary.md",
+   "add": [
+    "game-update-compatibility"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/README.md",
+   "add": [
+    "game-update-compatibility"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "section": "Where things are",
+   "remove": [
+    "tool-build"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/code-style.md",
+   "section": "Comments",
+   "remove": [
+    "console-output"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Exit Codes",
+   "remove": [
+    "command-line"
+   ]
+  }
+ ]
+}

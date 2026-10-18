@@ -1,0 +1,46 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 5",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "standards/code-style.md": "sha256:5947d5e09f760a76bcbdba0b9460de0ce4fef75a99d6eecbe61587706acc08b5",
+    "standards/error-handling.md": "sha256:0af7f91a23db5fc6cb44137a5900fa61baea9f63fa921c44ffec894d85f8fc81",
+    "domains/entities.md": "sha256:cf9e9852429f08449962d543861de4c7048ddba652e4f075f8bb88a4f9b904a0",
+    "domains/glossary.md": "sha256:6cefa952539f2b658de894c57e1b0ece164a254df82b9b6f660bf98fcbf14a02"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "command-line"
+      ],
+      "section": "comments"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "logging"
+      ],
+      "section": "handling-patterns/optional-hooks"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "probe"
+      ],
+      "section": "key-entities/fridgeprobe"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "mod-loadout"
+      ],
+      "section": "cross-domain-terms/loadout"
+    }
+  ]
+}

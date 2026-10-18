@@ -1,0 +1,40 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 3.1, 4.3, 1.7 and 2.3: generated-worlds on the same four documents as the other nodes' whole-tool terms, no tags on the file map, the .gitattributes line in the overview, and index descriptions naming the node's topics",
+ "node": "tools/WorldgenDriver",
+ "ops": [
+  {
+   "mode": "tag",
+   "target": "domains/glossary.md",
+   "section": "Terms to Avoid",
+   "remove": [
+    "generated-worlds"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/glossary.md",
+   "add": [
+    "generated-worlds"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/README.md",
+   "add": [
+    "generated-worlds"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "section": "Where things are",
+   "remove": [
+    "mod-entry-point",
+    "harmony-patching",
+    "mod-build",
+    "run-result"
+   ]
+  }
+ ]
+}

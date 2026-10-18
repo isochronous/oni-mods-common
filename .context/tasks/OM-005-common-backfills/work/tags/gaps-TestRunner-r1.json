@@ -1,0 +1,62 @@
+[
+ {
+  "id": "domains/README.md",
+  "reason": "no-good-match",
+  "suggestion": "index of the test harness domain documents",
+  "kept": []
+ },
+ {
+  "id": "domains/entities.md",
+  "reason": "no-good-match",
+  "suggestion": "test harness components and architecture",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md",
+  "reason": "no-good-match",
+  "suggestion": "test harness terminology",
+  "kept": []
+ },
+ {
+  "id": "overview.md",
+  "reason": "no-good-match",
+  "suggestion": "test harness purpose and file map",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms/harness",
+  "reason": "no-good-match",
+  "suggestion": "the harness mod as a whole",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms/kit",
+  "reason": "no-good-match",
+  "suggestion": "test kit library for test authors",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms/box",
+  "reason": "no-good-match",
+  "suggestion": "Duplicant enclosure for tests",
+  "kept": []
+ },
+ {
+  "id": "overview.md#where-things-are",
+  "reason": "no-good-match",
+  "suggestion": "source file layout",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#layout",
+  "reason": "no-good-match",
+  "suggestion": "source file layout",
+  "kept": []
+ },
+ {
+  "id": "standards/error-handling.md#handling-patterns/one-run-at-a-time",
+  "reason": "no-good-match",
+  "suggestion": "single-run lock across the machine",
+  "kept": []
+ }
+]

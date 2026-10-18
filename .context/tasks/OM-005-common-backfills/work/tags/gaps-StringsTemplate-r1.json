@@ -1,0 +1,44 @@
+[
+ {
+  "id": "domains/entities.md#state-transitions",
+  "reason": "no-good-match",
+  "suggestion": "state kept between runs",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms/stale",
+  "reason": "no-good-match",
+  "suggestion": "po entry status from the translation check (stale)",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms/obsolete",
+  "reason": "no-good-match",
+  "suggestion": "po entry status from the translation check (obsolete)",
+  "kept": []
+ },
+ {
+  "id": "standards/naming-conventions.md#code-naming/types",
+  "reason": "no-good-match",
+  "suggestion": "type naming and visibility",
+  "kept": []
+ },
+ {
+  "id": "standards/naming-conventions.md#code-naming/methods",
+  "reason": "no-good-match",
+  "suggestion": "method naming",
+  "kept": []
+ },
+ {
+  "id": "standards/naming-conventions.md#code-naming/variables",
+  "reason": "no-good-match",
+  "suggestion": "local variable and parameter naming",
+  "kept": []
+ },
+ {
+  "id": "standards/naming-conventions.md#code-naming/fields",
+  "reason": "no-good-match",
+  "suggestion": "field naming",
+  "kept": []
+ }
+]

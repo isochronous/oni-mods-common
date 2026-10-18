@@ -1,0 +1,71 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 4.3, 4.4, 4.5, 4.9, 1.5, 1.7 and 2.3: no tags on the file map, exception-handling alone on error-handling with exit-codes on its sections, legacy-workshop-item on What this is, no single-clause tag, the download app id and the .gitattributes line in the overview, and index descriptions naming the node's topics",
+ "node": "tools/WorkshopUpload",
+ "ops": [
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "remove": [
+    "legacy-workshop-item"
+   ]
+  },
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "What this is",
+   "body": "WorkshopUpload publishes and updates Oxygen Not Included mods on the Steam Workshop as legacy single-file items, and inspects items. The game has no Workshop depot and downloads only items published through the old `ISteamRemoteStorage` API, so this .NET 8 console app over Steamworks.NET publishes and updates through that API only; an item updated through `ISteamUGC` stops being downloadable by the game. It runs as Klei's Oxygen Not Included Uploader (app 636750, chosen by `steam_appid.txt`) with the game (app 457140) as the consumer app, and needs the Steam client running and logged in as the item's owner. `download` runs as the game (457140) through the `SteamAppId` and `SteamGameId` environment variables, which `tools/ModTest/Test-OniMods.ps1` sets. Its commands are `info`, `description`, `list`, `update`, `publish`, `cloud` and `download`. `tools/Release/release.py` calls it to push a release zip, preview, description and change note to a mod's Workshop item, and `tools/ModTest/Test-OniMods.ps1` uses `download` to fetch a newly subscribed item for `-Steam`.",
+   "tags": [
+    "legacy-workshop-item"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "section": "Where things are",
+   "remove": [
+    "tool-build",
+    "steam-app-id",
+    "steamworks-api"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "remove": [
+    "exit-codes"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Exit codes",
+   "add": [
+    "exit-codes"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Principles",
+   "add": [
+    "exit-codes"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Handling Patterns/Exceptions",
+   "remove": [
+    "command-line"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/README.md",
+   "remove": [
+    "exit-codes"
+   ]
+  }
+ ]
+}

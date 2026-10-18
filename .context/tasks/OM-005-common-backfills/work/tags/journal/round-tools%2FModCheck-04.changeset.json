@@ -1,0 +1,39 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/ModCheck — round 4",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\ModCheck",
+  "base": {
+    "domains/entities.md": "sha256:c0ac81e25e4535020bae3065118f3518282b183511dd662dd694f1e7691b2f74",
+    "standards/error-handling.md": "sha256:6e11dafd7c2fa42608000735abed8328bcbac58fc705b8fb65e08f924f3b9ef5",
+    "domains/glossary.md": "sha256:60e7d27084d2e6120647455c98d724e6828e4a6ee76ff8c408e3cb167a1cc394"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "assembly-resolution"
+      ],
+      "section": "key-entities/inputs"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "type-load-check",
+        "jit-check"
+      ],
+      "section": "handling-patterns/per-type-isolation"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "runtime-mismatch",
+        "console-output"
+      ],
+      "section": "cross-domain-terms/warning"
+    }
+  ]
+}

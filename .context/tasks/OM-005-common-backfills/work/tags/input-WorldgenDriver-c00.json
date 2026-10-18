@@ -1,0 +1,417 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "Index of WorldgenDriver's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-651756a16319\ndescription: \"Index of WorldgenDriver's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers\"\n---\n\n# Domains\n\n## Domains\n**Id:** blk-9a733a4b7e5b\n\nDocuments in this folder:\n\n- [entities](entities.md): `WorldgenDriverMod`, the `Driver` state, the seven patches, the launcher's functions, the files read and written, the rules, the key code paths and the states.\n- [glossary](glossary.md): the terms a newcomer needs: coordinate, applied coordinate, Spaced Out and base-game mode, session, driver, launcher, watchdog, stage and percent, stories and mixing, Klei folder, and the terms to avoid.\n",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains",
+     "text": "## Domains\n**Id:** blk-9a733a4b7e5b\n\nDocuments in this folder:\n\n- [entities](entities.md): `WorldgenDriverMod`, the `Driver` state, the seven patches, the launcher's functions, the files read and written, the rules, the key code paths and the states.\n- [glossary](glossary.md): the terms a newcomer needs: coordinate, applied coordinate, Spaced Out and base-game mode, session, driver, launcher, watchdog, stage and percent, stories and mixing, Klei folder, and the terms to avoid.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "WorldgenDriver domain",
+   "description": "WorldgenDriver's mod class in Mod.cs, the Driver state and --worldgen options in Driver.cs, the seven patches in Patches.cs, the Invoke-Worldgen.ps1 functions, files read and written, business rules, code paths and per-coordinate states",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-8cec0a95808d\ndescription: WorldgenDriver's mod class in Mod.cs, the Driver state and --worldgen options in Driver.cs, the seven patches in Patches.cs, the Invoke-Worldgen.ps1 functions, files read and written, business rules, code paths and per-coordinate states\napplies_to:\n  - \"*.cs\"\n  - \"*.ps1\"\n  - \"*.csproj\"\n  - \"*.yaml\"\n---\n\n# WorldgenDriver domain\n\n## Overview\n**Id:** blk-b6ed29aae2e0\n\nWorldgenDriver generates clusters in the real game with nobody at the keyboard. It has two halves. The development-only mod (`Mod.cs`, `Patches.cs`, `Driver.cs`) reads `--worldgen*` options from the game's command line and, at the main menu, applies each coordinate and opens the worldgen screen; it watches progress, writes one JSON line per coordinate and returns to the menu or quits. The launcher (`Invoke-Worldgen.ps1`) prepares the game's configuration, starts the game through Steam, collects results and restarts the game after a hang or crash. Without a `--worldgen` argument the mod does nothing, so it can stay installed.\n\nIt is used to reproduce worldgen bug reports and to check a mod build against a list of worlds and seeds with the game's real worldgen and sim. Run it with `./Invoke-Worldgen.ps1 <coordinate> -Mods <mod>`; the options are in `README.md`.\n\n## Key Entities\n**Id:** blk-2b3516654971\n\n### WorldgenDriverMod\n**Id:** blk-1e7cd48f4614  \n**Description**: The `UserMod2` entry point. `OnLoad` reads the command line and applies the Harmony patches only when a coordinate was requested; otherwise it logs `no --worldgen argument; idle`.  \n**Location**: `tools/WorldgenDriver/Mod.cs`\n\n**Relationships**: calls `Driver.ReadCommandLine`, then `base.OnLoad(harmony)` which patches every class in `Patches.cs`.\n\n### Driver\n**Id:** blk-cb417a1e3041  \n**Description**: Static session state and the result writer: the coordinate list and the current index, the timeout, the wanted mode, the story and mixing overrides, per-coordinate state (cluster id, seed, applied coordinate, stage, percent, errors) and the `Started`/`Finished` flags.  \n**Location**: `tools/WorldgenDriver/Driver.cs`\n\n| Command-line option | Description |\n|---------------------|-------------|\n| `--worldgen=COORD[;COORD...]` | coordinates for this session, in order |\n| `--worldgen-list=FILE` | the same, one per line; blank lines and `#` lines are ignored |\n| `--worldgen-out=FILE` | JSON Lines result file (default `<Klei folder>\\worldgen-driver\\results.jsonl`) |\n| `--worldgen-timeout=SECONDS` | no progress for this long is a hang (default 300) |\n| `--worldgen-expansion1=0\\|1` | mode this session needs (default: Spaced Out when the first coordinate is one) |\n| `--worldgen-stories=all` | turn every story trait on after the coordinate is applied |\n| `--worldgen-mixing=all\\|guarantee` | turn every DLC mixing toggle on and set every world and subworld mixing to try (or guarantee) |\n| `--worldgen-load=1` | also load each generated colony before moving on |\n\n**Relationships**: `Patches.cs` calls `BeginCoordinate`, `Progress`, `Finish` and reads the settings; `Finish` calls `App.LoadScene(\"frontend\")` for the next coordinate or `App.Quit()`.\n\n### Patches (`Patches.cs`)\n**Id:** blk-84d2affac2b8\n\n| Patch | Hook | Role |\n|-------|------|------|\n| `MainMenu_OnSpawn_Patch` | postfix `MainMenu.OnSpawn` | checks the mode, applies the coordinate through `CustomGameSettings` (cluster by coordinate prefix, seed, settings, story and mixing codes), opens `ScreenPrefabs.Instance.WorldGenScreen` |\n| `OfflineWorldGen_UpdateProgress_Patch` | postfix `OfflineWorldGen.UpdateProgress` | records stage and percent (runs on the worldgen thread) |\n| `App_LateUpdate_Patch` | postfix `App.LateUpdate` | watchdog in every scene: crash reporter, and no progress past the timeout |\n| `OfflineWorldGen_OnError_Patch` | postfix `OfflineWorldGen.OnError` | collects error text for the result |\n| `OfflineWorldGen_DoExitFlow_Patch` | prefix `OfflineWorldGen.DoExitFlow` | the failure path becomes a `failed` result; the driver shuts the sim down itself |\n| `App_LoadScene_Patch` | prefix `App.LoadScene` | scene `backend` means generation complete: `complete`, unless `--worldgen-load` lets the colony load |\n| `Game_OnSpawn_Patch` | postfix `Game.OnSpawn` | with `--worldgen-load`, a loaded colony is `loaded` |\n\n### Invoke-Worldgen.ps1\n**Id:** blk-2c4e50d4b9fc  \n**Description**: The launcher. Groups coordinates by mode, runs them in sessions of up to `-PerSession` (default 25), one game start per session, and prints a summary.  \n**Location**: `tools/WorldgenDriver/Invoke-Worldgen.ps1`\n\n| Function | Description |\n|----------|-------------|\n| `Set-Mode` | sets `EXPANSION1_ID.ENABLED` in `kplayerprefs.yaml` to 1 (Spaced Out) or 0 |\n| `Set-Mods` | rewrites `mods.json` so only the driver and the mods in `-Mods` (local folder names or Workshop ids) are enabled for the right DLC, local mods reset to installed |\n| `Read-Results` | parses the result file, skipping incomplete or unreadable lines |\n\n**Relationships**: starts the game with `steam.exe -applaunch 457140` and the `--worldgen-*` arguments, polls the result file, copies `Player.log` after each session.\n\n## Files read and written\n**Id:** blk-2d4957e55f9e\n\n| File | Direction | Description |\n|------|-----------|-------------|\n| `<Klei folder>\\mods\\mods.json` | launcher rewrites | backed up to `.worldgen-backup`, restored at the end |\n| `<Klei folder>\\kplayerprefs.yaml` | launcher rewrites | same |\n| `<Klei folder>\\worldgen-driver\\list.txt` | launcher writes, mod reads | the coordinates of one session |\n| `<Klei folder>\\worldgen-driver\\results.jsonl` | mod appends, launcher reads | one JSON line per coordinate; deleted before each session |\n| `runs\\<Label>-<stamp>.jsonl`, `...-session<N>.log` | launcher writes | the collected results and each session's `Player.log` |\n\n`<Klei folder>` is `Documents\\Klei\\OxygenNotIncluded`.\n\nThe README mentions `runs/coverage-*.txt` coordinate lists. `runs/` is gitignored, so a checkout has none. TODO(owner): decide whether to commit the coverage lists.\n\n## Business Rules\n**Id:** blk-016ad7dc25b9\n\n- The mod is idle without `--worldgen`; it must stay safe to leave installed.\n- A coordinate is applied the way the destination screen's coordinate box does, and the result's `applied` field carries the coordinate the game actually used (it differs when `-Stories` or `-Mixing` override it).\n- The mode is decided by the coordinate: `C` as the fifth part from the end, as in `M-FLIP-C-100-0-0-0`, is Spaced Out. `-Mode` overrides it. A game in the wrong mode ends the coordinate as `wrong-mode`.\n- Mods other than the driver and `-Mods` are disabled during a run and restored afterwards, even on failure.\n- A hang or crash ends the session; the launcher starts another for what is left, and gives up on a mode group after two sessions in a row with no result.\n\n## Key Code Paths\n**Id:** blk-8d4b33a1d147\n\n- **One coordinate**: `MainMenu_OnSpawn_Patch` -> `Driver.BeginCoordinate` -> apply settings -> open the worldgen screen -> progress reports -> `App_LoadScene_Patch` (`complete`) or `DoExitFlow` (`failed`) -> `Driver.Finish` -> `WriteResult` -> `App.LoadScene(\"frontend\")` or `App.Quit()` -- `Patches.cs`, `Driver.cs`.\n- **One session**: `Set-Mode`, `Set-Mods`, write `list.txt`, `Start-Process steam.exe -applaunch`, poll `Read-Results` until the game exits -- `Invoke-Worldgen.ps1`.\n\n## State Transitions\n**Id:** blk-98bc32d0b35e\n\nPer coordinate, in the mod:\n\n| State | Transitions To | Trigger |\n|-------|---------------|---------|\n| menu (`Started` false) | started | main menu spawns and `BeginCoordinate` runs |\n| started | finished | `Finish(status)` on completion, failure or watchdog |\n| finished | menu | status can continue and coordinates remain: `App.LoadScene(\"frontend\")` |\n| finished | game quits | list done, or status is `wrong-mode`, `driver-error`, `crash`, `hang` or `stuck-before-start` |\n\n## Related\n**Id:** blk-6c989c0a9f46\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview",
+     "text": "## Overview\n**Id:** blk-b6ed29aae2e0\n\nWorldgenDriver generates clusters in the real game with nobody at the keyboard. It has two halves. The development-only mod (`Mod.cs`, `Patches.cs`, `Driver.cs`) reads `--worldgen*` options from the game's command line and, at the main menu, applies each coordinate and opens the worldgen screen; it watches progress, writes one JSON line per coordinate and returns to the menu or quits. The launcher (`Invoke-Worldgen.ps1`) prepares the game's configuration, starts the game through Steam, collects results and restarts the game after a hang or crash. Without a `--worldgen` argument the mod does nothing, so it can stay installed.\n\nIt is used to reproduce worldgen bug reports and to check a mod build against a list of worlds and seeds with the game's real worldgen and sim. Run it with `./Invoke-Worldgen.ps1 <coordinate> -Mods <mod>`; the options are in `README.md`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities",
+     "text": "## Key Entities\n**Id:** blk-2b3516654971\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/worldgendrivermod",
+     "title": "WorldgenDriverMod",
+     "text": "### WorldgenDriverMod\n**Id:** blk-1e7cd48f4614  \n**Description**: The `UserMod2` entry point. `OnLoad` reads the command line and applies the Harmony patches only when a coordinate was requested; otherwise it logs `no --worldgen argument; idle`.  \n**Location**: `tools/WorldgenDriver/Mod.cs`\n\n**Relationships**: calls `Driver.ReadCommandLine`, then `base.OnLoad(harmony)` which patches every class in `Patches.cs`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/driver",
+     "title": "Driver",
+     "text": "### Driver\n**Id:** blk-cb417a1e3041  \n**Description**: Static session state and the result writer: the coordinate list and the current index, the timeout, the wanted mode, the story and mixing overrides, per-coordinate state (cluster id, seed, applied coordinate, stage, percent, errors) and the `Started`/`Finished` flags.  \n**Location**: `tools/WorldgenDriver/Driver.cs`\n\n| Command-line option | Description |\n|---------------------|-------------|\n| `--worldgen=COORD[;COORD...]` | coordinates for this session, in order |\n| `--worldgen-list=FILE` | the same, one per line; blank lines and `#` lines are ignored |\n| `--worldgen-out=FILE` | JSON Lines result file (default `<Klei folder>\\worldgen-driver\\results.jsonl`) |\n| `--worldgen-timeout=SECONDS` | no progress for this long is a hang (default 300) |\n| `--worldgen-expansion1=0\\|1` | mode this session needs (default: Spaced Out when the first coordinate is one) |\n| `--worldgen-stories=all` | turn every story trait on after the coordinate is applied |\n| `--worldgen-mixing=all\\|guarantee` | turn every DLC mixing toggle on and set every world and subworld mixing to try (or guarantee) |\n| `--worldgen-load=1` | also load each generated colony before moving on |\n\n**Relationships**: `Patches.cs` calls `BeginCoordinate`, `Progress`, `Finish` and reads the settings; `Finish` calls `App.LoadScene(\"frontend\")` for the next coordinate or `App.Quit()`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/patches-patches-cs",
+     "title": "Patches (`Patches.cs`)",
+     "text": "### Patches (`Patches.cs`)\n**Id:** blk-84d2affac2b8\n\n| Patch | Hook | Role |\n|-------|------|------|\n| `MainMenu_OnSpawn_Patch` | postfix `MainMenu.OnSpawn` | checks the mode, applies the coordinate through `CustomGameSettings` (cluster by coordinate prefix, seed, settings, story and mixing codes), opens `ScreenPrefabs.Instance.WorldGenScreen` |\n| `OfflineWorldGen_UpdateProgress_Patch` | postfix `OfflineWorldGen.UpdateProgress` | records stage and percent (runs on the worldgen thread) |\n| `App_LateUpdate_Patch` | postfix `App.LateUpdate` | watchdog in every scene: crash reporter, and no progress past the timeout |\n| `OfflineWorldGen_OnError_Patch` | postfix `OfflineWorldGen.OnError` | collects error text for the result |\n| `OfflineWorldGen_DoExitFlow_Patch` | prefix `OfflineWorldGen.DoExitFlow` | the failure path becomes a `failed` result; the driver shuts the sim down itself |\n| `App_LoadScene_Patch` | prefix `App.LoadScene` | scene `backend` means generation complete: `complete`, unless `--worldgen-load` lets the colony load |\n| `Game_OnSpawn_Patch` | postfix `Game.OnSpawn` | with `--worldgen-load`, a loaded colony is `loaded` |\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/invoke-worldgen-ps1",
+     "title": "Invoke-Worldgen.ps1",
+     "text": "### Invoke-Worldgen.ps1\n**Id:** blk-2c4e50d4b9fc  \n**Description**: The launcher. Groups coordinates by mode, runs them in sessions of up to `-PerSession` (default 25), one game start per session, and prints a summary.  \n**Location**: `tools/WorldgenDriver/Invoke-Worldgen.ps1`\n\n| Function | Description |\n|----------|-------------|\n| `Set-Mode` | sets `EXPANSION1_ID.ENABLED` in `kplayerprefs.yaml` to 1 (Spaced Out) or 0 |\n| `Set-Mods` | rewrites `mods.json` so only the driver and the mods in `-Mods` (local folder names or Workshop ids) are enabled for the right DLC, local mods reset to installed |\n| `Read-Results` | parses the result file, skipping incomplete or unreadable lines |\n\n**Relationships**: starts the game with `steam.exe -applaunch 457140` and the `--worldgen-*` arguments, polls the result file, copies `Player.log` after each session.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#files-read-and-written",
+     "title": "Files read and written",
+     "text": "## Files read and written\n**Id:** blk-2d4957e55f9e\n\n| File | Direction | Description |\n|------|-----------|-------------|\n| `<Klei folder>\\mods\\mods.json` | launcher rewrites | backed up to `.worldgen-backup`, restored at the end |\n| `<Klei folder>\\kplayerprefs.yaml` | launcher rewrites | same |\n| `<Klei folder>\\worldgen-driver\\list.txt` | launcher writes, mod reads | the coordinates of one session |\n| `<Klei folder>\\worldgen-driver\\results.jsonl` | mod appends, launcher reads | one JSON line per coordinate; deleted before each session |\n| `runs\\<Label>-<stamp>.jsonl`, `...-session<N>.log` | launcher writes | the collected results and each session's `Player.log` |\n\n`<Klei folder>` is `Documents\\Klei\\OxygenNotIncluded`.\n\nThe README mentions `runs/coverage-*.txt` coordinate lists. `runs/` is gitignored, so a checkout has none. TODO(owner): decide whether to commit the coverage lists.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules",
+     "text": "## Business Rules\n**Id:** blk-016ad7dc25b9\n\n- The mod is idle without `--worldgen`; it must stay safe to leave installed.\n- A coordinate is applied the way the destination screen's coordinate box does, and the result's `applied` field carries the coordinate the game actually used (it differs when `-Stories` or `-Mixing` override it).\n- The mode is decided by the coordinate: `C` as the fifth part from the end, as in `M-FLIP-C-100-0-0-0`, is Spaced Out. `-Mode` overrides it. A game in the wrong mode ends the coordinate as `wrong-mode`.\n- Mods other than the driver and `-Mods` are disabled during a run and restored afterwards, even on failure.\n- A hang or crash ends the session; the launcher starts another for what is left, and gives up on a mode group after two sessions in a row with no result.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths",
+     "text": "## Key Code Paths\n**Id:** blk-8d4b33a1d147\n\n- **One coordinate**: `MainMenu_OnSpawn_Patch` -> `Driver.BeginCoordinate` -> apply settings -> open the worldgen screen -> progress reports -> `App_LoadScene_Patch` (`complete`) or `DoExitFlow` (`failed`) -> `Driver.Finish` -> `WriteResult` -> `App.LoadScene(\"frontend\")` or `App.Quit()` -- `Patches.cs`, `Driver.cs`.\n- **One session**: `Set-Mode`, `Set-Mods`, write `list.txt`, `Start-Process steam.exe -applaunch`, poll `Read-Results` until the game exits -- `Invoke-Worldgen.ps1`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions",
+     "text": "## State Transitions\n**Id:** blk-98bc32d0b35e\n\nPer coordinate, in the mod:\n\n| State | Transitions To | Trigger |\n|-------|---------------|---------|\n| menu (`Started` false) | started | main menu spawns and `BeginCoordinate` runs |\n| started | finished | `Finish(status)` on completion, failure or watchdog |\n| finished | menu | status can continue and coordinates remain: `App.LoadScene(\"frontend\")` |\n| finished | game quits | list done, or status is `wrong-mode`, `driver-error`, `crash`, `hang` or `stuck-before-start` |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-6c989c0a9f46\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "WorldgenDriver glossary",
+   "description": "WorldgenDriver glossary: abbreviations (ONI, DLC, JSONL, cluster prefixes), terms to avoid with their replacements, and definitions of coordinate, applied coordinate, game modes, session, driver, launcher, watchdog, stage and percent, stories and mixing, Klei folder",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-22b3d4e48b4f\ndescription: \"WorldgenDriver glossary: abbreviations (ONI, DLC, JSONL, cluster prefixes), terms to avoid with their replacements, and definitions of coordinate, applied coordinate, game modes, session, driver, launcher, watchdog, stage and percent, stories and mixing, Klei folder\"\n---\n\n# WorldgenDriver glossary\n\nTerms a newcomer to WorldgenDriver needs. The tool's own things are in [entities](entities.md).\n\n## Abbreviations and Acronyms\n**Id:** blk-362787e8d4b0\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| ONI | Oxygen Not Included | the game, Steam app 457140 |\n| DLC | downloadable content | Spaced Out is the DLC `EXPANSION1_ID` |\n| JSONL | JSON Lines | the result file: one JSON object per line |\n| CERS, PRES, FLIP, ... | cluster coordinate prefixes | the first part of a coordinate; each selects a cluster layout |\n\n## Terms to Avoid\n**Id:** blk-42c5bf5087eb\n\n| Avoid | Use Instead | Reason |\n|-------|-------------|--------|\n| seed (for the whole string) | coordinate | the seed is one number inside the coordinate |\n| run (for one game start) | session | a run is the whole launcher invocation; a session is one game start |\n| world (for a cluster) | cluster | Spaced Out clusters hold several worlds; the driver generates a cluster |\n\n## Cross-Domain Terms\n**Id:** blk-f68ffe8e1af9\n\n### Coordinate\n**Id:** blk-67bd0802627c  \n**Definition**: The game's settings coordinate for a cluster, such as `CERS-A-100-0-0-0` or `M-FLIP-C-100-0-0-0`: prefix, seed, settings code, story code and mixing code, joined by `-`.  \n**Used in**: `--worldgen`, `Driver.Coordinates`, every result line, `Invoke-Worldgen.ps1`.\n\n### Applied coordinate\n**Id:** blk-78528b04c13b  \n**Definition**: The coordinate the game reports after the driver has applied everything, recorded as `applied` in the result. It differs from the requested one when `-Stories` or `-Mixing` force settings on.  \n**Used in**: `Patches.cs`, the result JSON.\n\n### Spaced Out mode and base-game mode\n**Id:** blk-e73beb812681  \n**Definition**: The game runs either with the Spaced Out DLC enabled or without it, set by `EXPANSION1_ID.ENABLED` in `kplayerprefs.yaml`. A coordinate whose prefix ends in `-C` before the seed belongs to Spaced Out. Each mode needs its own game start.  \n**Used in**: `Driver.WantExpansion1`, `IsSpacedOutCoordinate`, `Set-Mode`, the `wrong-mode` status.\n\n### Session\n**Id:** blk-2ab95eb3d015  \n**Definition**: One game start handling up to `-PerSession` coordinates of one mode. A hang, crash or driver error ends it and the launcher starts another.  \n**Used in**: `Invoke-Worldgen.ps1`, the `session` field and `-session<N>.log` files.\n\n### Driver\n**Id:** blk-c56103e5279a  \n**Definition**: The mod half: it applies coordinates and writes results inside the game. The launcher is the other half.  \n**Used in**: `Driver.cs`, `Patches.cs`.\n\n### Launcher\n**Id:** blk-2c6f7226991b  \n**Definition**: `Invoke-Worldgen.ps1`, which sets up the game's files, starts the game and collects results.  \n**Used in**: `README.md`, `Invoke-Worldgen.ps1`.\n\n### Watchdog\n**Id:** blk-76efb890c2be  \n**Definition**: The `App.LateUpdate` postfix that ends a session on a crash screen or when no progress arrives for the timeout.  \n**Used in**: `App_LateUpdate_Patch`, statuses `crash`, `hang`, `stuck-before-start`.\n\n### Stage and percent\n**Id:** blk-85f6c7b162b9  \n**Definition**: The worldgen progress key and fraction the game reports through `OfflineWorldGen.UpdateProgress`; the result records the last ones seen.  \n**Used in**: `Driver.Progress`, the `stage` and `percent` result fields.\n\n### Stories and mixing\n**Id:** blk-2c576fe6c640  \n**Definition**: Story traits and world/subworld/DLC mixing are cluster settings with codes inside the coordinate. `-Stories all` forces every story on; `-Mixing all` or `guarantee` forces every mixing to try or guarantee.  \n**Used in**: `Driver.Stories`, `Driver.Mixing`, `Patches.cs`.\n\n### Klei folder\n**Id:** blk-5acff59ffab2  \n**Definition**: `Documents\\Klei\\OxygenNotIncluded`, holding `kplayerprefs.yaml`, `mods\\mods.json`, local mods and the `worldgen-driver` working files.  \n**Used in**: `Invoke-Worldgen.ps1`, `Driver.OutFile` default.\n\n## Related\n**Id:** blk-776586f7cf5e\n\n- See also: [entities](entities.md)\n",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms",
+     "text": "## Abbreviations and Acronyms\n**Id:** blk-362787e8d4b0\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| ONI | Oxygen Not Included | the game, Steam app 457140 |\n| DLC | downloadable content | Spaced Out is the DLC `EXPANSION1_ID` |\n| JSONL | JSON Lines | the result file: one JSON object per line |\n| CERS, PRES, FLIP, ... | cluster coordinate prefixes | the first part of a coordinate; each selects a cluster layout |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#terms-to-avoid",
+     "title": "Terms to Avoid",
+     "text": "## Terms to Avoid\n**Id:** blk-42c5bf5087eb\n\n| Avoid | Use Instead | Reason |\n|-------|-------------|--------|\n| seed (for the whole string) | coordinate | the seed is one number inside the coordinate |\n| run (for one game start) | session | a run is the whole launcher invocation; a session is one game start |\n| world (for a cluster) | cluster | Spaced Out clusters hold several worlds; the driver generates a cluster |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms",
+     "text": "## Cross-Domain Terms\n**Id:** blk-f68ffe8e1af9\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/coordinate",
+     "title": "Coordinate",
+     "text": "### Coordinate\n**Id:** blk-67bd0802627c  \n**Definition**: The game's settings coordinate for a cluster, such as `CERS-A-100-0-0-0` or `M-FLIP-C-100-0-0-0`: prefix, seed, settings code, story code and mixing code, joined by `-`.  \n**Used in**: `--worldgen`, `Driver.Coordinates`, every result line, `Invoke-Worldgen.ps1`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/applied-coordinate",
+     "title": "Applied coordinate",
+     "text": "### Applied coordinate\n**Id:** blk-78528b04c13b  \n**Definition**: The coordinate the game reports after the driver has applied everything, recorded as `applied` in the result. It differs from the requested one when `-Stories` or `-Mixing` force settings on.  \n**Used in**: `Patches.cs`, the result JSON.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/spaced-out-mode-and-base-game-mode",
+     "title": "Spaced Out mode and base-game mode",
+     "text": "### Spaced Out mode and base-game mode\n**Id:** blk-e73beb812681  \n**Definition**: The game runs either with the Spaced Out DLC enabled or without it, set by `EXPANSION1_ID.ENABLED` in `kplayerprefs.yaml`. A coordinate whose prefix ends in `-C` before the seed belongs to Spaced Out. Each mode needs its own game start.  \n**Used in**: `Driver.WantExpansion1`, `IsSpacedOutCoordinate`, `Set-Mode`, the `wrong-mode` status.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/session",
+     "title": "Session",
+     "text": "### Session\n**Id:** blk-2ab95eb3d015  \n**Definition**: One game start handling up to `-PerSession` coordinates of one mode. A hang, crash or driver error ends it and the launcher starts another.  \n**Used in**: `Invoke-Worldgen.ps1`, the `session` field and `-session<N>.log` files.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/driver",
+     "title": "Driver",
+     "text": "### Driver\n**Id:** blk-c56103e5279a  \n**Definition**: The mod half: it applies coordinates and writes results inside the game. The launcher is the other half.  \n**Used in**: `Driver.cs`, `Patches.cs`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/launcher",
+     "title": "Launcher",
+     "text": "### Launcher\n**Id:** blk-2c6f7226991b  \n**Definition**: `Invoke-Worldgen.ps1`, which sets up the game's files, starts the game and collects results.  \n**Used in**: `README.md`, `Invoke-Worldgen.ps1`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/watchdog",
+     "title": "Watchdog",
+     "text": "### Watchdog\n**Id:** blk-76efb890c2be  \n**Definition**: The `App.LateUpdate` postfix that ends a session on a crash screen or when no progress arrives for the timeout.  \n**Used in**: `App_LateUpdate_Patch`, statuses `crash`, `hang`, `stuck-before-start`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/stage-and-percent",
+     "title": "Stage and percent",
+     "text": "### Stage and percent\n**Id:** blk-85f6c7b162b9  \n**Definition**: The worldgen progress key and fraction the game reports through `OfflineWorldGen.UpdateProgress`; the result records the last ones seen.  \n**Used in**: `Driver.Progress`, the `stage` and `percent` result fields.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/stories-and-mixing",
+     "title": "Stories and mixing",
+     "text": "### Stories and mixing\n**Id:** blk-2c576fe6c640  \n**Definition**: Story traits and world/subworld/DLC mixing are cluster settings with codes inside the coordinate. `-Stories all` forces every story on; `-Mixing all` or `guarantee` forces every mixing to try or guarantee.  \n**Used in**: `Driver.Stories`, `Driver.Mixing`, `Patches.cs`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/klei-folder",
+     "title": "Klei folder",
+     "text": "### Klei folder\n**Id:** blk-5acff59ffab2  \n**Definition**: `Documents\\Klei\\OxygenNotIncluded`, holding `kplayerprefs.yaml`, `mods\\mods.json`, local mods and the `worldgen-driver` working files.  \n**Used in**: `Invoke-Worldgen.ps1`, `Driver.OutFile` default.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-776586f7cf5e\n\n- See also: [entities](entities.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "WorldgenDriver",
+   "description": "WorldgenDriver's purpose, its two halves (the mod and the Invoke-Worldgen.ps1 launcher), the mod's metadata, who uses it and for what, and a map of Mod.cs, Patches.cs, Driver.cs, WorldgenDriver.csproj and README.md",
+   "document_tags": [],
+   "text": "---\ndescription: WorldgenDriver's purpose, its two halves (the mod and the Invoke-Worldgen.ps1 launcher), the mod's metadata, who uses it and for what, and a map of Mod.cs, Patches.cs, Driver.cs, WorldgenDriver.csproj and README.md\n---\n\n# WorldgenDriver\n\n## What this is\n**Id:** blk-60dae80eb17c\n\nWorldgenDriver generates Oxygen Not Included clusters in the real game with nobody at the keyboard. It has two halves. The mod (`Isochronous.WorldgenDriver`, version 0.1.0 in `mod_info.yaml`, minimum build 744825, development-only and not for the Workshop), started with `--worldgen=COORD`, applies each coordinate at the main menu, opens the game's worldgen screen, watches its progress, writes one JSON line per coordinate and goes back to the menu for the next one or quits. The launcher, `Invoke-Worldgen.ps1`, groups coordinates by game mode, sets the mode in `kplayerprefs.yaml` and the enabled mods in `mods.json`, starts the game through Steam in sessions of up to 25 coordinates, starts a new session after a hang or crash, and restores both files at the end. Without the argument the mod does nothing, so it stays installed. The mod developer uses it to reproduce worldgen bug reports and to check a mod build, such as Natural Backwalls, against a list of worlds and seeds with the game's real worldgen and sim.\n\n## Where things are\n**Id:** blk-ebff91fa90b7\n\nTop-level folders and key files:\n\n- `Mod.cs`: the `UserMod2` entry point. Reads the command line and applies the Harmony patches only when a `--worldgen` argument is present.\n- `Patches.cs`: the seven Harmony patches: apply the coordinate and open the worldgen screen at the main menu, record progress, the watchdog on `App.LateUpdate`, and the failure, completion and loaded-colony hooks.\n- `Driver.cs`: the coordinate list, per-coordinate state and timing, and the result writer.\n- `Invoke-Worldgen.ps1`: the launcher.\n- `WorldgenDriver.csproj`: imports `oni-mod.props` and `oni-mod.targets` from the root of common; a build deploys the mod to the game's `mods/local/WorldgenDriver` folder. `mod.yaml` and `mod_info.yaml` beside it.\n- `README.md`: setup, running, the options, the output and how it works.\n- The launcher writes `runs/<Label>-<stamp>.jsonl` and a `Player.log` per session to `runs/`, which the first run creates and git ignores.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is",
+     "text": "## What this is\n**Id:** blk-60dae80eb17c\n\nWorldgenDriver generates Oxygen Not Included clusters in the real game with nobody at the keyboard. It has two halves. The mod (`Isochronous.WorldgenDriver`, version 0.1.0 in `mod_info.yaml`, minimum build 744825, development-only and not for the Workshop), started with `--worldgen=COORD`, applies each coordinate at the main menu, opens the game's worldgen screen, watches its progress, writes one JSON line per coordinate and goes back to the menu for the next one or quits. The launcher, `Invoke-Worldgen.ps1`, groups coordinates by game mode, sets the mode in `kplayerprefs.yaml` and the enabled mods in `mods.json`, starts the game through Steam in sessions of up to 25 coordinates, starts a new session after a hang or crash, and restores both files at the end. Without the argument the mod does nothing, so it stays installed. The mod developer uses it to reproduce worldgen bug reports and to check a mod build, such as Natural Backwalls, against a list of worlds and seeds with the game's real worldgen and sim.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are",
+     "text": "## Where things are\n**Id:** blk-ebff91fa90b7\n\nTop-level folders and key files:\n\n- `Mod.cs`: the `UserMod2` entry point. Reads the command line and applies the Harmony patches only when a `--worldgen` argument is present.\n- `Patches.cs`: the seven Harmony patches: apply the coordinate and open the worldgen screen at the main menu, record progress, the watchdog on `App.LateUpdate`, and the failure, completion and loaded-colony hooks.\n- `Driver.cs`: the coordinate list, per-coordinate state and timing, and the result writer.\n- `Invoke-Worldgen.ps1`: the launcher.\n- `WorldgenDriver.csproj`: imports `oni-mod.props` and `oni-mod.targets` from the root of common; a build deploys the mod to the game's `mods/local/WorldgenDriver` folder. `mod.yaml` and `mod_info.yaml` beside it.\n- `README.md`: setup, running, the options, the output and how it works.\n- The launcher writes `runs/<Label>-<stamp>.jsonl` and a `Player.log` per session to `runs/`, which the first run creates and git ignores.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "Index of WorldgenDriver's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-d44de2454fdc\ndescription: \"Index of WorldgenDriver's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers\"\n---\n\n# Standards\n\n## Standards\n**Id:** blk-ca0396fa0a30\n\nDocuments in this folder:\n\n- [code-style](code-style.md): C# 9 on net48 with tabs and Allman braces, PowerShell with four spaces, the shared build files, patch guards, imports, comments and control flow.\n- [error-handling](error-handling.md): the result statuses, how the patches and the result writer handle errors, worldgen errors, logging, and how the launcher recovers and restores its backups.\n- [naming-conventions](naming-conventions.md): file, class, member and PowerShell naming, command-line options, result statuses, result JSON fields and coordinates.\n",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards",
+     "text": "## Standards\n**Id:** blk-ca0396fa0a30\n\nDocuments in this folder:\n\n- [code-style](code-style.md): C# 9 on net48 with tabs and Allman braces, PowerShell with four spaces, the shared build files, patch guards, imports, comments and control flow.\n- [error-handling](error-handling.md): the result statuses, how the patches and the result writer handle errors, worldgen errors, logging, and how the launcher recovers and restores its backups.\n- [naming-conventions](naming-conventions.md): file, class, member and PowerShell naming, command-line options, result statuses, result JSON fields and coordinates.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "WorldgenDriver code style",
+   "description": "WorldgenDriver's code style for the C# mod and Invoke-Worldgen.ps1: indentation and braces per language, the net48 build and mod metadata in WorldgenDriver.csproj and mod_info.yaml, imports, comment rules, Driver.Active guards and control flow",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-01fc74e4c079\ndescription: \"WorldgenDriver's code style for the C# mod and Invoke-Worldgen.ps1: indentation and braces per language, the net48 build and mod metadata in WorldgenDriver.csproj and mod_info.yaml, imports, comment rules, Driver.Active guards and control flow\"\napplies_to:\n  - \"*.cs\"\n  - \"*.ps1\"\n  - \"*.csproj\"\n  - \"*.yaml\"\n---\n\n# WorldgenDriver code style\n\nWorldgenDriver is two programs in one folder: a development-only game mod in C# (`Mod.cs`, `Patches.cs`, `Driver.cs`) and the PowerShell launcher that drives it (`Invoke-Worldgen.ps1`). Each follows its own conventions below.\n\n## Formatting\n**Id:** blk-ceea1fc9e82a\n\n### Indentation\n**Id:** blk-6e1063014054\n\n- C#: tabs, one per level.\n- PowerShell: four spaces.\n- `WorldgenDriver.csproj`: two spaces.\n- No `.editorconfig` or formatter is configured. TODO(owner): record the tab and brace rules in an `.editorconfig` if editors should enforce them.\n\n### Line Length\n**Id:** blk-2abe1f2873a7\n\n- No limit in either language. Long log messages and `Finish(...)` calls stay on one line; the settings code in `Patches.cs` is the pattern.\n\n### Braces\n**Id:** blk-d5016a3ddc0f\n\n- C#: opening brace on its own line (Allman) for namespaces, types, methods and multi-line blocks; a body of one short statement goes on the next line without braces (`if (!Driver.Active) return;` guards).\n- PowerShell: opening brace on the same line (`function Set-Mode([bool]$spacedOut) {`, `foreach (...) {`).\n\n## Language and Toolchain\n**Id:** blk-e794fe66eb73\n\n- The mod is C# 9 on .NET Framework 4.8 with the shared build files: `WorldgenDriver.csproj` imports `..\\..\\oni-mod.props` and `..\\..\\oni-mod.targets` (that is `common/`), sets `AssemblyName`, `RootNamespace` WorldgenDriver and `Version` 0.1.0, and a successful build deploys to `Documents\\Klei\\OxygenNotIncluded\\mods\\local\\WorldgenDriver`.\n- Mod metadata is `mod.yaml` (title, description, `staticID: \"Isochronous.WorldgenDriver\"`) and `mod_info.yaml` (`supportedContent: ALL`, `minimumSupportedBuild: 744825`, `version: 0.1.0`, `APIVersion: 2`). Keep `version` in the csproj and `mod_info.yaml` equal.\n- One namespace, `WorldgenDriver`, in block form (no file-scoped namespace); no nullable reference types.\n- The launcher is PowerShell 7 style script with `[CmdletBinding()]`, a typed `param()` block and `$ErrorActionPreference = 'Stop'`.\n- Build: `dotnet build tools/WorldgenDriver -c Release`.\n\n## Imports/Includes\n**Id:** blk-70aed427b5a2\n\nC# `using` directives sit above the namespace in one block, `System.*` first, then the rest alphabetically (`HarmonyLib`, `Klei.CustomSettings`, `KMod`, `ProcGen`):\n\n```csharp\nusing System;\nusing HarmonyLib;\nusing Klei.CustomSettings;\nusing ProcGen;\n```\n\n## Comments\n**Id:** blk-7d17f388ee51\n\n### When to Comment\n**Id:** blk-f87fd4025ee7\n\n- `///` summaries on each patch class say what game moment it catches and why that hook (the `App.LateUpdate` watchdog: \"the one per-frame hook that exists in every scene\").\n- The `///` summary on `Driver` lists every `--worldgen-*` command-line option; keep it equal to `ReadCommandLine`.\n- The launcher has comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`) at the top and a trailing `#` comment on each `param` that needs one.\n- Say why (a rebuilt local mod is left \"reinstall pending\" and blocks the main menu), not what the line does.\n\n### When NOT to Comment\n**Id:** blk-6243625bf041\n\n- Do not comment obvious code or leave commented-out code.\n\n## Control Structures\n**Id:** blk-9b7318d348ff\n\n- Every patch body starts with a guard that returns when the driver is idle:\n\n```csharp\nif (!Driver.Active)\n\treturn;\n```\n\n- `Driver` is a static class holding all session state; patches call into it and hold none of their own.\n- Mod startup is also guarded: `OnLoad` returns before `base.OnLoad(harmony)` when there is no `--worldgen` argument, so the patches are never applied and the mod can stay installed.\n- The launcher uses `try`/`finally` around the session loop so backups are always restored.\n\n## Related\n**Id:** blk-2c1b228a8481\n\n- See also: [error handling](error-handling.md), [naming conventions](naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting",
+     "text": "## Formatting\n**Id:** blk-ceea1fc9e82a\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation",
+     "text": "### Indentation\n**Id:** blk-6e1063014054\n\n- C#: tabs, one per level.\n- PowerShell: four spaces.\n- `WorldgenDriver.csproj`: two spaces.\n- No `.editorconfig` or formatter is configured. TODO(owner): record the tab and brace rules in an `.editorconfig` if editors should enforce them.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length",
+     "text": "### Line Length\n**Id:** blk-2abe1f2873a7\n\n- No limit in either language. Long log messages and `Finish(...)` calls stay on one line; the settings code in `Patches.cs` is the pattern.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces",
+     "text": "### Braces\n**Id:** blk-d5016a3ddc0f\n\n- C#: opening brace on its own line (Allman) for namespaces, types, methods and multi-line blocks; a body of one short statement goes on the next line without braces (`if (!Driver.Active) return;` guards).\n- PowerShell: opening brace on the same line (`function Set-Mode([bool]$spacedOut) {`, `foreach (...) {`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain",
+     "text": "## Language and Toolchain\n**Id:** blk-e794fe66eb73\n\n- The mod is C# 9 on .NET Framework 4.8 with the shared build files: `WorldgenDriver.csproj` imports `..\\..\\oni-mod.props` and `..\\..\\oni-mod.targets` (that is `common/`), sets `AssemblyName`, `RootNamespace` WorldgenDriver and `Version` 0.1.0, and a successful build deploys to `Documents\\Klei\\OxygenNotIncluded\\mods\\local\\WorldgenDriver`.\n- Mod metadata is `mod.yaml` (title, description, `staticID: \"Isochronous.WorldgenDriver\"`) and `mod_info.yaml` (`supportedContent: ALL`, `minimumSupportedBuild: 744825`, `version: 0.1.0`, `APIVersion: 2`). Keep `version` in the csproj and `mod_info.yaml` equal.\n- One namespace, `WorldgenDriver`, in block form (no file-scoped namespace); no nullable reference types.\n- The launcher is PowerShell 7 style script with `[CmdletBinding()]`, a typed `param()` block and `$ErrorActionPreference = 'Stop'`.\n- Build: `dotnet build tools/WorldgenDriver -c Release`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#imports-includes",
+     "title": "Imports/Includes",
+     "text": "## Imports/Includes\n**Id:** blk-70aed427b5a2\n\nC# `using` directives sit above the namespace in one block, `System.*` first, then the rest alphabetically (`HarmonyLib`, `Klei.CustomSettings`, `KMod`, `ProcGen`):\n\n```csharp\nusing System;\nusing HarmonyLib;\nusing Klei.CustomSettings;\nusing ProcGen;\n```\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments",
+     "text": "## Comments\n**Id:** blk-7d17f388ee51\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments/when-to-comment",
+     "title": "When to Comment",
+     "text": "### When to Comment\n**Id:** blk-f87fd4025ee7\n\n- `///` summaries on each patch class say what game moment it catches and why that hook (the `App.LateUpdate` watchdog: \"the one per-frame hook that exists in every scene\").\n- The `///` summary on `Driver` lists every `--worldgen-*` command-line option; keep it equal to `ReadCommandLine`.\n- The launcher has comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`) at the top and a trailing `#` comment on each `param` that needs one.\n- Say why (a rebuilt local mod is left \"reinstall pending\" and blocks the main menu), not what the line does.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments/when-not-to-comment",
+     "title": "When NOT to Comment",
+     "text": "### When NOT to Comment\n**Id:** blk-6243625bf041\n\n- Do not comment obvious code or leave commented-out code.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#control-structures",
+     "title": "Control Structures",
+     "text": "## Control Structures\n**Id:** blk-9b7318d348ff\n\n- Every patch body starts with a guard that returns when the driver is idle:\n\n```csharp\nif (!Driver.Active)\n\treturn;\n```\n\n- `Driver` is a static class holding all session state; patches call into it and hold none of their own.\n- Mod startup is also guarded: `OnLoad` returns before `base.OnLoad(harmony)` when there is no `--worldgen` argument, so the patches are never applied and the mod can stay installed.\n- The launcher uses `try`/`finally` around the session loop so backups are always restored.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-2c1b228a8481\n\n- See also: [error handling](error-handling.md), [naming conventions](naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "WorldgenDriver error handling",
+   "description": "WorldgenDriver's error handling: principles, the result status table with where each is raised, patch exception handling, worldgen error collection, result writing in Driver.cs, logging, launcher recovery and backup restore in Invoke-Worldgen.ps1, anti-patterns",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-bf18c260f56c\ndescription: \"WorldgenDriver's error handling: principles, the result status table with where each is raised, patch exception handling, worldgen error collection, result writing in Driver.cs, logging, launcher recovery and backup restore in Invoke-Worldgen.ps1, anti-patterns\"\napplies_to:\n  - \"*.cs\"\n  - \"*.ps1\"\n  - \"*.csproj\"\n  - \"*.yaml\"\n---\n\n# WorldgenDriver error handling\n\nWorldgenDriver runs unattended: nobody watches the game, so every outcome has to become a result line or a log line. The mod turns each way a generation can end into a status; the launcher turns each way a session can end into a restart or a stop.\n\n## Principles\n**Id:** blk-6b5e188da28e\n\n1. **Every coordinate the driver attempts gets exactly one result line.** `Driver.Finish` writes it once; the `Finished` and `quitting` flags make a second call do nothing. A session that ends on `wrong-mode`, `driver-error`, `crash`, `hang` or `stuck-before-start` writes nothing for the coordinates after the current one, and a game the launcher kills (`killed`) or never sees start (`no-process`) leaves its coordinate in flight without a line. The launcher runs those again in the next session and gives up on the group after two sessions in a row with no result.\n2. **Name the failure.** The status says which way it ended (`failed`, `hang`, `crash`), `stage` and `percent` say where, `detail` and `errors` say why.\n3. **A session that cannot trust the game stops.** Hangs, crashes and driver errors quit the game; the launcher starts a new one.\n4. **Never leave the player's setup changed.** The launcher backs up `mods.json` and `kplayerprefs.yaml` and restores them in `finally`.\n\n## Result statuses\n**Id:** blk-0c3aa2a70e1c\n\n`Driver.Finish(status, detail)` is the only writer. `canContinue` is true for the first four; any other status quits the game.\n\n| Status | Meaning | Raised in |\n|--------|---------|-----------|\n| `complete` | generation finished; the game would load the colony | `App.LoadScene` prefix (scene `backend`) |\n| `loaded` | with `--worldgen-load=1`, the colony loaded | `Game.OnSpawn` postfix |\n| `failed` | the game's own failure path (`OfflineWorldGen.DoExitFlow`) ran | `DoExitFlow` prefix, after `Sim.Shutdown()` |\n| `bad-args` | the coordinate cannot be parsed, or no cluster has its prefix in this mode | `MainMenu.OnSpawn` postfix |\n| `wrong-mode` | the game is in base-game mode when Spaced Out was wanted, or the reverse | `MainMenu.OnSpawn` postfix |\n| `driver-error` | an exception in the driver's own code; `detail` carries it | `MainMenu.OnSpawn` postfix `catch` |\n| `crash` | `KCrashReporter.hasCrash` | `App.LateUpdate` watchdog |\n| `hang` | no progress for `TimeoutSeconds` after the screen opened | `App.LateUpdate` watchdog |\n| `stuck-before-start` | no progress for `TimeoutSeconds` before the screen opened (for example a mod restart dialog on the main menu) | `App.LateUpdate` watchdog |\n\n## Handling Patterns\n**Id:** blk-01c055e6d4f7\n\n### Patches\n**Id:** blk-08d7268a068c\n\n`MainMenu_OnSpawn_Patch` wraps its work in `try`/`catch (Exception e)`: it logs `Debug.LogWarning(Driver.Tag + e)` and finishes with `driver-error`. Other patches are guarded by `Driver.Active` and do not throw. The two prefixes that replace game behaviour (`DoExitFlow`, `App.LoadScene`) return `false` only while the driver is active and unfinished.\n\n### Worldgen errors\n**Id:** blk-066c3d0efe40\n\n`OfflineWorldGen.OnError` appends the error text (description plus exception) to `Driver.Errors` under a lock and logs a warning. The list is written into the result's `errors` array whatever the final status.\n\n### Result file\n**Id:** blk-5f1243febda9\n\n`WriteResult` creates the folder and appends one UTF-8 JSON line. A failure to write is caught, logged with `Debug.LogWarning` and does not stop the session.\n\n### Logging\n**Id:** blk-3a01efe65d43\n\n- Every message starts with `Driver.Tag`, `[WorldgenDriver] `, through `Debug.Log` or `Debug.LogWarning`.\n- The launcher copies `Player.log` next to the results after each session, so a failed or hung coordinate can be traced.\n\n### Launcher\n**Id:** blk-64bfa31b7823\n\n- `$ErrorActionPreference = 'Stop'`; preconditions `throw` with a message that says what to do: no coordinates, the game already running, Steam not found, the driver not deployed (names the `dotnet build` command), a local mod folder that does not exist.\n- A line that does not end in `}` (the game was still writing it) is skipped silently; a line that ends in `}` and fails `ConvertFrom-Json` is skipped with `Write-Warning`. Only complete, parsed lines count.\n- A session with no result change for `TimeoutSec + 240` seconds has its game process killed and is reported `killed`; a game that never starts within 120 s is `no-process`.\n- Two sessions in a row without a single result abandon the rest of that group with a warning naming the coordinates.\n- A leftover `*.worldgen-backup` means an earlier run died before restoring: the script puts the backup back first rather than backing up the stripped file.\n- Final output: results grouped by status and a table of every status other than `complete` and `loaded`.\n\n## Anti-Patterns to Avoid\n**Id:** blk-3ff6be6bc8ec\n\n- Writing a result line from more than one place for one coordinate. Go through `Finish`.\n- Catching an exception in a patch and doing nothing: finish with `driver-error` so the launcher sees it.\n- Leaving a backup in place: a restored `mods.json` is the player's loadout.\n\n## Related\n**Id:** blk-667e1681162b\n\n- See also: [code style](code-style.md), [entities](../domains/entities.md)\n",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles",
+     "text": "## Principles\n**Id:** blk-6b5e188da28e\n\n1. **Every coordinate the driver attempts gets exactly one result line.** `Driver.Finish` writes it once; the `Finished` and `quitting` flags make a second call do nothing. A session that ends on `wrong-mode`, `driver-error`, `crash`, `hang` or `stuck-before-start` writes nothing for the coordinates after the current one, and a game the launcher kills (`killed`) or never sees start (`no-process`) leaves its coordinate in flight without a line. The launcher runs those again in the next session and gives up on the group after two sessions in a row with no result.\n2. **Name the failure.** The status says which way it ended (`failed`, `hang`, `crash`), `stage` and `percent` say where, `detail` and `errors` say why.\n3. **A session that cannot trust the game stops.** Hangs, crashes and driver errors quit the game; the launcher starts a new one.\n4. **Never leave the player's setup changed.** The launcher backs up `mods.json` and `kplayerprefs.yaml` and restores them in `finally`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#result-statuses",
+     "title": "Result statuses",
+     "text": "## Result statuses\n**Id:** blk-0c3aa2a70e1c\n\n`Driver.Finish(status, detail)` is the only writer. `canContinue` is true for the first four; any other status quits the game.\n\n| Status | Meaning | Raised in |\n|--------|---------|-----------|\n| `complete` | generation finished; the game would load the colony | `App.LoadScene` prefix (scene `backend`) |\n| `loaded` | with `--worldgen-load=1`, the colony loaded | `Game.OnSpawn` postfix |\n| `failed` | the game's own failure path (`OfflineWorldGen.DoExitFlow`) ran | `DoExitFlow` prefix, after `Sim.Shutdown()` |\n| `bad-args` | the coordinate cannot be parsed, or no cluster has its prefix in this mode | `MainMenu.OnSpawn` postfix |\n| `wrong-mode` | the game is in base-game mode when Spaced Out was wanted, or the reverse | `MainMenu.OnSpawn` postfix |\n| `driver-error` | an exception in the driver's own code; `detail` carries it | `MainMenu.OnSpawn` postfix `catch` |\n| `crash` | `KCrashReporter.hasCrash` | `App.LateUpdate` watchdog |\n| `hang` | no progress for `TimeoutSeconds` after the screen opened | `App.LateUpdate` watchdog |\n| `stuck-before-start` | no progress for `TimeoutSeconds` before the screen opened (for example a mod restart dialog on the main menu) | `App.LateUpdate` watchdog |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns",
+     "text": "## Handling Patterns\n**Id:** blk-01c055e6d4f7\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/patches",
+     "title": "Patches",
+     "text": "### Patches\n**Id:** blk-08d7268a068c\n\n`MainMenu_OnSpawn_Patch` wraps its work in `try`/`catch (Exception e)`: it logs `Debug.LogWarning(Driver.Tag + e)` and finishes with `driver-error`. Other patches are guarded by `Driver.Active` and do not throw. The two prefixes that replace game behaviour (`DoExitFlow`, `App.LoadScene`) return `false` only while the driver is active and unfinished.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/worldgen-errors",
+     "title": "Worldgen errors",
+     "text": "### Worldgen errors\n**Id:** blk-066c3d0efe40\n\n`OfflineWorldGen.OnError` appends the error text (description plus exception) to `Driver.Errors` under a lock and logs a warning. The list is written into the result's `errors` array whatever the final status.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/result-file",
+     "title": "Result file",
+     "text": "### Result file\n**Id:** blk-5f1243febda9\n\n`WriteResult` creates the folder and appends one UTF-8 JSON line. A failure to write is caught, logged with `Debug.LogWarning` and does not stop the session.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/logging",
+     "title": "Logging",
+     "text": "### Logging\n**Id:** blk-3a01efe65d43\n\n- Every message starts with `Driver.Tag`, `[WorldgenDriver] `, through `Debug.Log` or `Debug.LogWarning`.\n- The launcher copies `Player.log` next to the results after each session, so a failed or hung coordinate can be traced.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/launcher",
+     "title": "Launcher",
+     "text": "### Launcher\n**Id:** blk-64bfa31b7823\n\n- `$ErrorActionPreference = 'Stop'`; preconditions `throw` with a message that says what to do: no coordinates, the game already running, Steam not found, the driver not deployed (names the `dotnet build` command), a local mod folder that does not exist.\n- A line that does not end in `}` (the game was still writing it) is skipped silently; a line that ends in `}` and fails `ConvertFrom-Json` is skipped with `Write-Warning`. Only complete, parsed lines count.\n- A session with no result change for `TimeoutSec + 240` seconds has its game process killed and is reported `killed`; a game that never starts within 120 s is `no-process`.\n- Two sessions in a row without a single result abandon the rest of that group with a warning naming the coordinates.\n- A leftover `*.worldgen-backup` means an earlier run died before restoring: the script puts the backup back first rather than backing up the stripped file.\n- Final output: results grouped by status and a table of every status other than `complete` and `loaded`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid",
+     "text": "## Anti-Patterns to Avoid\n**Id:** blk-3ff6be6bc8ec\n\n- Writing a result line from more than one place for one coordinate. Go through `Finish`.\n- Catching an exception in a patch and doing nothing: finish with `driver-error` so the launcher sees it.\n- Leaving a backup in place: a restored `mods.json` is the player's loadout.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-667e1681162b\n\n- See also: [code style](code-style.md), [entities](../domains/entities.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  }
+ ]
+}

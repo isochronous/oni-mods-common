@@ -1,0 +1,38 @@
+{
+  "survey_id": "sha256:d22d5309eaaf368051fe316eea79608769dd8f870477c6e8855ed8ee7448f8ee",
+  "node": "C:/dev/ONI-Mods/common/tools/TestRunner",
+  "store_root": "C:/dev/ONI-Mods/common",
+  "window": {
+    "declared": 1000,
+    "read": 109,
+    "rho": 0.02,
+    "shortened": true
+  },
+  "owed": {
+    "door": 0,
+    "person": 0
+  },
+  "candidates": [],
+  "splits": [],
+  "splits_unfinished": [],
+  "splits_stranded": [],
+  "split_journals_unreadable": [],
+  "split_findings": [],
+  "not_proposed": {
+    "no_candidate": [
+      {
+        "document": "domains/README.md",
+        "reason": "node-root or outside only"
+      },
+      {
+        "document": "domains/glossary.md",
+        "reason": "too broad: Kit (files 7, reach 2.8%, density 28.6%, named false)"
+      },
+      {
+        "document": "standards/README.md",
+        "reason": "no resolved token"
+      }
+    ],
+    "rule_scoped": []
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 3",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:b30c1a299f90999ef7735cb68686bb24e8e70e6ee7f9caf83b357cbf11b46421",
+    "standards/error-handling.md": "sha256:2f14e0e064465ef74a948be990a474e4305e2bb3ab53b248232255b04ae91f85",
+    "standards/naming-conventions.md": "sha256:9649d0fa46751404c5728d644a08aabb8e8db2592bfbdb73b63e315db84e6679",
+    "domains/glossary.md": "sha256:dfa8651d2f8d1198bf00fb9a3de35533516a794b81288c17e11eed043da1cbed"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "run-result"
+      ],
+      "section": "key-entities/driver"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "logging"
+      ],
+      "section": "handling-patterns/patches"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "logging"
+      ],
+      "section": "code-naming/members"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "world-coordinate",
+        "run-result"
+      ],
+      "section": "cross-domain-terms/applied-coordinate"
+    }
+  ]
+}

@@ -1,0 +1,332 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "TestRunner domains index: links to the entities and glossary documents, each with what it covers, from the harness, kit, launcher, warden, files, rules and states to the terms a newcomer needs",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains"
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "TestRunner domain",
+   "description": "TestRunner's entities: TestRunnerMod, Session members, TestCase and TestResult, TestBehaviour, each patch, Harness, FixtureArea, Worldgen, Reflect, the Kit/ types, Invoke-OniTests.ps1 options, Watch-OniGame.ps1, files, rules, code paths and session states",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview"
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities"
+    },
+    {
+     "id": "domains/entities.md#key-entities/testrunnermod",
+     "title": "TestRunnerMod"
+    },
+    {
+     "id": "domains/entities.md#key-entities/session",
+     "title": "Session"
+    },
+    {
+     "id": "domains/entities.md#key-entities/testcase-and-testresult",
+     "title": "TestCase and TestResult"
+    },
+    {
+     "id": "domains/entities.md#key-entities/testbehaviour",
+     "title": "TestBehaviour"
+    },
+    {
+     "id": "domains/entities.md#key-entities/patches",
+     "title": "Patches"
+    },
+    {
+     "id": "domains/entities.md#key-entities/harness",
+     "title": "Harness"
+    },
+    {
+     "id": "domains/entities.md#key-entities/fixturearea",
+     "title": "FixtureArea"
+    },
+    {
+     "id": "domains/entities.md#key-entities/worldgen-and-generatedworld",
+     "title": "Worldgen and GeneratedWorld"
+    },
+    {
+     "id": "domains/entities.md#key-entities/reflect-and-diagnostics",
+     "title": "Reflect and Diagnostics"
+    },
+    {
+     "id": "domains/entities.md#key-entities/the-kit-isochronous-testkit",
+     "title": "The kit (`Isochronous.TestKit`)"
+    },
+    {
+     "id": "domains/entities.md#key-entities/invoke-onitests-ps1",
+     "title": "Invoke-OniTests.ps1"
+    },
+    {
+     "id": "domains/entities.md#key-entities/watch-onigame-ps1",
+     "title": "Watch-OniGame.ps1"
+    },
+    {
+     "id": "domains/entities.md#key-entities/files",
+     "title": "Files"
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules"
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths"
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions"
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "TestRunner glossary",
+   "description": "TestRunner glossary: the abbreviations ONI, SO, HUD and DLL, and definitions of harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world and self-check",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/harness",
+     "title": "Harness"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/kit",
+     "title": "Kit"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/fixture",
+     "title": "Fixture"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/fixture-area",
+     "title": "Fixture area"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/layer",
+     "title": "Layer"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/run-session-and-live-session",
+     "title": "Run, session and live session"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/warden",
+     "title": "Warden"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/wait",
+     "title": "Wait"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/box",
+     "title": "Box"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/loadout",
+     "title": "Loadout"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/generated-world",
+     "title": "Generated world"
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/self-check",
+     "title": "Self-check"
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "TestRunner",
+   "description": "What TestRunner is: the harness mod and Invoke-OniTests.ps1 launcher that run [OniTest] tests unattended in the real game, then a file map of Session.cs, TestBehaviour.cs, Patches.cs, Kit/, fixtures/, Watch-OniGame.ps1 and the other sources",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is"
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are"
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "TestRunner standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and Reflect to exit codes, options and result fields",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards"
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "Code Style Guide",
+   "description": "TestRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through TestRunner.csproj, the harness and kit namespaces, file layout, the Session.Active guard, Harmony patch form, private members through Reflect.cs, comments",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting"
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation"
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces"
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length"
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain"
+    },
+    {
+     "id": "standards/code-style.md#layout",
+     "title": "Layout"
+    },
+    {
+     "id": "standards/code-style.md#inert-without-the-argument",
+     "title": "Inert Without the Argument"
+    },
+    {
+     "id": "standards/code-style.md#harmony-patches",
+     "title": "Harmony Patches"
+    },
+    {
+     "id": "standards/code-style.md#private-game-members",
+     "title": "Private Game Members"
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments"
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "Error Handling Conventions",
+   "description": "How TestRunner turns problems into results: the five test statuses, session statuses from Session.Finish, Invoke-OniTests.ps1 exit codes 0 to 3, hand-stepped coroutines, side-file writes, crash dialog, loadout backup and warden, the run mutex, logging",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles"
+    },
+    {
+     "id": "standards/error-handling.md#test-results",
+     "title": "Test Results"
+    },
+    {
+     "id": "standards/error-handling.md#session-status",
+     "title": "Session Status"
+    },
+    {
+     "id": "standards/error-handling.md#launcher-exit-codes",
+     "title": "Launcher Exit Codes"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/hand-stepped-coroutines",
+     "title": "Hand-stepped coroutines"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/driver-failures",
+     "title": "Driver failures"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/side-files",
+     "title": "Side files"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/crash-dialog",
+     "title": "Crash dialog"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/mods-json-and-the-warden",
+     "title": "Mods.json and the warden"
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/one-run-at-a-time",
+     "title": "One run at a time"
+    },
+    {
+     "id": "standards/error-handling.md#logging",
+     "title": "Logging"
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid"
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related"
+    }
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "Naming Conventions",
+   "description": "Naming in TestRunner: files and run folders, the two namespaces, patch classes, Reflect handles, Wait classes, attributes, test classes and ids, the --onitest-* options, Invoke-OniTests.ps1 parameters, live-session request files and result fields",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories"
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming"
+    },
+    {
+     "id": "standards/naming-conventions.md#command-line-and-launcher",
+     "title": "Command Line and Launcher"
+    },
+    {
+     "id": "standards/naming-conventions.md#results",
+     "title": "Results"
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related"
+    }
+   ]
+  }
+ ]
+}

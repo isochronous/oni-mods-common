@@ -1,0 +1,14 @@
+{
+  "task": "OM-005",
+  "why": "record friction the OM-005 confirmation review met in a brief",
+  "node": ".",
+  "ops": [
+    {
+      "mode": "section",
+      "target": "domains/tooling-friction.md",
+      "section": "2026-10-17 brief: tag dictionaries listed as records that declare no coverage and no tags",
+      "create_section": true,
+      "body": "OM-005 (in common), confirmation review unit 08. `ks brief --at C:/dev/ONI-Mods/common` over the eight nodes warned that the six `tags.md` dictionaries declare no coverage and no tags, and suggested giving them `applies_to` or tags through the write path. A dictionary is read through `ks tags`, and the tag-backfill skill excludes it from its own backfill by destination. Expected: no coverage warning for a `tags.md`. Done instead: left them undeclared, as the OM-002 dictionaries are, and recorded the decision in OM-005's plan."
+    }
+  ]
+}

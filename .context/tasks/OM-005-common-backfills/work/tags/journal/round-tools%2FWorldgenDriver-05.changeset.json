@@ -1,0 +1,49 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 5",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:4e2d2021643c9872fedf9a38b8a0499bc38764254f5e42a398586c5ba6a64c93",
+    "standards/error-handling.md": "sha256:1b0f82598b8eb556a30996b66d11da51ecff9239d2e5f561a8fe10e7c973b5c4",
+    "standards/naming-conventions.md": "sha256:1ebf4559e69cacd66059610736ecffa86308e7582e47fb2f284dec24a7bb6701",
+    "domains/glossary.md": "sha256:75782369102f8220d9f45e64229130173a4f9f6e5a631ce0e3bd58a7d8c36d98"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "game-launch",
+        "game-mode",
+        "mod-loadout",
+        "run-result"
+      ],
+      "section": "key-entities/invoke-worldgen-ps1"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "logging"
+      ],
+      "section": "handling-patterns/result-file"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "command-line"
+      ],
+      "section": "project-specific-conventions/command-line-options"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "game-launch"
+      ],
+      "section": "cross-domain-terms/session"
+    }
+  ]
+}

@@ -1,0 +1,377 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "ModCheck domains index: links to the entities and glossary documents, each with the subjects it covers, from Program and the type-load and JIT checks to the abbreviations and output terms",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-de7cb544ba6b\ndescription: \"ModCheck domains index: links to the entities and glossary documents, each with the subjects it covers, from Program and the type-load and JIT checks to the abbreviations and output terms\"\n---\n\n# Domains\n\n## Domains\n**Id:** blk-5ce9956d98e9\n\nDocuments in this folder:\n\n- [entities](entities.md): `Program` and its helpers, the type-load and JIT checks, inputs and output, the rules ModCheck enforces, key code paths and its caller in TestRunner.\n- [glossary](glossary.md): ONI, JIT, CLR, ECall and DIM, and the terms VTable setup failure, missing member, managed directory and warning.\n",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains",
+     "text": "## Domains\n**Id:** blk-5ce9956d98e9\n\nDocuments in this folder:\n\n- [entities](entities.md): `Program` and its helpers, the type-load and JIT checks, inputs and output, the rules ModCheck enforces, key code paths and its caller in TestRunner.\n- [glossary](glossary.md): ONI, JIT, CLR, ECall and DIM, and the terms VTable setup failure, missing member, managed directory and warning.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "ModCheck domain",
+   "description": "ModCheck's entities: the Program class in Program.cs and its members, the type-load and JIT checks, inputs, output and exit codes, warning and skip rules, terminology, key code paths and the script that calls it",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-cba1a5728ae1\ndescription: \"ModCheck's entities: the Program class in Program.cs and its members, the type-load and JIT checks, inputs, output and exit codes, warning and skip rules, terminology, key code paths and the script that calls it\"\napplies_to:\n  - \"Program.cs\"\n  - \"ModCheck.csproj\"\n---\n\n# ModCheck domain\n\n## Overview\n**Id:** blk-303b29f17bb1\n\nModCheck loads one mod DLL against the real game assemblies on a .NET 8 host and checks, without launching the game, the two ways a mod dies after a game update: a type that cannot be set up, and a call to a member that no longer exists. It is a console program, `common/tools/ModCheck`, built and run with `dotnet run`. `common/tools/TestRunner/Invoke-OniTests.ps1` runs it on every test DLL before a game session; a mod author runs it by hand after a game update.\n\n## Key Entities\n**Id:** blk-dda267d443bd\n\n### Program\n**Id:** blk-051b98125fc9  \n**Description**: the whole tool: argument handling, assembly resolution, the type and method loops and the exit code.  \n**Location**: `Program.cs`\n\n| Member | Description |\n|--------|-------------|\n| `Main(string[] args)` | entry point; returns the exit code |\n| `Report(stage, typeName, memberName, ex, ref failures, ref warnings)` | classifies one exception as `FAIL` or `WARN` and prints it |\n| `AllMethods(type, flags)` | the type's methods and constructors in one array |\n| `Unwrap(ex)` | `ExceptionType: message`, seen through `TypeInitializationException` |\n\n**Relationships**: reads the game's Managed folder (first argument) and the mod DLL (second); writes only to standard output and the exit code.\n\n### The two checks\n**Id:** blk-6fe7024707c2\n\n1. **Type load**: for each type in the assembly, `GetInterfaceMap` for every interface of a non-interface type, then `RuntimeHelpers.RunClassConstructor`. Catches `VTable setup of type X failed` and failing static constructors.\n2. **JIT**: for each non-abstract method and constructor with no open generic parameters, declared on the type (public and non-public, instance and static), `RuntimeHelpers.PrepareMethod`. Compiling the body resolves every member it references, so a missing method or field fails here instead of at call time in the game.\n\n### Inputs\n**Id:** blk-ff7f3244936c\n\n| Input | Description |\n|-------|-------------|\n| game Managed directory | `OxygenNotIncluded_Data\\Managed` of the installed game; `Assembly-CSharp`, `0Harmony`, Unity modules and the rest resolve from here |\n| mod DLL | the assembly under test; its own dependencies are resolved from the same Managed folder, so a DLL with others (TestRunner, the mod under test) is checked from a folder that holds them (see `Invoke-OniTests.ps1`) |\n\n### Output\n**Id:** blk-c3c2239a19af\n\nLines on standard output (see [error handling](../standards/error-handling.md)) and an exit code of 0, 1 or 2.\n\n## Business Rules\n**Id:** blk-1031f9e9f9e0\n\n- Every type is checked even after a failure; every method of a type that loaded is checked.\n- A message containing `ECall methods must be packaged into a system module` is a warning: the host cannot run Unity native code that the game runs. Everything else is a failure.\n- `BeginInvoke` and `EndInvoke` of delegate types are not compiled; abstract methods and open generic methods are not compiled.\n- ModCheck runs on .NET 8 or later. The desktop CLR rejects the game's default interface methods.\n- A pass says nothing about behaviour at run time; it covers type setup and member resolution only.\n\n## Domain Terminology\n**Id:** blk-732559c369a5\n\n| Term | Definition |\n|------|-----------|\n| Managed directory | the folder of the game's .NET assemblies |\n| JIT check | forcing compilation of a method body with `PrepareMethod` |\n| Type check | touching a type's interface maps and static constructor |\n\n## Key Code Paths\n**Id:** blk-9a1ec07e6286\n\n- **Whole run**: `Main` builds the resolver, loads the assembly, loops over `asm.GetTypes()` and prints the summary and exit code. See `Program.cs`.\n- **One type**: the type stage in a `try`, then `AllMethods` and `PrepareMethod` per method, then `OK <type>`. See `Program.cs`.\n- **Classification**: `Report` decides `FAIL` or `WARN` from the unwrapped message. See `Program.cs`.\n- **Caller in the repository**: the `dotnet run -c Release --project tools\\ModCheck -- <managed> <dll>` line in `common/tools/TestRunner/Invoke-OniTests.ps1`, which exits 3 when ModCheck fails.\n\n## Related\n**Id:** blk-f3cc2c826e21\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview",
+     "text": "## Overview\n**Id:** blk-303b29f17bb1\n\nModCheck loads one mod DLL against the real game assemblies on a .NET 8 host and checks, without launching the game, the two ways a mod dies after a game update: a type that cannot be set up, and a call to a member that no longer exists. It is a console program, `common/tools/ModCheck`, built and run with `dotnet run`. `common/tools/TestRunner/Invoke-OniTests.ps1` runs it on every test DLL before a game session; a mod author runs it by hand after a game update.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities",
+     "text": "## Key Entities\n**Id:** blk-dda267d443bd\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/program",
+     "title": "Program",
+     "text": "### Program\n**Id:** blk-051b98125fc9  \n**Description**: the whole tool: argument handling, assembly resolution, the type and method loops and the exit code.  \n**Location**: `Program.cs`\n\n| Member | Description |\n|--------|-------------|\n| `Main(string[] args)` | entry point; returns the exit code |\n| `Report(stage, typeName, memberName, ex, ref failures, ref warnings)` | classifies one exception as `FAIL` or `WARN` and prints it |\n| `AllMethods(type, flags)` | the type's methods and constructors in one array |\n| `Unwrap(ex)` | `ExceptionType: message`, seen through `TypeInitializationException` |\n\n**Relationships**: reads the game's Managed folder (first argument) and the mod DLL (second); writes only to standard output and the exit code.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/the-two-checks",
+     "title": "The two checks",
+     "text": "### The two checks\n**Id:** blk-6fe7024707c2\n\n1. **Type load**: for each type in the assembly, `GetInterfaceMap` for every interface of a non-interface type, then `RuntimeHelpers.RunClassConstructor`. Catches `VTable setup of type X failed` and failing static constructors.\n2. **JIT**: for each non-abstract method and constructor with no open generic parameters, declared on the type (public and non-public, instance and static), `RuntimeHelpers.PrepareMethod`. Compiling the body resolves every member it references, so a missing method or field fails here instead of at call time in the game.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/inputs",
+     "title": "Inputs",
+     "text": "### Inputs\n**Id:** blk-ff7f3244936c\n\n| Input | Description |\n|-------|-------------|\n| game Managed directory | `OxygenNotIncluded_Data\\Managed` of the installed game; `Assembly-CSharp`, `0Harmony`, Unity modules and the rest resolve from here |\n| mod DLL | the assembly under test; its own dependencies are resolved from the same Managed folder, so a DLL with others (TestRunner, the mod under test) is checked from a folder that holds them (see `Invoke-OniTests.ps1`) |\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/output",
+     "title": "Output",
+     "text": "### Output\n**Id:** blk-c3c2239a19af\n\nLines on standard output (see [error handling](../standards/error-handling.md)) and an exit code of 0, 1 or 2.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules",
+     "text": "## Business Rules\n**Id:** blk-1031f9e9f9e0\n\n- Every type is checked even after a failure; every method of a type that loaded is checked.\n- A message containing `ECall methods must be packaged into a system module` is a warning: the host cannot run Unity native code that the game runs. Everything else is a failure.\n- `BeginInvoke` and `EndInvoke` of delegate types are not compiled; abstract methods and open generic methods are not compiled.\n- ModCheck runs on .NET 8 or later. The desktop CLR rejects the game's default interface methods.\n- A pass says nothing about behaviour at run time; it covers type setup and member resolution only.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#domain-terminology",
+     "title": "Domain Terminology",
+     "text": "## Domain Terminology\n**Id:** blk-732559c369a5\n\n| Term | Definition |\n|------|-----------|\n| Managed directory | the folder of the game's .NET assemblies |\n| JIT check | forcing compilation of a method body with `PrepareMethod` |\n| Type check | touching a type's interface maps and static constructor |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths",
+     "text": "## Key Code Paths\n**Id:** blk-9a1ec07e6286\n\n- **Whole run**: `Main` builds the resolver, loads the assembly, loops over `asm.GetTypes()` and prints the summary and exit code. See `Program.cs`.\n- **One type**: the type stage in a `try`, then `AllMethods` and `PrepareMethod` per method, then `OK <type>`. See `Program.cs`.\n- **Classification**: `Report` decides `FAIL` or `WARN` from the unwrapped message. See `Program.cs`.\n- **Caller in the repository**: the `dotnet run -c Release --project tools\\ModCheck -- <managed> <dll>` line in `common/tools/TestRunner/Invoke-OniTests.ps1`, which exits 3 when ModCheck fails.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-f3cc2c826e21\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "ModCheck glossary",
+   "description": "ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it appears in ModCheck's output or code",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-c4dec2d4a3f7\ndescription: \"ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it appears in ModCheck's output or code\"\n---\n\n# ModCheck glossary\n\nTerms a newcomer to ModCheck needs. Entity detail is in [entities](entities.md).\n\n## Abbreviations and Acronyms\n**Id:** blk-3aa35e536ac3\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| ONI | Oxygen Not Included | the game whose mods ModCheck checks |\n| JIT | just-in-time compiler | `PrepareMethod` forces it to compile a method before the method runs |\n| CLR | Common Language Runtime | the desktop (.NET Framework) runtime that ModCheck cannot use; CoreCLR is the .NET 8 one it does use |\n| ECall | external call | a method implemented in the Unity engine's native code; the host cannot run it |\n| DIM | default interface method | an interface method with a body; the game's interfaces have them |\n\n## Cross-Domain Terms\n**Id:** blk-497458e05560\n\n### VTable setup failure\n**Id:** blk-7d3bfdfef868\n\n**Definition**: the runtime error `VTable setup of type X failed` raised when a type's virtual or interface methods cannot be laid out, which a game update causes by changing an interface or base class that the mod's type implements or derives from. `GetInterfaceMap` is how the check provokes it.  \n**Used in**: ModCheck output (`FAIL type ...`).\n\n### Missing member\n**Id:** blk-cdaff890db76  \n**Definition**: a `MissingMethodException` or `MissingFieldException`, raised when compiled code names a method or field that the game no longer has. Compiling every method body with `PrepareMethod` brings these out without calling the code.  \n**Used in**: ModCheck output (`FAIL jit ...`).\n\n### Managed directory\n**Id:** blk-a6b4a8ed18b6  \n**Definition**: the game's `OxygenNotIncluded_Data\\Managed` folder, the first argument.  \n**Used in**: ModCheck's `AssemblyResolve` handler; `Invoke-OniTests.ps1` finds it from the game folder.\n\n### Warning\n**Id:** blk-841800be19a4  \n**Definition**: a `WARN` line for an exception caused by the check host and not by the mod (the `ECall` case); it does not fail the run.  \n**Used in**: ModCheck output.\n\n## Related\n**Id:** blk-af856d8d8196\n\n- See also: [entities](entities.md)\n",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms",
+     "text": "## Abbreviations and Acronyms\n**Id:** blk-3aa35e536ac3\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| ONI | Oxygen Not Included | the game whose mods ModCheck checks |\n| JIT | just-in-time compiler | `PrepareMethod` forces it to compile a method before the method runs |\n| CLR | Common Language Runtime | the desktop (.NET Framework) runtime that ModCheck cannot use; CoreCLR is the .NET 8 one it does use |\n| ECall | external call | a method implemented in the Unity engine's native code; the host cannot run it |\n| DIM | default interface method | an interface method with a body; the game's interfaces have them |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms",
+     "text": "## Cross-Domain Terms\n**Id:** blk-497458e05560\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/vtable-setup-failure",
+     "title": "VTable setup failure",
+     "text": "### VTable setup failure\n**Id:** blk-7d3bfdfef868\n\n**Definition**: the runtime error `VTable setup of type X failed` raised when a type's virtual or interface methods cannot be laid out, which a game update causes by changing an interface or base class that the mod's type implements or derives from. `GetInterfaceMap` is how the check provokes it.  \n**Used in**: ModCheck output (`FAIL type ...`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/missing-member",
+     "title": "Missing member",
+     "text": "### Missing member\n**Id:** blk-cdaff890db76  \n**Definition**: a `MissingMethodException` or `MissingFieldException`, raised when compiled code names a method or field that the game no longer has. Compiling every method body with `PrepareMethod` brings these out without calling the code.  \n**Used in**: ModCheck output (`FAIL jit ...`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/managed-directory",
+     "title": "Managed directory",
+     "text": "### Managed directory\n**Id:** blk-a6b4a8ed18b6  \n**Definition**: the game's `OxygenNotIncluded_Data\\Managed` folder, the first argument.  \n**Used in**: ModCheck's `AssemblyResolve` handler; `Invoke-OniTests.ps1` finds it from the game folder.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/warning",
+     "title": "Warning",
+     "text": "### Warning\n**Id:** blk-841800be19a4  \n**Definition**: a `WARN` line for an exception caused by the check host and not by the mod (the `ECall` case); it does not fail the run.  \n**Used in**: ModCheck output.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-af856d8d8196\n\n- See also: [entities](entities.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "ModCheck",
+   "description": "What ModCheck is: the .NET 8 console tool's two checks, its exit codes, who runs it and the dotnet run command, then a map of Program.cs, ModCheck.csproj, build output and its store documents",
+   "document_tags": [],
+   "text": "---\ndescription: \"What ModCheck is: the .NET 8 console tool's two checks, its exit codes, who runs it and the dotnet run command, then a map of Program.cs, ModCheck.csproj, build output and its store documents\"\n---\n\n# ModCheck\n\n## What this is\n**Id:** blk-3ca89d57dfde\n\nModCheck is a .NET 8 console tool that loads one mod DLL against the real game assemblies and checks, without launching the game, for the two ways a mod breaks after a game update: a type whose vtable cannot be set up, and a call to a member the game no longer has. It lists every failing type and method and returns exit code 0 (passed), 1 (failures) or 2 (usage). `tools/TestRunner/Invoke-OniTests.ps1` runs it on each test DLL before a game session, and the mod author runs it by hand after a game update: `dotnet run --project common/tools/ModCheck -- <game Managed dir> <mod dll>`.\n\n## Where things are\n**Id:** blk-1d0e91d4e985\n\nFiles:\n\n- `Program.cs`: the whole tool. `Main` (arguments, assembly resolution, the type and method loops, the exit code), `Report`, `AllMethods` and `Unwrap`.\n- `ModCheck.csproj`: console exe on net8.0 with C# 9 and no package references; it does not import `oni-mod.props`.\n- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.\n- `bin/`, `obj/`: build output, ignored by `common/.gitignore`.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is",
+     "text": "## What this is\n**Id:** blk-3ca89d57dfde\n\nModCheck is a .NET 8 console tool that loads one mod DLL against the real game assemblies and checks, without launching the game, for the two ways a mod breaks after a game update: a type whose vtable cannot be set up, and a call to a member the game no longer has. It lists every failing type and method and returns exit code 0 (passed), 1 (failures) or 2 (usage). `tools/TestRunner/Invoke-OniTests.ps1` runs it on each test DLL before a game session, and the mod author runs it by hand after a game update: `dotnet run --project common/tools/ModCheck -- <game Managed dir> <mod dll>`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are",
+     "text": "## Where things are\n**Id:** blk-1d0e91d4e985\n\nFiles:\n\n- `Program.cs`: the whole tool. `Main` (arguments, assembly resolution, the type and method loops, the exit code), `Report`, `AllMethods` and `Unwrap`.\n- `ModCheck.csproj`: console exe on net8.0 with C# 9 and no package references; it does not import `oni-mod.props`.\n- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.\n- `bin/`, `obj/`: build output, ignored by `common/.gitignore`.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "ModCheck standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and toolchain to exit codes and output vocabulary",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-28929c61e074\ndescription: \"ModCheck standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and toolchain to exit codes and output vocabulary\"\n---\n\n# Standards\n\n## Standards\n**Id:** blk-c46a722217a5\n\nDocuments in this folder:\n\n- [code-style](code-style.md): Formatting, C# 9 on .NET 8 with no packages, imports, the one-file structure and comments.\n- [error-handling](error-handling.md): Exit codes 0, 1 and 2, the OK, FAIL and WARN output lines, per-type isolation, loader exceptions, host artifacts, unwrapping and assembly resolution.\n- [naming-conventions](naming-conventions.md): Project and file names, C# member casing, the two positional arguments and the output vocabulary.\n",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards",
+     "text": "## Standards\n**Id:** blk-c46a722217a5\n\nDocuments in this folder:\n\n- [code-style](code-style.md): Formatting, C# 9 on .NET 8 with no packages, imports, the one-file structure and comments.\n- [error-handling](error-handling.md): Exit codes 0, 1 and 2, the OK, FAIL and WARN output lines, per-type isolation, loader exceptions, host artifacts, unwrapping and assembly resolution.\n- [naming-conventions](naming-conventions.md): Project and file names, C# member casing, the two positional arguments and the output vocabulary.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "Code Style Guide",
+   "description": "ModCheck's C# code style: tabs and Allman braces, C# 9 on .NET 8 with no packages in ModCheck.csproj, using order, the single static Program class layout in Program.cs, and what comments must say",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-11cf3f1ecd90\ndescription: \"ModCheck's C# code style: tabs and Allman braces, C# 9 on .NET 8 with no packages in ModCheck.csproj, using order, the single static Program class layout in Program.cs, and what comments must say\"\napplies_to:\n  - \"Program.cs\"\n  - \"ModCheck.csproj\"\n---\n\n# Code Style Guide\n\n## Formatting\n**Id:** blk-59184ca785a3\n\nModCheck is one file, `Program.cs`, and one project file, `ModCheck.csproj`.\n\n- Tabs, one per level, in `Program.cs`, the same as the mod sources. The csproj uses two spaces.\n- Opening brace on its own line (Allman) for the class, methods and multi-line blocks. A body of one short statement goes on the next line without braces (`if (args.Length < 2)` and the `continue` guards in `Main`).\n- No line length limit. Long conditions and calls wrap after an operator or argument with the continuation indented one tab (`const BindingFlags all = ...` in `Program.cs`).\n- The repository has no `.editorconfig`. TODO(owner): decide whether to add one recording tabs and brace placement for all of `common/`.\n\n## Language and Toolchain\n**Id:** blk-3d0e75841249\n\n- C# 9 (`LangVersion` 9.0) on .NET 8 (`TargetFramework` net8.0), `OutputType` Exe. The project does not import `common/oni-mod.props`: it is a console program, not a mod, and has no game references at build time.\n- ModCheck must run on .NET 8 or later, never .NET Framework. The game's interfaces use default interface methods, which the desktop CLR rejects and CoreCLR accepts, as does the game's Mono runtime. The header comment of `Program.cs` says so; keep it when the file changes.\n- No NuGet packages. The code uses only `System`, `System.IO`, `System.Reflection` and `System.Runtime.CompilerServices`.\n\n## Imports\n**Id:** blk-d831aad7e6ca\n\n`using` directives sit at the top, alphabetical, with no blank lines between them (`System`, `System.IO`, `System.Reflection`, `System.Runtime.CompilerServices`). No aliases and no global usings.\n\n## Structure\n**Id:** blk-224789a75291\n\n- A single `internal static class Program` holds `Main` and its private static helpers (`Report`, `AllMethods`, `Unwrap`). Helpers are `private static` and sit below `Main`.\n- There are no instances and no shared state: the failure and warning counters are locals of `Main` passed to `Report` by `ref`.\n- A new check goes in as another loop body in `Main` or another helper beside the existing ones, and reports through `Report` so the failure and warning counts stay accurate.\n\n## Comments\n**Id:** blk-9bbfb0a9ecda\n\n- A block comment at the top of `Program.cs` says what the tool verifies, why it needs .NET 8, and the usage line. Update it with any behaviour change.\n- Comments inside the code give the reason for a rule, which is the runtime difference between the check host (CoreCLR) and the game's Mono: why `BeginInvoke` and `EndInvoke` are skipped on delegates, why the `ECall` message is a warning. No comments that restate the code.\n- Console strings are plain text; the summary line uses an em dash (`runtime-mismatch artifacts, fine in-game`).\n\n## Related\n**Id:** blk-a530d607ccfd\n\n- See also: [error handling](error-handling.md)\n- See also: [naming conventions](naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting",
+     "text": "## Formatting\n**Id:** blk-59184ca785a3\n\nModCheck is one file, `Program.cs`, and one project file, `ModCheck.csproj`.\n\n- Tabs, one per level, in `Program.cs`, the same as the mod sources. The csproj uses two spaces.\n- Opening brace on its own line (Allman) for the class, methods and multi-line blocks. A body of one short statement goes on the next line without braces (`if (args.Length < 2)` and the `continue` guards in `Main`).\n- No line length limit. Long conditions and calls wrap after an operator or argument with the continuation indented one tab (`const BindingFlags all = ...` in `Program.cs`).\n- The repository has no `.editorconfig`. TODO(owner): decide whether to add one recording tabs and brace placement for all of `common/`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain",
+     "text": "## Language and Toolchain\n**Id:** blk-3d0e75841249\n\n- C# 9 (`LangVersion` 9.0) on .NET 8 (`TargetFramework` net8.0), `OutputType` Exe. The project does not import `common/oni-mod.props`: it is a console program, not a mod, and has no game references at build time.\n- ModCheck must run on .NET 8 or later, never .NET Framework. The game's interfaces use default interface methods, which the desktop CLR rejects and CoreCLR accepts, as does the game's Mono runtime. The header comment of `Program.cs` says so; keep it when the file changes.\n- No NuGet packages. The code uses only `System`, `System.IO`, `System.Reflection` and `System.Runtime.CompilerServices`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#imports",
+     "title": "Imports",
+     "text": "## Imports\n**Id:** blk-d831aad7e6ca\n\n`using` directives sit at the top, alphabetical, with no blank lines between them (`System`, `System.IO`, `System.Reflection`, `System.Runtime.CompilerServices`). No aliases and no global usings.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#structure",
+     "title": "Structure",
+     "text": "## Structure\n**Id:** blk-224789a75291\n\n- A single `internal static class Program` holds `Main` and its private static helpers (`Report`, `AllMethods`, `Unwrap`). Helpers are `private static` and sit below `Main`.\n- There are no instances and no shared state: the failure and warning counters are locals of `Main` passed to `Report` by `ref`.\n- A new check goes in as another loop body in `Main` or another helper beside the existing ones, and reports through `Report` so the failure and warning counts stay accurate.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments",
+     "text": "## Comments\n**Id:** blk-9bbfb0a9ecda\n\n- A block comment at the top of `Program.cs` says what the tool verifies, why it needs .NET 8, and the usage line. Update it with any behaviour change.\n- Comments inside the code give the reason for a rule, which is the runtime difference between the check host (CoreCLR) and the game's Mono: why `BeginInvoke` and `EndInvoke` are skipped on delegates, why the `ECall` message is a warning. No comments that restate the code.\n- Console strings are plain text; the summary line uses an em dash (`runtime-mismatch artifacts, fine in-game`).\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-a530d607ccfd\n\n- See also: [error handling](error-handling.md)\n- See also: [naming conventions](naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "Error Handling Conventions",
+   "description": "How ModCheck handles and reports errors: principles, the exit code table, every OK, FAIL and WARN output line, per-type try/catch, loader exceptions, the ECall host-artifact rule, unwrapping, assembly resolution in Program.cs, anti-patterns",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-731b834a4b0c\ndescription: \"How ModCheck handles and reports errors: principles, the exit code table, every OK, FAIL and WARN output line, per-type try/catch, loader exceptions, the ECall host-artifact rule, unwrapping, assembly resolution in Program.cs, anti-patterns\"\napplies_to:\n  - \"Program.cs\"\n  - \"ModCheck.csproj\"\n---\n\n# Error Handling Conventions\n\n## Principles\n**Id:** blk-4aa5247ed7a4\n\n1. **Report every break, not the first.** A check run lists every type and method that fails, so one run shows the whole damage after a game update. `Main` counts failures and warnings and keeps going.\n2. **Name the member.** Each line names the stage, the type and, for a JIT failure, the method, with the exception type and message.\n3. **Tell a real break from a host artifact.** The check host is CoreCLR with no Unity engine; the game is Mono with one. Only the failures that the game would also hit count.\n4. **The exit code is the verdict.** Callers (`common/tools/TestRunner/Invoke-OniTests.ps1`) read the exit code, not the text.\n\n## Exit Codes\n**Id:** blk-615b71d8cae1\n\n| Code | Meaning | Set in |\n|------|---------|--------|\n| 0 | every type loaded and every method compiled, warnings allowed | `Main`, `ALL CHECKS PASSED` |\n| 1 | one or more failures | `Main`, `N FAILURE(S)` |\n| 2 | wrong arguments, usage printed | `Main`, `args.Length < 2` |\n\nThe tool prints `usage: ModCheck <game Managed dir> <mod dll>` to standard output for exit code 2.\n\n## Output Lines\n**Id:** blk-635cd6eaebb7\n\nEverything goes to standard output, one line per event, with a fixed prefix:\n\n| Prefix | Meaning |\n|--------|---------|\n| `OK <type>` | the type stage passed (interface maps resolved, static constructor ran) and the method loop finished; `FAIL jit` lines for its methods print before it |\n| `FAIL type <type>: ...` | type load, interface map or static constructor failure |\n| `FAIL jit <type>.<method>: ...` | a method body could not be compiled; `PrepareMethod` threw, for example `MissingMethodException` or `MissingFieldException` for a member the game no longer has |\n| `FAIL loader: <type> :: <message>` | one loader exception from a `ReflectionTypeLoadException` |\n| `FAIL: <exception>` | any other exception while loading the assembly |\n| `WARN <stage> <member>: ...` | a runtime-mismatch artifact, counted separately and not a failure |\n\n## Handling Patterns\n**Id:** blk-b80f483cffaf\n\n### Per-type isolation\n**Id:** blk-27d2629f8e78\n\nThe type stage and each method's JIT call are wrapped in their own `try`/`catch (Exception)` in `Main`. A failure goes to `Report`, the loop continues, and the type is not printed as `OK` when its type stage failed (`continue` after `Report`). The broad catch is the point of the tool: any exception from touching a type or method is a result to report.\n\n### Loader exceptions\n**Id:** blk-82f4670e9d62\n\n`ReflectionTypeLoadException` from `asm.GetTypes()` is caught separately and every entry of `LoaderExceptions` becomes a `FAIL loader` line and a failure. Any other exception around the whole load becomes one `FAIL:` line with the full exception text.\n\n### Host artifacts\n**Id:** blk-00ca86cc07f8\n\n`Report` treats an exception whose unwrapped message contains `ECall methods must be packaged into a system module` as a warning. That message means the host tried to run Unity native code, which works in the game. `MissingMethodException`, `MissingFieldException` and `TypeLoadException` are never downgraded. `BeginInvoke` and `EndInvoke` of delegates are not compiled at all, because their stubs throw `PlatformNotSupportedException` on CoreCLR and work on Mono. Abstract methods and methods with open generic parameters are skipped.\n\n### Unwrapping\n**Id:** blk-76c47a4d4fde\n\n`Unwrap` follows `TypeInitializationException` to its inner exception, so a failing static constructor shows the cause and not the wrapper.\n\n### Assembly resolution\n**Id:** blk-534f0b7eade5\n\nThe `AssemblyResolve` handler looks for `<name>.dll` in the game's Managed folder and returns `null` when it is not there, which lets the runtime report the missing assembly in its own words.\n\n## Anti-Patterns to Avoid\n**Id:** blk-50d5a04f2f9a\n\n- Stopping at the first failure; the count and the list are the output.\n- Downgrading a failure to a warning without a runtime reason written next to the rule.\n- Writing results to anything but standard output and the exit code; the callers capture both.\n\n## Related\n**Id:** blk-7f1a6895f34c\n\n- See also: [code style](code-style.md)\n",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles",
+     "text": "## Principles\n**Id:** blk-4aa5247ed7a4\n\n1. **Report every break, not the first.** A check run lists every type and method that fails, so one run shows the whole damage after a game update. `Main` counts failures and warnings and keeps going.\n2. **Name the member.** Each line names the stage, the type and, for a JIT failure, the method, with the exception type and message.\n3. **Tell a real break from a host artifact.** The check host is CoreCLR with no Unity engine; the game is Mono with one. Only the failures that the game would also hit count.\n4. **The exit code is the verdict.** Callers (`common/tools/TestRunner/Invoke-OniTests.ps1`) read the exit code, not the text.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#exit-codes",
+     "title": "Exit Codes",
+     "text": "## Exit Codes\n**Id:** blk-615b71d8cae1\n\n| Code | Meaning | Set in |\n|------|---------|--------|\n| 0 | every type loaded and every method compiled, warnings allowed | `Main`, `ALL CHECKS PASSED` |\n| 1 | one or more failures | `Main`, `N FAILURE(S)` |\n| 2 | wrong arguments, usage printed | `Main`, `args.Length < 2` |\n\nThe tool prints `usage: ModCheck <game Managed dir> <mod dll>` to standard output for exit code 2.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#output-lines",
+     "title": "Output Lines",
+     "text": "## Output Lines\n**Id:** blk-635cd6eaebb7\n\nEverything goes to standard output, one line per event, with a fixed prefix:\n\n| Prefix | Meaning |\n|--------|---------|\n| `OK <type>` | the type stage passed (interface maps resolved, static constructor ran) and the method loop finished; `FAIL jit` lines for its methods print before it |\n| `FAIL type <type>: ...` | type load, interface map or static constructor failure |\n| `FAIL jit <type>.<method>: ...` | a method body could not be compiled; `PrepareMethod` threw, for example `MissingMethodException` or `MissingFieldException` for a member the game no longer has |\n| `FAIL loader: <type> :: <message>` | one loader exception from a `ReflectionTypeLoadException` |\n| `FAIL: <exception>` | any other exception while loading the assembly |\n| `WARN <stage> <member>: ...` | a runtime-mismatch artifact, counted separately and not a failure |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns",
+     "text": "## Handling Patterns\n**Id:** blk-b80f483cffaf\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/per-type-isolation",
+     "title": "Per-type isolation",
+     "text": "### Per-type isolation\n**Id:** blk-27d2629f8e78\n\nThe type stage and each method's JIT call are wrapped in their own `try`/`catch (Exception)` in `Main`. A failure goes to `Report`, the loop continues, and the type is not printed as `OK` when its type stage failed (`continue` after `Report`). The broad catch is the point of the tool: any exception from touching a type or method is a result to report.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/loader-exceptions",
+     "title": "Loader exceptions",
+     "text": "### Loader exceptions\n**Id:** blk-82f4670e9d62\n\n`ReflectionTypeLoadException` from `asm.GetTypes()` is caught separately and every entry of `LoaderExceptions` becomes a `FAIL loader` line and a failure. Any other exception around the whole load becomes one `FAIL:` line with the full exception text.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/host-artifacts",
+     "title": "Host artifacts",
+     "text": "### Host artifacts\n**Id:** blk-00ca86cc07f8\n\n`Report` treats an exception whose unwrapped message contains `ECall methods must be packaged into a system module` as a warning. That message means the host tried to run Unity native code, which works in the game. `MissingMethodException`, `MissingFieldException` and `TypeLoadException` are never downgraded. `BeginInvoke` and `EndInvoke` of delegates are not compiled at all, because their stubs throw `PlatformNotSupportedException` on CoreCLR and work on Mono. Abstract methods and methods with open generic parameters are skipped.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/unwrapping",
+     "title": "Unwrapping",
+     "text": "### Unwrapping\n**Id:** blk-76c47a4d4fde\n\n`Unwrap` follows `TypeInitializationException` to its inner exception, so a failing static constructor shows the cause and not the wrapper.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/assembly-resolution",
+     "title": "Assembly resolution",
+     "text": "### Assembly resolution\n**Id:** blk-534f0b7eade5\n\nThe `AssemblyResolve` handler looks for `<name>.dll` in the game's Managed folder and returns `null` when it is not there, which lets the runtime report the missing assembly in its own words.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid",
+     "text": "## Anti-Patterns to Avoid\n**Id:** blk-50d5a04f2f9a\n\n- Stopping at the first failure; the count and the list are the output.\n- Downgrading a failure to a warning without a runtime reason written next to the rule.\n- Writing results to anything but standard output and the exit code; the callers capture both.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-7f1a6895f34c\n\n- See also: [code style](code-style.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "Naming Conventions",
+   "description": "Naming in ModCheck: the ModCheck.csproj and Program.cs file names, C# casing for types, methods, locals and counters, the two positional arguments, and the stage words and OK, FAIL and WARN prefixes in output",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-b5a7b9c0a575\ndescription: \"Naming in ModCheck: the ModCheck.csproj and Program.cs file names, C# casing for types, methods, locals and counters, the two positional arguments, and the stage words and OK, FAIL and WARN prefixes in output\"\napplies_to:\n  - \"Program.cs\"\n  - \"ModCheck.csproj\"\n---\n\n# Naming Conventions\n\n## Files and Directories\n**Id:** blk-8ff7fead9871\n\n- The tool lives in `common/tools/ModCheck`: `ModCheck.csproj` and `Program.cs`. The project, the assembly and the folder share the name `ModCheck`.\n- The ICON store for the tool is `common/tools/ModCheck/.context`.\n- Build output goes to `bin/` and `obj/` (ignored by `common/.gitignore`).\n\n## Code Naming\n**Id:** blk-aa161d844e40\n\n- Types, methods and parameters follow C# convention: PascalCase for types and methods (`Program`, `Report`, `AllMethods`, `Unwrap`), camelCase for parameters and locals (`managedDir`, `modDll`, `isDelegate`, `failures`).\n- Local constants are camelCase too (`const BindingFlags all`).\n- Methods start with a verb or name what they return: `Report`, `AllMethods`, `Unwrap`.\n- Counters are plural nouns (`failures`, `warnings`) passed by `ref`.\n- No `I` interfaces and no type prefixes; there is one class.\n\n## Command Line\n**Id:** blk-6bdab3ca51dd\n\n- Two positional arguments in a fixed order: the game's Managed directory, then the mod DLL. No options or flags.\n- The mod DLL path is made absolute with `Path.GetFullPath` before use.\n\n## Output Vocabulary\n**Id:** blk-0902df8ac85c\n\n- Stages in a result line are the lowercase words `type` and `jit`; the loader failure is `loader`.\n- Line prefixes are upper case: `OK`, `FAIL`, `WARN`. The final lines are `ALL CHECKS PASSED` or `<n> FAILURE(S)`.\n- Types are printed by `Type.FullName`, methods by `Name` after the type, as `Namespace.Type.Method`.\n\n## Related\n**Id:** blk-d692513e0e50\n\n- See also: [code style](code-style.md)\n",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories",
+     "text": "## Files and Directories\n**Id:** blk-8ff7fead9871\n\n- The tool lives in `common/tools/ModCheck`: `ModCheck.csproj` and `Program.cs`. The project, the assembly and the folder share the name `ModCheck`.\n- The ICON store for the tool is `common/tools/ModCheck/.context`.\n- Build output goes to `bin/` and `obj/` (ignored by `common/.gitignore`).\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming",
+     "text": "## Code Naming\n**Id:** blk-aa161d844e40\n\n- Types, methods and parameters follow C# convention: PascalCase for types and methods (`Program`, `Report`, `AllMethods`, `Unwrap`), camelCase for parameters and locals (`managedDir`, `modDll`, `isDelegate`, `failures`).\n- Local constants are camelCase too (`const BindingFlags all`).\n- Methods start with a verb or name what they return: `Report`, `AllMethods`, `Unwrap`.\n- Counters are plural nouns (`failures`, `warnings`) passed by `ref`.\n- No `I` interfaces and no type prefixes; there is one class.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#command-line",
+     "title": "Command Line",
+     "text": "## Command Line\n**Id:** blk-6bdab3ca51dd\n\n- Two positional arguments in a fixed order: the game's Managed directory, then the mod DLL. No options or flags.\n- The mod DLL path is made absolute with `Path.GetFullPath` before use.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#output-vocabulary",
+     "title": "Output Vocabulary",
+     "text": "## Output Vocabulary\n**Id:** blk-0902df8ac85c\n\n- Stages in a result line are the lowercase words `type` and `jit`; the loader failure is `loader`.\n- Line prefixes are upper case: `OK`, `FAIL`, `WARN`. The final lines are `ALL CHECKS PASSED` or `<n> FAILURE(S)`.\n- Types are printed by `Type.FullName`, methods by `Name` after the type, as `Namespace.Type.Method`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-d692513e0e50\n\n- See also: [code style](code-style.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  }
+ ]
+}

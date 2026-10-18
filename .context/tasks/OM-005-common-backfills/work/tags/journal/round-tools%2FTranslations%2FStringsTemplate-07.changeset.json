@@ -1,0 +1,18 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/Translations/StringsTemplate — round 7",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "base": {
+    "domains/entities.md": "sha256:82b2b0f65375316065f8efdc9cf657820de08849d019b387a700664ac5615d84"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "refused-translation"
+      ],
+      "section": "key-entities/checkpo-readpo-parameter-quoted"
+    }
+  ]
+}

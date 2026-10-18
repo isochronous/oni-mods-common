@@ -1,0 +1,14 @@
+{
+ "task": "OM-005",
+ "why": "mint the WorldgenDriver node tag vocabulary for the tag backfill",
+ "node": "tools/WorldgenDriver",
+ "ops": [
+  {
+   "mode": "create",
+   "target": "tags.md",
+   "title": "Tags",
+   "description": "The WorldgenDriver node tag dictionary: each term that records here may carry, with the one sentence saying what a record must be about to earn it",
+   "body": "## code-style\n\nA record earns this term when it is about the house style in which a mod's C# source code is written.\n\n## mod-build\n\nA record earns this term when it is about compiling the mods with dotnet against the game's assemblies and deploying them into the game's mods folder.\n\n## harmony-patching\n\nA record earns this term when it is about writing or applying the Harmony patches through which a mod changes game methods.\n\n## mod-entry-point\n\nA record earns this term when it is about a mod's UserMod2 class and what it does when the game loads the mod.\n\n## logging\n\nA record earns this term when it is about what a mod writes to the game log and at which level.\n\n## exception-handling\n\nA record earns this term when it is about where a mod catches exceptions and what it does once it has caught one.\n\n## command-line\n\nA record earns this term when it is about the arguments and options the tool is started with and how it reads them.\n\n## activation-guard\n\nA record earns this term when it is about the tool's mod staying inert unless the game is started with its command-line argument.\n\n## game-launch\n\nA record earns this term when it is about starting the game through Steam for a run and waiting for it to exit.\n\n## run-result\n\nA record earns this term when it is about the result file a run writes as it ends and how the launcher reads it.\n\n## watchdog\n\nA record earns this term when it is about the real-time limits that end a stalled run or test.\n\n## mod-loadout\n\nA record earns this term when it is about which mods the game has enabled and putting the player's own mod list back afterwards.\n\n## player-log\n\nA record earns this term when it is about reading the game's Player.log to find out what went wrong in a run.\n\n## game-mode\n\nA record earns this term when it is about whether the game runs in base-game or Spaced Out mode and making a run match it.\n\n## generated-worlds\n\nA record earns this term when it is about running the game's world generation from a coordinate to produce a fresh world.\n\n## world-coordinate\n\nA record earns this term when it is about the game's settings coordinate for a cluster and the settings it carries.\n\n## worldgen-progress\n\nA record earns this term when it is about the stage and percent the game reports while it generates a cluster.\n"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "store_root": "C:/dev/ONI-Mods/common",
+ "documents": [
+  {
+   "node": ".",
+   "path": "overview.md",
+   "source_path": ".context/overview.md",
+   "id": "overview.md",
+   "format": "narrative",
+   "title": "common",
+   "description": "What common (oni-mods-common) is and how every mod csproj imports it, then a map of its files: oni-mod.props, oni-mod.targets, ilrepack-plib.targets, src/Translations.cs, README.md, the ignore rules and its one child node",
+   "adr": null,
+   "tags": [],
+   "document_tags_declined": false,
+   "sections": [
+    {
+     "node": ".",
+     "path": "overview.md",
+     "id": "overview.md#what-this-is",
+     "address": "what-this-is",
+     "heading": "What this is",
+     "level": 2,
+     "ordinal": 1,
+     "title": "What this is",
+     "description": null,
+     "tags": []
+    },
+    {
+     "node": ".",
+     "path": "overview.md",
+     "id": "overview.md#where-things-are",
+     "address": "where-things-are",
+     "heading": "Where things are",
+     "level": 2,
+     "ordinal": 2,
+     "title": "Where things are",
+     "description": null,
+     "tags": []
+    }
+   ]
+  }
+ ],
+ "excluded": {
+  "not_carried": [
+   "OM-004"
+  ],
+  "destination": []
+ },
+ "problems": []
+}

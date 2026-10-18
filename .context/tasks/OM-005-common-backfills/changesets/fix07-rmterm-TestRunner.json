@@ -1,0 +1,16 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 4.1: screenshots and player-log each had one carrier in TestRunner, below the admission floor, and fix07-TestRunner takes them off it",
+ "node": "tools/TestRunner",
+ "ops": [
+  {
+   "mode": "remove",
+   "target": "tags.md",
+   "sections": [
+    "screenshots",
+    "player-log"
+   ],
+   "reason": "no record in this node carries either term once fix07-TestRunner is applied; each had one carrier, below the three-record floor"
+  }
+ ]
+}

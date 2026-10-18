@@ -1,0 +1,106 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 3.1, 4.1, 4.8, 4.9, 4.10, 1.7 and 1.8: in-game-testing on the four whole-tool documents, screenshots and player-log off their single carriers, mod-entry-point on the records about the UserMod2 class, tags that match their glosses, the .gitattributes line and the glossary abbreviations in the index",
+ "node": "tools/TestRunner",
+ "ops": [
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "add": [
+    "in-game-testing"
+   ]
+  },
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "Where things are",
+   "body": "Top-level folders and key files:\n\n- `Mod.cs`: the `UserMod2` entry point. Reads the command line, turns the crash dialog off for a run and resolves test assemblies against the mods under test.\n- `Session.cs`: the options, the discovered tests, the counters, the results and status files, and the live-session queue.\n- `TestBehaviour.cs`: steps each test's coroutine by hand with a real-time deadline, captures errors the game logs and runs cleanups.\n- `Patches.cs`: the Harmony patches that start a run from the main menu, block saves outside the run folder, skip autosave, suppress the mod and game-over dialogs and force the focus flags.\n- `Harness.cs`: the run-wide switches: focus forced on, mouse locked, physical keyboard and mouse ignored, instant build, speed 1.\n- `FixtureArea.cs`: picks the 40x10 test area in the fixture world and clears it before and after each test.\n- `Worldgen.cs`: runs `[OniTest(Worldgen = ...)]` tests in a world freshly generated from a coordinate.\n- `Reflect.cs`: every private game member the harness and kit read, with the self-check; `Diagnostics.cs`: the grid-mark trace behind `-Trace`.\n- `Kit/`: the test kit (`Attributes.cs`, `TestContext.cs`, `OniAssert.cs`, `World.cs`, `Tools.cs`, `Dupes.cs`, `SaveFile.cs`).\n- `Invoke-OniTests.ps1`: the launcher. `Watch-OniGame.ps1`: the warden that puts `mods.json` back and removes the live-session folder after the game exits.\n- `fixtures/`: `testbed-so.sav`, the Spaced Out fixture save and the only test save tracked in git, and `README.md` on what makes a good fixture. The base-game fixture the launcher looks for, `testbed-base.sav`, is not in the repo.\n- `TestRunner.csproj`: imports `oni-mod.props` and `oni-mod.targets` from the root of common; `mod.yaml` and `mod_info.yaml` beside it.\n- `README.md`: running the launcher and its options, writing tests, the output and how it works.\n- `runs/`: one folder per run (`<label>-<stamp>`) with the results, `Player.log`, the fixture copy and the checked DLLs; ignored by git.\n- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`."
+  },
+  {
+   "mode": "tag",
+   "target": "domains/README.md",
+   "add": [
+    "in-game-testing"
+   ]
+  },
+  {
+   "mode": "section",
+   "target": "domains/README.md",
+   "section": "Domains",
+   "body": "Documents in this folder:\n\n- [entities](entities.md): the harness mod, `Session`, `TestBehaviour`, the patches, `FixtureArea`, `Worldgen`, `Reflect`, the test kit, the launcher and the warden, with the files they read and write, the business rules, the key code paths and the session states.\n- [glossary](glossary.md): the abbreviations ONI, SO, HUD and DLL, and the terms a newcomer needs: harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world, self-check."
+  },
+  {
+   "mode": "tag",
+   "target": "domains/entities.md",
+   "add": [
+    "in-game-testing"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/entities.md",
+   "section": "Key Entities/TestBehaviour",
+   "add": [
+    "test-assertions"
+   ],
+   "remove": [
+    "logging"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/glossary.md",
+   "add": [
+    "in-game-testing"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "domains/glossary.md",
+   "section": "Abbreviations and Acronyms",
+   "remove": [
+    "game-mode"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/naming-conventions.md",
+   "section": "Results",
+   "remove": [
+    "screenshots"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/naming-conventions.md",
+   "section": "Code Naming",
+   "add": [
+    "mod-entry-point"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Launcher Exit Codes",
+   "remove": [
+    "player-log"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Principles",
+   "add": [
+    "save-files"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Handling Patterns/Crash dialog",
+   "add": [
+    "mod-entry-point"
+   ]
+  }
+ ]
+}

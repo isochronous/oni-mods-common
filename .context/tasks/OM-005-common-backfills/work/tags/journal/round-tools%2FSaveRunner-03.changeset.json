@@ -1,0 +1,60 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 3",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "standards/code-style.md": "sha256:9f54b4a45ceea93526baabc4630582f2fb49c84512911b5033698f82e0851fa5",
+    "standards/error-handling.md": "sha256:db508d0c1de7ac256dfc0e35eb23870a6d95e68dba3f52cc30c01cbadb6fe08f",
+    "standards/naming-conventions.md": "sha256:d42588cb3ae0d7e377b10085bbc64cab0cd77acb77fe5a4afbbd8c76c8b9ce32",
+    "domains/entities.md": "sha256:31c492d1cbfa7a0812306a4b9c0b5ca3ac3f497146c609fd135d24ff71cc4bd2",
+    "domains/glossary.md": "sha256:c94f17b61438f7fdfc3991824d40ba96c4115abc22dc54e3600e8da39071c7e8"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "activation-guard"
+      ],
+      "section": "inert-without-the-argument"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result"
+      ],
+      "section": "handling-patterns/driver"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "game-launch",
+        "mod-loadout"
+      ],
+      "section": "command-line-and-launcher"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "activation-guard",
+        "watchdog",
+        "save-files"
+      ],
+      "section": "key-entities/patches"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "watchdog",
+        "command-line"
+      ],
+      "section": "cross-domain-terms/game-seconds-and-real-seconds"
+    }
+  ]
+}

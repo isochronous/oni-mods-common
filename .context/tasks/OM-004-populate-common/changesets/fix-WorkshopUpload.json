@@ -1,0 +1,25 @@
+{
+  "task": "OM-004",
+  "why": "Fix the WorkshopUpload statements the unit 03 review found false against Program.cs: when Steam is initialised before a usage error (F5), the Info and Download exit codes and where results are printed (F6); and replace the 'likely cause' wording.",
+  "node": "tools/WorkshopUpload",
+  "ops": [
+    {
+      "mode": "section",
+      "target": "standards/error-handling.md",
+      "section": "Principles",
+      "body": "1. **Check every Steam result.** Each call-result is awaited and its `EResult` compared with `k_EResultOK`; anything else prints the result and returns 1.\n2. **Return 2 for a usage error.** No arguments prints the usage and returns 2 before `SteamAPI.Init`. Any other usage error (an unknown command, `update` or `publish` with too few arguments, a missing `--title`) returns 2 inside the `try`, after Steam is initialised, so the `finally` shuts Steam down.\n3. **Always shut Steam down.** `SteamAPI.Shutdown()` is in a `finally` around the dispatch.\n4. **Say what the user needs to do.** Messages name what to check: Steam running and logged in, `steam_appid.txt` next to the exe, cloud quota, the Workshop legal agreement."
+    },
+    {
+      "mode": "section",
+      "target": "standards/error-handling.md",
+      "section": "Exit codes",
+      "body": "| Code | Meaning | Where |\n|------|---------|-------|\n| 0 | the command succeeded | each command method |\n| 1 | `SteamAPI.Init` failed; a Steam result was not OK (`Info`, `Description`, `List`, `Update`, `Publish`); or `Download` could not leave the item installed as a file (`DownloadItem` refused, not installed, install path is a directory or missing) | `Main`, `Info`, `Description`, `List`, `Update`, `Publish`, `Download` |\n| 2 | usage error: no command, unknown command, `update` or `publish` with too few arguments, `--title` missing on publish | `Main`, `Update`, `Publish` |\n\n`Info` prints `NOT a legacy single-file item` for an item with no file handle and still returns 0 when the Steam result is OK. Usage text, the `SteamAPI.Init` failure and the failure messages of `Description`, `List` and `Download`'s `DownloadItem` call go to standard error (`Console.Error`). The result line of `update` and `publish`, which carries a failed Steam result, and `Download`'s not-installed and bad-path lines go to standard output with the progress output."
+    },
+    {
+      "mode": "section",
+      "target": "standards/code-style.md",
+      "section": "Control Structures",
+      "body": "- `Main` prints usage and returns 2 when there are no arguments, before touching Steam; it then initialises Steam and dispatches with a `switch` on `args[0]` inside `try`/`finally`. An unknown command and the argument checks of `update` and `publish` return 2 inside the `try`.\n- Each command is a `private static int` method returning its exit code; early `return 1` or `return 2` on the first failed step.\n- `switch` expressions map option strings to enums (`ParseVisibility`).\n- Output uses string interpolation (`$\"...\"`)."
+    }
+  ]
+}

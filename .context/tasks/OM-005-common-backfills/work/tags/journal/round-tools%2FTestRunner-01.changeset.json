@@ -1,0 +1,63 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 1",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/code-style.md": "sha256:e8206bb0db37a02b3d9695af51e1d848b15a7744c9d2c5eec5ad35d262917016",
+    "standards/error-handling.md": "sha256:86e0ebcfff2b266e02ce1bcf473fc0e0362d252ce8e5152ec08554c64997678a",
+    "standards/naming-conventions.md": "sha256:c918bfe37825d93a1a7b0cb19fd23ebd2de8b283acbf15514a18074d1367adf2",
+    "domains/entities.md": "sha256:a9df011a7cf712bbe8582bfdb22fb7bc58b4eecfad1d5c1f376874b7bf1bf4ad",
+    "domains/glossary.md": "sha256:c6d3155b3090128bb779ca6dd6ddb7ed47f0170bea30cb7e5b40791632d7d00d"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "mod-build"
+      ],
+      "section": "language-and-toolchain"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "logging",
+        "mod-loadout",
+        "game-update-compatibility"
+      ],
+      "section": "principles"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "game-mode",
+        "save-files",
+        "live-session",
+        "mod-build"
+      ],
+      "section": "files-and-directories"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "mod-entry-point",
+        "command-line",
+        "crash-dialog"
+      ],
+      "section": "key-entities/testrunnermod"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "save-files",
+        "game-mode"
+      ],
+      "section": "cross-domain-terms/fixture"
+    }
+  ]
+}

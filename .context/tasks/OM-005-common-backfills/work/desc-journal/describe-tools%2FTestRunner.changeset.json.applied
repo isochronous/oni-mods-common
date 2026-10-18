@@ -1,0 +1,57 @@
+{
+  "task": "OM-005",
+  "why": "a generated description for every document, saying what that document contains",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "ops": [
+    {
+      "target": "domains/README.md",
+      "mode": "describe",
+      "description": "TestRunner domains index: links to the entities and glossary documents, each with what it covers, from the harness, kit, launcher, warden, files, rules and states to the terms a newcomer needs"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "describe",
+      "description": "TestRunner's entities: TestRunnerMod, Session members, TestCase and TestResult, TestBehaviour, each patch, Harness, FixtureArea, Worldgen, Reflect, the Kit/ types, Invoke-OniTests.ps1 options, Watch-OniGame.ps1, files, rules, code paths and session states"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "describe",
+      "description": "TestRunner glossary: the abbreviations ONI, SO, HUD and DLL, and definitions of harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world and self-check"
+    },
+    {
+      "target": "overview.md",
+      "mode": "describe",
+      "description": "What TestRunner is: the harness mod and Invoke-OniTests.ps1 launcher that run [OniTest] tests unattended in the real game, then a file map of Session.cs, TestBehaviour.cs, Patches.cs, Kit/, fixtures/, Watch-OniGame.ps1 and the other sources"
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "describe",
+      "description": "TestRunner standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and Reflect to exit codes, options and result fields"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "describe",
+      "description": "TestRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through TestRunner.csproj, the harness and kit namespaces, file layout, the Session.Active guard, Harmony patch form, private members through Reflect.cs, comments"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "describe",
+      "description": "How TestRunner turns problems into results: the five test statuses, session statuses from Session.Finish, Invoke-OniTests.ps1 exit codes 0 to 3, hand-stepped coroutines, side-file writes, crash dialog, loadout backup and warden, the run mutex, logging"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "describe",
+      "description": "Naming in TestRunner: files and run folders, the two namespaces, patch classes, Reflect handles, Wait classes, attributes, test classes and ids, the --onitest-* options, Invoke-OniTests.ps1 parameters, live-session request files and result fields"
+    }
+  ],
+  "base": {
+    "domains/README.md": "sha256:a90bf8cdd0afbcc80272505f19cd2f4c3a3077d2fe35498d5684a60aee5dc70d",
+    "domains/entities.md": "sha256:62517a155d1ce8375a88ed66803f5704f2e08961fdea2e6a43649c51be56d835",
+    "domains/glossary.md": "sha256:e141d9d80264becc16218ca97c46a4917bd9a9bcce8fd27a945ad37f4fe442fe",
+    "overview.md": "sha256:0cc7120415f354d743db492bfb6185cefc211d5757d7cef62cf65e967e9f8dcd",
+    "standards/README.md": "sha256:e1c21cc82696deb22d11a6e51823f0ea21db8c38860edfaff6776aa4e0133d44",
+    "standards/code-style.md": "sha256:0f828b560b655b44ae846018ac9ec52c3d7c6515e3b2b13b8ee20bb0e8d1ad25",
+    "standards/error-handling.md": "sha256:9b4a9b0c39c7323aa17fc33b6720ed8a2054fb054421c0e64fce48064d5f64a5",
+    "standards/naming-conventions.md": "sha256:4d2e9adbbeb7b7879e11dff8b1b3bcf0f2e76af59035bc1a0d3a2e676e8fb618"
+  }
+}

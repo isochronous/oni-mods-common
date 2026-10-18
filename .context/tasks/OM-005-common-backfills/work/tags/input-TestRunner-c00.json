@@ -1,0 +1,401 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "TestRunner domains index: links to the entities and glossary documents, each with what it covers, from the harness, kit, launcher, warden, files, rules and states to the terms a newcomer needs",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-07e2a407bc4b\ndescription: \"TestRunner domains index: links to the entities and glossary documents, each with what it covers, from the harness, kit, launcher, warden, files, rules and states to the terms a newcomer needs\"\n---\n\n# Domains\n\n## Domains\n**Id:** blk-76548fb67349\n\nDocuments in this folder:\n\n- [entities](entities.md): the harness mod, `Session`, `TestBehaviour`, the patches, `FixtureArea`, `Worldgen`, `Reflect`, the test kit, the launcher and the warden, with the files they read and write, the business rules, the key code paths and the session states.\n- [glossary](glossary.md): the terms a newcomer needs: harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world, self-check.\n",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains",
+     "text": "## Domains\n**Id:** blk-76548fb67349\n\nDocuments in this folder:\n\n- [entities](entities.md): the harness mod, `Session`, `TestBehaviour`, the patches, `FixtureArea`, `Worldgen`, `Reflect`, the test kit, the launcher and the warden, with the files they read and write, the business rules, the key code paths and the session states.\n- [glossary](glossary.md): the terms a newcomer needs: harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world, self-check.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "TestRunner domain",
+   "description": "TestRunner's entities: TestRunnerMod, Session members, TestCase and TestResult, TestBehaviour, each patch, Harness, FixtureArea, Worldgen, Reflect, the Kit/ types, Invoke-OniTests.ps1 options, Watch-OniGame.ps1, files, rules, code paths and session states",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-78306051e4cf\ndescription: \"TestRunner's entities: TestRunnerMod, Session members, TestCase and TestResult, TestBehaviour, each patch, Harness, FixtureArea, Worldgen, Reflect, the Kit/ types, Invoke-OniTests.ps1 options, Watch-OniGame.ps1, files, rules, code paths and session states\"\napplies_to:\n  - \"*.cs\"\n  - \"Kit/**/*.cs\"\n  - \"*.ps1\"\n  - \"*.csproj\"\n  - \"*.yaml\"\n---\n\n# TestRunner domain\n\n## Overview\n**Id:** blk-70f176589bcc\n\nTestRunner runs a mod's in-game tests in the real game with nobody at the keyboard. A launcher builds the mod's test project, checks it with ModCheck, starts the game with `--onitest-dir=DIR --onitest-save=FILE`, and the harness mod loads a fixture save, runs every `[OniTest]` coroutine found in `DIR/tests/*.dll`, writes one JSON line per test and a status line, and quits (or stays up for the next run). Tests drive the game the way a player does: the real `InterfaceTool` fed the calls the player controller makes (layer 1), with the game's own API for setup and oracles (layer 0). It is a development tool, not for the Workshop, and inert without its arguments. The user-facing guide is `README.md`.\n\n## Key Entities\n**Id:** blk-978685bb1f6f\n\n### TestRunnerMod\n**Id:** blk-12154230c41b  \n**Description**: the entry point (`UserMod2`). Reads the command line, sets the crash-reporter flags, adds the assembly resolver that lets test assemblies find the mods under test and this harness, and traces quits.  \n**Location**: `Mod.cs`  \n**Relationships**: calls `Session.ReadCommandLine`; the patches in `Patches.cs`, `Worldgen.cs` and `Diagnostics.cs` are applied by `base.OnLoad`.\n\n### Session\n**Id:** blk-7f9302c43486  \n**Description**: command line, state and results of a session.  \n**Location**: `Session.cs`\n\n| Member | Description |\n|--------|-------------|\n| `Active`, `Started`, `Finished` | session flags; `Active` needs `--onitest-dir` and `--onitest-save` |\n| `Dir`, `SavePath`, `Filters`, `TimeoutSeconds`, `TestTimeoutSeconds`, `Keep`, `Trace`, `ServerDir` | the options |\n| `Tests`, `NextIndex` | the selected tests and the next to run; survive a scene change |\n| `Passed`, `Failed`, `Errors`, `Timeouts`, `Skipped`, `Reloads` | counters for the status line |\n| `Discover()` | loads every DLL in `DIR/tests` from its bytes and lists `[OniTest]` methods, sorted by assembly, class and declaration order |\n| `Start()`, `Continue()`, `WriteOff()` | begin a run; move to the next test's world or fixture; record tests as not run |\n| `Write(result)`, `Finish(status, detail)` | append a result; write the status and quit or go idle |\n| `PollQueue()`, `WriteState()` | live-session requests and state file |\n\n### TestCase and TestResult\n**Id:** blk-18187e3cb8c6  \n**Description**: a discovered test method (id, name, timeout, layer and the attribute flags) and what one test produced (one `results.jsonl` line).  \n**Location**: `Session.cs`\n\n### TestBehaviour\n**Id:** blk-49587b759cd2  \n**Description**: a `MonoBehaviour` on the Game object (or on a driver object for a no-colony run). Waits for the HUD, throws the harness switches, finds and clears the fixture area, then runs each test as a hand-stepped coroutine with a real-time deadline, captures logged errors, runs cleanups and writes the result.  \n**Location**: `TestBehaviour.cs` (`LogCapture` in the same file)\n\n### Patches\n**Id:** blk-6e02b4b02569  \n**Description**: Harmony patches, each inert unless `Session.Active`.  \n**Location**: `Patches.cs`\n\n| Patch | Does |\n|-------|------|\n| `MainMenu_OnSpawn_Patch` | notes when the menu appeared |\n| `App_LateUpdate_Patch` | four seconds after the menu: starts the session; drives worldgen; session timeout; polls the live queue |\n| `Game_OnSpawn_Patch` | adds `TestBehaviour` when the colony is up |\n| `SaveLoader_Save_Patch`, `Game_StartDelayedSave_Patch` | block saves outside the run folder; skip autosave |\n| `App_Quit_Patch` | logs who quit |\n| `Manager_MatchFootprint_Patch`, `Manager_Report_Patch` | no \"mod differences\" or \"mod events\" dialogs |\n| `GameFlowManager_CheckForGameOver_Patch` | no \"colony lost\" screen on a fixture with no Duplicants |\n| `KInputManager_OnApplicationFocus_Patch`, `InterfaceTool_OnApplicationFocus_Patch` | force the focus flags back on |\n\n### Harness\n**Id:** blk-052ae0295b17  \n**Description**: the global switches of a run: focus forced on, mouse position locked (parked in the bottom right corner between tests), physical keyboard and mouse ignored, instant build on, speed 1, tool reset, camera look-at.  \n**Location**: `Harness.cs`\n\n### FixtureArea\n**Id:** blk-633dd6387bca  \n**Description**: the 40 by 10 rectangle of the active world that tests build in: fully revealed and buildable, with the most empty cells (cells underground count double). Cleared before the first test and after every test (objects, loose items, solid cells; Duplicants are the test's to remove). `Dupes.Box` walls it for Duplicant tests.  \n**Location**: `FixtureArea.cs`\n\n### Worldgen and GeneratedWorld\n**Id:** blk-9e3323c536e4  \n**Description**: tests marked `[OniTest(Worldgen = \"COORD\")]` run in a world freshly generated from that coordinate: the harness goes to the main menu, applies the coordinate, runs the game's worldgen screen, embarks, then runs the test. Consecutive tests with one coordinate share the world. `GeneratedWorld` records the coordinate, the applied coordinate, the cluster, worldgen errors and seconds.  \n**Location**: `Worldgen.cs`\n\n### Reflect and Diagnostics\n**Id:** blk-741c81a8a7c1\n\n**Description**: `Reflect` is the list of private game members the kit and tests use, with `SelfCheck`; `Worldgen.cs` reads two buttons with its own `AccessTools.Field` calls. `Diagnostics` traces the grid marks the game makes during tests (`--onitest-trace=1`).  \n**Location**: `Reflect.cs`, `Diagnostics.cs`\n\n### The kit (`Isochronous.TestKit`)\n**Id:** blk-c6e1619a47bb  \n**Description**: what a test author uses.  \n**Location**: `Kit/`\n\n| Type | File | Purpose |\n|------|------|---------|\n| `OniTestAttribute`, `LayerAttribute` | `Attributes.cs` | mark tests and set their options (`Timeout`, `FreshSave`, `Explicit`, `Boxed`, `NoColony`, `Worldgen`) |\n| `OniAssertException`, `SkipException` | `Attributes.cs` | thrown by `t.Assert` and `t.Skip` |\n| `TestContext` | `TestContext.cs` | `Assert`, `World`, `Tools`, `Dupes`, waits (`Frames`, `WaitGameSeconds`, `WaitRealSeconds`, `WaitUntil`), `Rect`, `Area`, `Log`, `Cleanup`, `AllowLogError`, `Skip`, `Speed`, `InstantBuild`, `ResearchAll`, `Screenshot`, `Press`, `PointAt`, `LookAt`, `Generated` |\n| `Wait` and its subclasses, `CellRect` | `TestContext.cs` | what a test yields; a rectangle of cells |\n| `OniAssert` | `OniAssert.cs` | `True`, `False`, `Eq`, `NotEq`, `Null`, `NotNull`, `Has`, `Lacks`, `Fail` |\n| `World`, `Cells` | `World.cs` | `Build`, `At`, `Destroy`, `LogicNetwork`, `LogicConnections` at layer 0; cell descriptions |\n| `Tools`, `UtilityDragSession` | `Tools.cs` | the real utility build tool at layer 1: `Path`, `Sweep`, `PreviewTint`, `PreviewValid` |\n| `Dupes` | `Dupes.cs` | `Box`, `ClearBox`, `Spawn`, `Grant`, `GrantAll`, `Drop`, `Remove`, `RemoveAll` |\n| `SaveFile` | `SaveFile.cs` | `Capture` and `Restore` a building through the game's own save and load |\n\n### Invoke-OniTests.ps1\n**Id:** blk-5b0c52216ccc  \n**Description**: the launcher. For each mod in `-Mods`, finds `src/<Mod>.Tests/<Mod>.Tests.csproj` (in a repo or under `mods/`), builds it, checks the test DLL with `tools/ModCheck`, copies it into the run folder, rewrites `mods.json` so only TestRunner, the mods under test, `-With` and `-Steam` are enabled, launches the game through Steam (or hands the run to a live game), waits for the status, prints a line per test and exits with its code.  \n**Location**: `Invoke-OniTests.ps1`  \n**Options**: `-Mods` (required), `-Filter`, `-Fixture`, `-With`, `-Steam`, `-TimeoutSec`, `-TestTimeoutSec`, `-KeepGame`, `-BuildOnly`, `-NoBuild`, `-NoCheck`, `-BuildArgs`, `-Label`, `-Trace`, `-OutDir`, `-SteamExe`, `-AppId`.\n\n### Watch-OniGame.ps1\n**Id:** blk-5f4f98f50aec  \n**Description**: the warden of a live session, started detached next to the game. Waits for the game to exit, restores `mods.json` from the backup, removes the live-session folder; ends a game that stops answering.  \n**Location**: `Watch-OniGame.ps1`\n\n### Files\n**Id:** blk-aabf5834e2e4\n\n| File | Direction | Purpose |\n|------|-----------|---------|\n| `DIR/tests/*.dll` | read | the test assemblies |\n| `DIR/results.jsonl`, `results.jsonl.status` | written by the game | per-test results; the session status |\n| `DIR/artifacts/*.png` | written by the game | `t.Screenshot` output |\n| fixture save | read | copied to the run folder as `fixture.sav`; never written back |\n| `Documents\\Klei\\OxygenNotIncluded\\mods\\mods.json` | rewritten, restored | the run's loadout; backup `mods.json.onitest-backup` |\n| `%LOCALAPPDATA%\\IsochronousOniTests\\live` | read, written | live-session queue, state and pid |\n\n## Business Rules\n**Id:** blk-ad9c4a3b39af\n\n- Without `--onitest-dir` and `--onitest-save` the mod changes nothing.\n- No save goes to disk outside the run folder, and the game's autosave is skipped.\n- A test is `public static IEnumerator M(TestContext t)` with `[OniTest]`; any other signature with the attribute fails the session at discovery.\n- Tests run in order of assembly name, class, declaration. An `Explicit` test runs only when `-Filter` selects it.\n- Any `Error`, `Exception` or `Assert` the game logs during a test fails it unless `t.AllowLogError` allows it.\n- Each mod's tests start on a fresh load of the fixture; `[OniTest(FreshSave = true)]` loads it again before a test, after a settle of five game seconds.\n- A run is handed to a live game only when the loadout matches: the mode, the mods, `-With`, `-Steam`, `-Trace` and every file of each deployed local mod, the harness and their shared configs. Anything else ends the game and launches a new one.\n- The game stays up 15 s after a run for another; one run at a time per machine.\n- A world coordinate of the other game mode skips its tests.\n- A run needs Steam running and the game not running (apart from its own live session).\n\n## Key Code Paths\n**Id:** blk-8a2f716a53ff\n\n- **Launch**: `Invoke-OniTests.ps1` builds, runs ModCheck, writes `mods.json`, starts or hands over to the game. See `Invoke-OniTests.ps1`.\n- **Start**: `MainMenu.OnSpawn` postfix, then `App.LateUpdate` postfix calls `Session.Start`: `Discover`, then `Continue` loads the fixture (`LoadScreen.DoLoad`) or asks for a world. See `Patches.cs`, `Session.cs`.\n- **Run**: `Game.OnSpawn` postfix adds `TestBehaviour`; `RunAll` picks the area, clears it and steps each test with `RunOne`. See `TestBehaviour.cs`.\n- **Generated world**: `Worldgen.Begin` at the main menu, `Worldgen.Embark` after the colony spawns. See `Worldgen.cs`.\n- **End**: `Session.Finish` writes the status and quits or goes idle; the launcher reads `results.jsonl` and the status and exits. See `Session.cs`, `Invoke-OniTests.ps1`.\n- **Live session**: `Session.PollQueue` takes `<run>.req`, `Session.Begin` resets and starts again. See `Session.cs`.\n\n## State Transitions\n**Id:** blk-27f068ae61ee\n\n| State | Transitions To | Trigger |\n|-------|---------------|---------|\n| test pending | pass, fail, error, timeout, skipped | the driver steps it (see [error handling](../standards/error-handling.md)) |\n| session busy | idle | `Session.Finish` in a live session |\n| session idle | busy | a request in `queue` |\n| session idle | quitting | `quit.req`, or 15 s with no request |\n\n## Related\n**Id:** blk-ac2e0e4164d8\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview",
+     "text": "## Overview\n**Id:** blk-70f176589bcc\n\nTestRunner runs a mod's in-game tests in the real game with nobody at the keyboard. A launcher builds the mod's test project, checks it with ModCheck, starts the game with `--onitest-dir=DIR --onitest-save=FILE`, and the harness mod loads a fixture save, runs every `[OniTest]` coroutine found in `DIR/tests/*.dll`, writes one JSON line per test and a status line, and quits (or stays up for the next run). Tests drive the game the way a player does: the real `InterfaceTool` fed the calls the player controller makes (layer 1), with the game's own API for setup and oracles (layer 0). It is a development tool, not for the Workshop, and inert without its arguments. The user-facing guide is `README.md`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities",
+     "text": "## Key Entities\n**Id:** blk-978685bb1f6f\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/testrunnermod",
+     "title": "TestRunnerMod",
+     "text": "### TestRunnerMod\n**Id:** blk-12154230c41b  \n**Description**: the entry point (`UserMod2`). Reads the command line, sets the crash-reporter flags, adds the assembly resolver that lets test assemblies find the mods under test and this harness, and traces quits.  \n**Location**: `Mod.cs`  \n**Relationships**: calls `Session.ReadCommandLine`; the patches in `Patches.cs`, `Worldgen.cs` and `Diagnostics.cs` are applied by `base.OnLoad`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/session",
+     "title": "Session",
+     "text": "### Session\n**Id:** blk-7f9302c43486  \n**Description**: command line, state and results of a session.  \n**Location**: `Session.cs`\n\n| Member | Description |\n|--------|-------------|\n| `Active`, `Started`, `Finished` | session flags; `Active` needs `--onitest-dir` and `--onitest-save` |\n| `Dir`, `SavePath`, `Filters`, `TimeoutSeconds`, `TestTimeoutSeconds`, `Keep`, `Trace`, `ServerDir` | the options |\n| `Tests`, `NextIndex` | the selected tests and the next to run; survive a scene change |\n| `Passed`, `Failed`, `Errors`, `Timeouts`, `Skipped`, `Reloads` | counters for the status line |\n| `Discover()` | loads every DLL in `DIR/tests` from its bytes and lists `[OniTest]` methods, sorted by assembly, class and declaration order |\n| `Start()`, `Continue()`, `WriteOff()` | begin a run; move to the next test's world or fixture; record tests as not run |\n| `Write(result)`, `Finish(status, detail)` | append a result; write the status and quit or go idle |\n| `PollQueue()`, `WriteState()` | live-session requests and state file |\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/testcase-and-testresult",
+     "title": "TestCase and TestResult",
+     "text": "### TestCase and TestResult\n**Id:** blk-18187e3cb8c6  \n**Description**: a discovered test method (id, name, timeout, layer and the attribute flags) and what one test produced (one `results.jsonl` line).  \n**Location**: `Session.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/testbehaviour",
+     "title": "TestBehaviour",
+     "text": "### TestBehaviour\n**Id:** blk-49587b759cd2  \n**Description**: a `MonoBehaviour` on the Game object (or on a driver object for a no-colony run). Waits for the HUD, throws the harness switches, finds and clears the fixture area, then runs each test as a hand-stepped coroutine with a real-time deadline, captures logged errors, runs cleanups and writes the result.  \n**Location**: `TestBehaviour.cs` (`LogCapture` in the same file)\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/patches",
+     "title": "Patches",
+     "text": "### Patches\n**Id:** blk-6e02b4b02569  \n**Description**: Harmony patches, each inert unless `Session.Active`.  \n**Location**: `Patches.cs`\n\n| Patch | Does |\n|-------|------|\n| `MainMenu_OnSpawn_Patch` | notes when the menu appeared |\n| `App_LateUpdate_Patch` | four seconds after the menu: starts the session; drives worldgen; session timeout; polls the live queue |\n| `Game_OnSpawn_Patch` | adds `TestBehaviour` when the colony is up |\n| `SaveLoader_Save_Patch`, `Game_StartDelayedSave_Patch` | block saves outside the run folder; skip autosave |\n| `App_Quit_Patch` | logs who quit |\n| `Manager_MatchFootprint_Patch`, `Manager_Report_Patch` | no \"mod differences\" or \"mod events\" dialogs |\n| `GameFlowManager_CheckForGameOver_Patch` | no \"colony lost\" screen on a fixture with no Duplicants |\n| `KInputManager_OnApplicationFocus_Patch`, `InterfaceTool_OnApplicationFocus_Patch` | force the focus flags back on |\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/harness",
+     "title": "Harness",
+     "text": "### Harness\n**Id:** blk-052ae0295b17  \n**Description**: the global switches of a run: focus forced on, mouse position locked (parked in the bottom right corner between tests), physical keyboard and mouse ignored, instant build on, speed 1, tool reset, camera look-at.  \n**Location**: `Harness.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/fixturearea",
+     "title": "FixtureArea",
+     "text": "### FixtureArea\n**Id:** blk-633dd6387bca  \n**Description**: the 40 by 10 rectangle of the active world that tests build in: fully revealed and buildable, with the most empty cells (cells underground count double). Cleared before the first test and after every test (objects, loose items, solid cells; Duplicants are the test's to remove). `Dupes.Box` walls it for Duplicant tests.  \n**Location**: `FixtureArea.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/worldgen-and-generatedworld",
+     "title": "Worldgen and GeneratedWorld",
+     "text": "### Worldgen and GeneratedWorld\n**Id:** blk-9e3323c536e4  \n**Description**: tests marked `[OniTest(Worldgen = \"COORD\")]` run in a world freshly generated from that coordinate: the harness goes to the main menu, applies the coordinate, runs the game's worldgen screen, embarks, then runs the test. Consecutive tests with one coordinate share the world. `GeneratedWorld` records the coordinate, the applied coordinate, the cluster, worldgen errors and seconds.  \n**Location**: `Worldgen.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/reflect-and-diagnostics",
+     "title": "Reflect and Diagnostics",
+     "text": "### Reflect and Diagnostics\n**Id:** blk-741c81a8a7c1\n\n**Description**: `Reflect` is the list of private game members the kit and tests use, with `SelfCheck`; `Worldgen.cs` reads two buttons with its own `AccessTools.Field` calls. `Diagnostics` traces the grid marks the game makes during tests (`--onitest-trace=1`).  \n**Location**: `Reflect.cs`, `Diagnostics.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/the-kit-isochronous-testkit",
+     "title": "The kit (`Isochronous.TestKit`)",
+     "text": "### The kit (`Isochronous.TestKit`)\n**Id:** blk-c6e1619a47bb  \n**Description**: what a test author uses.  \n**Location**: `Kit/`\n\n| Type | File | Purpose |\n|------|------|---------|\n| `OniTestAttribute`, `LayerAttribute` | `Attributes.cs` | mark tests and set their options (`Timeout`, `FreshSave`, `Explicit`, `Boxed`, `NoColony`, `Worldgen`) |\n| `OniAssertException`, `SkipException` | `Attributes.cs` | thrown by `t.Assert` and `t.Skip` |\n| `TestContext` | `TestContext.cs` | `Assert`, `World`, `Tools`, `Dupes`, waits (`Frames`, `WaitGameSeconds`, `WaitRealSeconds`, `WaitUntil`), `Rect`, `Area`, `Log`, `Cleanup`, `AllowLogError`, `Skip`, `Speed`, `InstantBuild`, `ResearchAll`, `Screenshot`, `Press`, `PointAt`, `LookAt`, `Generated` |\n| `Wait` and its subclasses, `CellRect` | `TestContext.cs` | what a test yields; a rectangle of cells |\n| `OniAssert` | `OniAssert.cs` | `True`, `False`, `Eq`, `NotEq`, `Null`, `NotNull`, `Has`, `Lacks`, `Fail` |\n| `World`, `Cells` | `World.cs` | `Build`, `At`, `Destroy`, `LogicNetwork`, `LogicConnections` at layer 0; cell descriptions |\n| `Tools`, `UtilityDragSession` | `Tools.cs` | the real utility build tool at layer 1: `Path`, `Sweep`, `PreviewTint`, `PreviewValid` |\n| `Dupes` | `Dupes.cs` | `Box`, `ClearBox`, `Spawn`, `Grant`, `GrantAll`, `Drop`, `Remove`, `RemoveAll` |\n| `SaveFile` | `SaveFile.cs` | `Capture` and `Restore` a building through the game's own save and load |\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/invoke-onitests-ps1",
+     "title": "Invoke-OniTests.ps1",
+     "text": "### Invoke-OniTests.ps1\n**Id:** blk-5b0c52216ccc  \n**Description**: the launcher. For each mod in `-Mods`, finds `src/<Mod>.Tests/<Mod>.Tests.csproj` (in a repo or under `mods/`), builds it, checks the test DLL with `tools/ModCheck`, copies it into the run folder, rewrites `mods.json` so only TestRunner, the mods under test, `-With` and `-Steam` are enabled, launches the game through Steam (or hands the run to a live game), waits for the status, prints a line per test and exits with its code.  \n**Location**: `Invoke-OniTests.ps1`  \n**Options**: `-Mods` (required), `-Filter`, `-Fixture`, `-With`, `-Steam`, `-TimeoutSec`, `-TestTimeoutSec`, `-KeepGame`, `-BuildOnly`, `-NoBuild`, `-NoCheck`, `-BuildArgs`, `-Label`, `-Trace`, `-OutDir`, `-SteamExe`, `-AppId`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/watch-onigame-ps1",
+     "title": "Watch-OniGame.ps1",
+     "text": "### Watch-OniGame.ps1\n**Id:** blk-5f4f98f50aec  \n**Description**: the warden of a live session, started detached next to the game. Waits for the game to exit, restores `mods.json` from the backup, removes the live-session folder; ends a game that stops answering.  \n**Location**: `Watch-OniGame.ps1`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/files",
+     "title": "Files",
+     "text": "### Files\n**Id:** blk-aabf5834e2e4\n\n| File | Direction | Purpose |\n|------|-----------|---------|\n| `DIR/tests/*.dll` | read | the test assemblies |\n| `DIR/results.jsonl`, `results.jsonl.status` | written by the game | per-test results; the session status |\n| `DIR/artifacts/*.png` | written by the game | `t.Screenshot` output |\n| fixture save | read | copied to the run folder as `fixture.sav`; never written back |\n| `Documents\\Klei\\OxygenNotIncluded\\mods\\mods.json` | rewritten, restored | the run's loadout; backup `mods.json.onitest-backup` |\n| `%LOCALAPPDATA%\\IsochronousOniTests\\live` | read, written | live-session queue, state and pid |\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules",
+     "text": "## Business Rules\n**Id:** blk-ad9c4a3b39af\n\n- Without `--onitest-dir` and `--onitest-save` the mod changes nothing.\n- No save goes to disk outside the run folder, and the game's autosave is skipped.\n- A test is `public static IEnumerator M(TestContext t)` with `[OniTest]`; any other signature with the attribute fails the session at discovery.\n- Tests run in order of assembly name, class, declaration. An `Explicit` test runs only when `-Filter` selects it.\n- Any `Error`, `Exception` or `Assert` the game logs during a test fails it unless `t.AllowLogError` allows it.\n- Each mod's tests start on a fresh load of the fixture; `[OniTest(FreshSave = true)]` loads it again before a test, after a settle of five game seconds.\n- A run is handed to a live game only when the loadout matches: the mode, the mods, `-With`, `-Steam`, `-Trace` and every file of each deployed local mod, the harness and their shared configs. Anything else ends the game and launches a new one.\n- The game stays up 15 s after a run for another; one run at a time per machine.\n- A world coordinate of the other game mode skips its tests.\n- A run needs Steam running and the game not running (apart from its own live session).\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths",
+     "text": "## Key Code Paths\n**Id:** blk-8a2f716a53ff\n\n- **Launch**: `Invoke-OniTests.ps1` builds, runs ModCheck, writes `mods.json`, starts or hands over to the game. See `Invoke-OniTests.ps1`.\n- **Start**: `MainMenu.OnSpawn` postfix, then `App.LateUpdate` postfix calls `Session.Start`: `Discover`, then `Continue` loads the fixture (`LoadScreen.DoLoad`) or asks for a world. See `Patches.cs`, `Session.cs`.\n- **Run**: `Game.OnSpawn` postfix adds `TestBehaviour`; `RunAll` picks the area, clears it and steps each test with `RunOne`. See `TestBehaviour.cs`.\n- **Generated world**: `Worldgen.Begin` at the main menu, `Worldgen.Embark` after the colony spawns. See `Worldgen.cs`.\n- **End**: `Session.Finish` writes the status and quits or goes idle; the launcher reads `results.jsonl` and the status and exits. See `Session.cs`, `Invoke-OniTests.ps1`.\n- **Live session**: `Session.PollQueue` takes `<run>.req`, `Session.Begin` resets and starts again. See `Session.cs`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions",
+     "text": "## State Transitions\n**Id:** blk-27f068ae61ee\n\n| State | Transitions To | Trigger |\n|-------|---------------|---------|\n| test pending | pass, fail, error, timeout, skipped | the driver steps it (see [error handling](../standards/error-handling.md)) |\n| session busy | idle | `Session.Finish` in a live session |\n| session idle | busy | a request in `queue` |\n| session idle | quitting | `quit.req`, or 15 s with no request |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-ac2e0e4164d8\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "TestRunner glossary",
+   "description": "TestRunner glossary: the abbreviations ONI, SO, HUD and DLL, and definitions of harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world and self-check",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-4d8a297d3589\ndescription: \"TestRunner glossary: the abbreviations ONI, SO, HUD and DLL, and definitions of harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world and self-check\"\n---\n\n# TestRunner glossary\n\nTerms a newcomer to TestRunner needs. Entity detail is in [entities](entities.md).\n\n## Abbreviations and Acronyms\n**Id:** blk-f88dca2a1b27\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| ONI | Oxygen Not Included | the game |\n| SO | Spaced Out | the expansion; its mode loads `testbed-so.sav`, the only fixture supplied |\n| HUD | heads-up display | the driver waits up to 60 s for it before the first test |\n| DLL | test assembly | `<Mod>.Tests.dll`, copied to `DIR/tests` |\n\n## Cross-Domain Terms\n**Id:** blk-d5cc7906d14d\n\n### Harness\n**Id:** blk-0c81d2ef6d47  \n**Definition**: the TestRunner mod itself: the code in the game that loads the fixture, steps tests and reports. Versus the kit, which is what tests call.  \n**Used in**: `Harness.cs`, `README.md`.\n\n### Kit\n**Id:** blk-cddba398d1da  \n**Definition**: `Isochronous.TestKit` in `Kit/`: the test context, assertions, attributes and helpers a test project references.  \n**Used in**: every test project.\n\n### Fixture\n**Id:** blk-4199508c4e2e\n\n**Definition**: the save a run loads: `fixtures/testbed-so.sav` in Spaced Out mode (the only fixture supplied), `fixtures/testbed-base.sav` in base-game mode (copy it in first), or the `-Fixture` path: sandbox on, no Duplicants, revealed map. Tests never change the file; the launcher copies it into the run folder.  \n**Used in**: `Session.Continue`, the launcher.\n\n### Fixture area\n**Id:** blk-a0cfe36dee6e  \n**Definition**: the 40 by 10 window of the active world that the harness picks and clears for tests (`FixtureArea`); `t.Rect(w, h)` gives a clear rectangle inside it with a one-cell margin.  \n**Used in**: `FixtureArea.cs`, `TestContext`.\n\n### Layer\n**Id:** blk-46885449ff2a  \n**Definition**: where a test drives the game: 0 the game's API, 1 the tool (real `InterfaceTool` input), 2 UI, 3 input. Recorded with `[Layer(n)]` and in the results; layers 2 and 3 are not built.  \n**Used in**: `LayerAttribute`, `TestResult`.\n\n### Run, session and live session\n**Id:** blk-be133b9156d5  \n**Definition**: a run is one launcher invocation's tests. A session is one game process taking runs. A live session is a game that stays up 15 s after a run and takes the next one with the same loadout from its queue.  \n**Used in**: `Session.cs`, the launcher, `Watch-OniGame.ps1`.\n\n### Warden\n**Id:** blk-17051b9bdfa7  \n**Definition**: `Watch-OniGame.ps1`, the detached process that restores `mods.json` and clears the live-session folder when the game exits.  \n**Used in**: the launcher, `Watch-OniGame.ps1`.\n\n### Wait\n**Id:** blk-12fc1ae73c38  \n**Definition**: an object a test yields (`t.Frames`, `t.WaitGameSeconds`, `t.WaitRealSeconds`, `t.WaitUntil`); the driver polls it once per frame against the test's deadline and fails the test with its description when it times out.  \n**Used in**: `Kit/TestContext.cs`, `TestBehaviour.cs`.\n\n### Box\n**Id:** blk-40af48693237  \n**Definition**: the Duplicants' box: tiles walling the fixture area with air inside and a dev life support, made by `t.Dupes.Box()`; `[OniTest(Boxed = true)]` keeps it between consecutive tests.  \n**Used in**: `Kit/Dupes.cs`, `FixtureArea.cs`.\n\n### Loadout\n**Id:** blk-90066b0e7a52  \n**Definition**: the list of enabled mods in `mods.json`. A run enables only TestRunner, the mods under test, `-With` and `-Steam`; the player's is backed up and restored.  \n**Used in**: the launcher, the warden.\n\n### Generated world\n**Id:** blk-4d6d5f72d7c2  \n**Definition**: a world made fresh from a coordinate such as `SNDST-C-100-0-0-0` (the letter before the seed is `C` for Spaced Out, `A` for base game) for tests with `Worldgen = ...`.  \n**Used in**: `Worldgen.cs`.\n\n### Self-check\n**Id:** blk-14e9c9072d5c  \n**Definition**: `Reflect.SelfCheck()`, run before the first test, listing the private game members that no longer resolve.  \n**Used in**: `Reflect.cs`.\n\n## Related\n**Id:** blk-db910f4597a3\n\n- See also: [entities](entities.md)\n",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms",
+     "text": "## Abbreviations and Acronyms\n**Id:** blk-f88dca2a1b27\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| ONI | Oxygen Not Included | the game |\n| SO | Spaced Out | the expansion; its mode loads `testbed-so.sav`, the only fixture supplied |\n| HUD | heads-up display | the driver waits up to 60 s for it before the first test |\n| DLL | test assembly | `<Mod>.Tests.dll`, copied to `DIR/tests` |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms",
+     "text": "## Cross-Domain Terms\n**Id:** blk-d5cc7906d14d\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/harness",
+     "title": "Harness",
+     "text": "### Harness\n**Id:** blk-0c81d2ef6d47  \n**Definition**: the TestRunner mod itself: the code in the game that loads the fixture, steps tests and reports. Versus the kit, which is what tests call.  \n**Used in**: `Harness.cs`, `README.md`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/kit",
+     "title": "Kit",
+     "text": "### Kit\n**Id:** blk-cddba398d1da  \n**Definition**: `Isochronous.TestKit` in `Kit/`: the test context, assertions, attributes and helpers a test project references.  \n**Used in**: every test project.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/fixture",
+     "title": "Fixture",
+     "text": "### Fixture\n**Id:** blk-4199508c4e2e\n\n**Definition**: the save a run loads: `fixtures/testbed-so.sav` in Spaced Out mode (the only fixture supplied), `fixtures/testbed-base.sav` in base-game mode (copy it in first), or the `-Fixture` path: sandbox on, no Duplicants, revealed map. Tests never change the file; the launcher copies it into the run folder.  \n**Used in**: `Session.Continue`, the launcher.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/fixture-area",
+     "title": "Fixture area",
+     "text": "### Fixture area\n**Id:** blk-a0cfe36dee6e  \n**Definition**: the 40 by 10 window of the active world that the harness picks and clears for tests (`FixtureArea`); `t.Rect(w, h)` gives a clear rectangle inside it with a one-cell margin.  \n**Used in**: `FixtureArea.cs`, `TestContext`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/layer",
+     "title": "Layer",
+     "text": "### Layer\n**Id:** blk-46885449ff2a  \n**Definition**: where a test drives the game: 0 the game's API, 1 the tool (real `InterfaceTool` input), 2 UI, 3 input. Recorded with `[Layer(n)]` and in the results; layers 2 and 3 are not built.  \n**Used in**: `LayerAttribute`, `TestResult`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/run-session-and-live-session",
+     "title": "Run, session and live session",
+     "text": "### Run, session and live session\n**Id:** blk-be133b9156d5  \n**Definition**: a run is one launcher invocation's tests. A session is one game process taking runs. A live session is a game that stays up 15 s after a run and takes the next one with the same loadout from its queue.  \n**Used in**: `Session.cs`, the launcher, `Watch-OniGame.ps1`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/warden",
+     "title": "Warden",
+     "text": "### Warden\n**Id:** blk-17051b9bdfa7  \n**Definition**: `Watch-OniGame.ps1`, the detached process that restores `mods.json` and clears the live-session folder when the game exits.  \n**Used in**: the launcher, `Watch-OniGame.ps1`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/wait",
+     "title": "Wait",
+     "text": "### Wait\n**Id:** blk-12fc1ae73c38  \n**Definition**: an object a test yields (`t.Frames`, `t.WaitGameSeconds`, `t.WaitRealSeconds`, `t.WaitUntil`); the driver polls it once per frame against the test's deadline and fails the test with its description when it times out.  \n**Used in**: `Kit/TestContext.cs`, `TestBehaviour.cs`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/box",
+     "title": "Box",
+     "text": "### Box\n**Id:** blk-40af48693237  \n**Definition**: the Duplicants' box: tiles walling the fixture area with air inside and a dev life support, made by `t.Dupes.Box()`; `[OniTest(Boxed = true)]` keeps it between consecutive tests.  \n**Used in**: `Kit/Dupes.cs`, `FixtureArea.cs`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/loadout",
+     "title": "Loadout",
+     "text": "### Loadout\n**Id:** blk-90066b0e7a52  \n**Definition**: the list of enabled mods in `mods.json`. A run enables only TestRunner, the mods under test, `-With` and `-Steam`; the player's is backed up and restored.  \n**Used in**: the launcher, the warden.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/generated-world",
+     "title": "Generated world",
+     "text": "### Generated world\n**Id:** blk-4d6d5f72d7c2  \n**Definition**: a world made fresh from a coordinate such as `SNDST-C-100-0-0-0` (the letter before the seed is `C` for Spaced Out, `A` for base game) for tests with `Worldgen = ...`.  \n**Used in**: `Worldgen.cs`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/self-check",
+     "title": "Self-check",
+     "text": "### Self-check\n**Id:** blk-14e9c9072d5c  \n**Definition**: `Reflect.SelfCheck()`, run before the first test, listing the private game members that no longer resolve.  \n**Used in**: `Reflect.cs`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-db910f4597a3\n\n- See also: [entities](entities.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "TestRunner",
+   "description": "What TestRunner is: the harness mod and Invoke-OniTests.ps1 launcher that run [OniTest] tests unattended in the real game, then a file map of Session.cs, TestBehaviour.cs, Patches.cs, Kit/, fixtures/, Watch-OniGame.ps1 and the other sources",
+   "document_tags": [],
+   "text": "---\ndescription: \"What TestRunner is: the harness mod and Invoke-OniTests.ps1 launcher that run [OniTest] tests unattended in the real game, then a file map of Session.cs, TestBehaviour.cs, Patches.cs, Kit/, fixtures/, Watch-OniGame.ps1 and the other sources\"\n---\n\n# TestRunner\n\n## What this is\n**Id:** blk-666b8641eaaa\n\nTestRunner runs an Oxygen Not Included mod's in-game tests in the real game with nobody at the keyboard. It has two halves. The harness is a development-only mod (`Isochronous.TestRunner`, version 0.1.0 in `mod_info.yaml`, minimum build 744825, not for the Workshop): started with `--onitest-dir=DIR --onitest-save=FILE`, it loads a fixture save, blocks saves outside `DIR`, runs every `[OniTest]` coroutine in `DIR/tests/*.dll`, writes one JSON line per test and a status line, then quits or stays up 15 s for the next run. The launcher, `Invoke-OniTests.ps1`, builds a mod's `<Mod>.Tests` project, checks it with `tools/ModCheck`, sets the enabled mods in `mods.json`, starts the game through Steam (or hands the run to a game already up with the same loadout) and prints a line per test. Tests compile against the test kit, `Isochronous.TestKit` in `Kit/`, and drive the game the way a player does. Without its arguments the mod does nothing, so it stays installed. The mod developer and the agents working on ONI-Mods use it: every mod's `src/<ModName>.Tests/` project runs through it.\n\n## Where things are\n**Id:** blk-b5f287049a7f\n\nTop-level folders and key files:\n\n- `Mod.cs`: the `UserMod2` entry point. Reads the command line, turns the crash dialog off for a run and resolves test assemblies against the mods under test.\n- `Session.cs`: the options, the discovered tests, the counters, the results and status files, and the live-session queue.\n- `TestBehaviour.cs`: steps each test's coroutine by hand with a real-time deadline, captures errors the game logs and runs cleanups.\n- `Patches.cs`: the Harmony patches that start a run from the main menu, block saves outside the run folder, skip autosave, suppress the mod and game-over dialogs and force the focus flags.\n- `Harness.cs`: the run-wide switches: focus forced on, mouse locked, physical keyboard and mouse ignored, instant build, speed 1.\n- `FixtureArea.cs`: picks the 40x10 test area in the fixture world and clears it before and after each test.\n- `Worldgen.cs`: runs `[OniTest(Worldgen = ...)]` tests in a world freshly generated from a coordinate.\n- `Reflect.cs`: every private game member the harness and kit read, with the self-check; `Diagnostics.cs`: the grid-mark trace behind `-Trace`.\n- `Kit/`: the test kit (`Attributes.cs`, `TestContext.cs`, `OniAssert.cs`, `World.cs`, `Tools.cs`, `Dupes.cs`, `SaveFile.cs`).\n- `Invoke-OniTests.ps1`: the launcher. `Watch-OniGame.ps1`: the warden that puts `mods.json` back and removes the live-session folder after the game exits.\n- `fixtures/`: `testbed-so.sav`, the Spaced Out fixture save and the only test save tracked in git, and `README.md` on what makes a good fixture. The base-game fixture the launcher looks for, `testbed-base.sav`, is not in the repo.\n- `TestRunner.csproj`: imports `oni-mod.props` and `oni-mod.targets` from the root of common; `mod.yaml` and `mod_info.yaml` beside it.\n- `README.md`: running the launcher and its options, writing tests, the output and how it works.\n- `runs/`: one folder per run (`<label>-<stamp>`) with the results, `Player.log`, the fixture copy and the checked DLLs; ignored by git.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is",
+     "text": "## What this is\n**Id:** blk-666b8641eaaa\n\nTestRunner runs an Oxygen Not Included mod's in-game tests in the real game with nobody at the keyboard. It has two halves. The harness is a development-only mod (`Isochronous.TestRunner`, version 0.1.0 in `mod_info.yaml`, minimum build 744825, not for the Workshop): started with `--onitest-dir=DIR --onitest-save=FILE`, it loads a fixture save, blocks saves outside `DIR`, runs every `[OniTest]` coroutine in `DIR/tests/*.dll`, writes one JSON line per test and a status line, then quits or stays up 15 s for the next run. The launcher, `Invoke-OniTests.ps1`, builds a mod's `<Mod>.Tests` project, checks it with `tools/ModCheck`, sets the enabled mods in `mods.json`, starts the game through Steam (or hands the run to a game already up with the same loadout) and prints a line per test. Tests compile against the test kit, `Isochronous.TestKit` in `Kit/`, and drive the game the way a player does. Without its arguments the mod does nothing, so it stays installed. The mod developer and the agents working on ONI-Mods use it: every mod's `src/<ModName>.Tests/` project runs through it.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are",
+     "text": "## Where things are\n**Id:** blk-b5f287049a7f\n\nTop-level folders and key files:\n\n- `Mod.cs`: the `UserMod2` entry point. Reads the command line, turns the crash dialog off for a run and resolves test assemblies against the mods under test.\n- `Session.cs`: the options, the discovered tests, the counters, the results and status files, and the live-session queue.\n- `TestBehaviour.cs`: steps each test's coroutine by hand with a real-time deadline, captures errors the game logs and runs cleanups.\n- `Patches.cs`: the Harmony patches that start a run from the main menu, block saves outside the run folder, skip autosave, suppress the mod and game-over dialogs and force the focus flags.\n- `Harness.cs`: the run-wide switches: focus forced on, mouse locked, physical keyboard and mouse ignored, instant build, speed 1.\n- `FixtureArea.cs`: picks the 40x10 test area in the fixture world and clears it before and after each test.\n- `Worldgen.cs`: runs `[OniTest(Worldgen = ...)]` tests in a world freshly generated from a coordinate.\n- `Reflect.cs`: every private game member the harness and kit read, with the self-check; `Diagnostics.cs`: the grid-mark trace behind `-Trace`.\n- `Kit/`: the test kit (`Attributes.cs`, `TestContext.cs`, `OniAssert.cs`, `World.cs`, `Tools.cs`, `Dupes.cs`, `SaveFile.cs`).\n- `Invoke-OniTests.ps1`: the launcher. `Watch-OniGame.ps1`: the warden that puts `mods.json` back and removes the live-session folder after the game exits.\n- `fixtures/`: `testbed-so.sav`, the Spaced Out fixture save and the only test save tracked in git, and `README.md` on what makes a good fixture. The base-game fixture the launcher looks for, `testbed-base.sav`, is not in the repo.\n- `TestRunner.csproj`: imports `oni-mod.props` and `oni-mod.targets` from the root of common; `mod.yaml` and `mod_info.yaml` beside it.\n- `README.md`: running the launcher and its options, writing tests, the output and how it works.\n- `runs/`: one folder per run (`<label>-<stamp>`) with the results, `Player.log`, the fixture copy and the checked DLLs; ignored by git.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "TestRunner standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and Reflect to exit codes, options and result fields",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-17e29e4d7c07\ndescription: \"TestRunner standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and Reflect to exit codes, options and result fields\"\n---\n\n# Standards\n\n## Standards\n**Id:** blk-4b5b26e6981b\n\nDocuments in this folder:\n\n- [code-style](code-style.md): C# and PowerShell formatting, the toolchain, file layout, staying inert without the argument, Harmony patches, private game members through `Reflect`, and comments.\n- [error-handling](error-handling.md): how problems become results: test statuses, session statuses, launcher exit codes 0 to 3, hand-stepped coroutines, the crash dialog, the `mods.json` restore and the one-run lock, and logging.\n- [naming-conventions](naming-conventions.md): files, namespaces, patches, `Reflect` handles, waits, attributes, test classes and ids, `--onitest-*` options, launcher parameters, run folders and result fields.\n",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards",
+     "text": "## Standards\n**Id:** blk-4b5b26e6981b\n\nDocuments in this folder:\n\n- [code-style](code-style.md): C# and PowerShell formatting, the toolchain, file layout, staying inert without the argument, Harmony patches, private game members through `Reflect`, and comments.\n- [error-handling](error-handling.md): how problems become results: test statuses, session statuses, launcher exit codes 0 to 3, hand-stepped coroutines, the crash dialog, the `mods.json` restore and the one-run lock, and logging.\n- [naming-conventions](naming-conventions.md): files, namespaces, patches, `Reflect` handles, waits, attributes, test classes and ids, `--onitest-*` options, launcher parameters, run folders and result fields.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "Code Style Guide",
+   "description": "TestRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through TestRunner.csproj, the harness and kit namespaces, file layout, the Session.Active guard, Harmony patch form, private members through Reflect.cs, comments",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-f1aa1ec42c48\ndescription: \"TestRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through TestRunner.csproj, the harness and kit namespaces, file layout, the Session.Active guard, Harmony patch form, private members through Reflect.cs, comments\"\napplies_to:\n  - \"*.cs\"\n  - \"Kit/**/*.cs\"\n  - \"*.ps1\"\n  - \"*.csproj\"\n---\n\n# Code Style Guide\n\n## Formatting\n**Id:** blk-a5a05cca59dd\n\n### Indentation\n**Id:** blk-48bf49a3a8d9\n\n- Tabs, one per level, in every `.cs` file, including `Kit/`.\n- Four spaces in `Invoke-OniTests.ps1` and `Watch-OniGame.ps1`; two spaces in `TestRunner.csproj` and the yaml files.\n\n### Braces\n**Id:** blk-d5d494815e7f\n\n- Opening brace on its own line (Allman) for namespaces, types, members and multi-line blocks.\n- A body of one short statement goes on the next line without braces (`if (!Session.Active)` followed by `return;` in `Mod.cs`).\n- A `switch` case with one short statement stays on one line (`Session.ReadCommandLine`).\n\n### Line Length\n**Id:** blk-c5dee5000810\n\n- No limit and no `.editorconfig`. Long log lines wrap before a `+` with the continuation indented one tab (the start-up `Debug.Log` in `Mod.cs`).\n\n## Language and Toolchain\n**Id:** blk-827b53b95cbe\n\n- C# 9 on .NET Framework 4.8, built against the game's assemblies (`common/oni-mod.props` and `oni-mod.targets`). `TestRunner.csproj` sets `ReferenceUnityUI` and references `UnityEngine.ScreenCaptureModule` for `t.Screenshot`.\n- The tool is a mod (`mod.yaml`, `mod_info.yaml`, `TestRunnerMod : UserMod2`) and also a library: a mod's test project references `TestRunner.csproj` for the kit. A successful build deploys it to `Documents\\Klei\\OxygenNotIncluded\\mods\\local\\TestRunner`.\n- Two namespaces: `Isochronous.TestRunner` for the harness (the code that runs a session) and `Isochronous.TestKit` for what a test author uses (`Kit/`: the test context, assertions, attributes, dupes, tools, world helpers). Harness types a test may touch are public; the rest is `internal`.\n- Namespace blocks, not file-scoped namespaces. PowerShell is run with `pwsh`.\n\n## Layout\n**Id:** blk-3eafd0a33a08\n\n| Path | Holds |\n|------|-------|\n| `Mod.cs` | `TestRunnerMod`: command line at load, crash-reporter flags, assembly resolve, quit tracing |\n| `Session.cs` | `Session` (command line, test discovery, results, live-session queue), `TestCase`, `TestResult`, `Json` |\n| `TestBehaviour.cs` | the driver that steps each test, `LogCapture` |\n| `Patches.cs` | the Harmony patches |\n| `Harness.cs` | the global switches a run throws |\n| `FixtureArea.cs` | choosing and clearing the test area |\n| `Worldgen.cs` | tests in a generated world |\n| `Reflect.cs` | the private game members the kit and tests touch |\n| `Diagnostics.cs` | opt-in grid-mark tracing |\n| `Kit/` | the test kit |\n| `Invoke-OniTests.ps1`, `Watch-OniGame.ps1` | launcher and warden |\n| `fixtures/` | fixture saves and their README |\n\n## Inert Without the Argument\n**Id:** blk-2fc671d7925c\n\nEvery patch starts with `if (!Session.Active) ...`. `Session.Active` is true only with both `--onitest-dir` and `--onitest-save`. The mod stays installed and changes nothing in a normal game session.\n\n## Harmony Patches\n**Id:** blk-bb5bf3709593\n\n- One static class per patched method, named `<Type>_<Method>_Patch`, with `Prefix` or `Postfix` (`Patches.cs`); trace patches in `Diagnostics.cs` are named `_Trace`.\n- Overloads are pinned by parameter types (`BuildingDef.TryPlace` in `Diagnostics.cs`).\n- A patch that might not exist on another game build is applied by hand in try/catch (`TestRunnerMod.TracePatch`).\n\n## Private Game Members\n**Id:** blk-7ca12f96cdb9\n\nThe kit and the tests reach game internals only through `Reflect.cs`: a `public static readonly FieldInfo` per member from `AccessTools`, with a `///` summary saying what it is for, and a line in `Reflect.SelfCheck()`. `FieldInfo` is used and `FieldRefAccess` is not, because a `FieldRef` dynamic method cannot be built on the CoreCLR host that ModCheck runs on.\n\nThe harness has two exceptions. `Worldgen.cs` reads `CharacterSelectionController.proceedButton` and `WattsonMessage.button` with its own `AccessTools.Field` calls (`ProceedButton`, `WattsonButton`), and `SelfCheck` does not list them. `Mod.cs` resolves `App.Restart` and `Application.Quit` with `AccessTools.Method` for the quit trace, applied by hand through `TracePatch`. TODO(owner): move the two `Worldgen.cs` fields into `Reflect.cs` and `SelfCheck`.\n\n## Comments\n**Id:** blk-2536019dd87f\n\n- Types, patches and switches get a `///` summary giving the purpose and, where a failure shaped the code, what failed (the settle before a reload in `TestBehaviour`, the focus patches in `Patches.cs`).\n- Options are documented in three places that change together: the `///` summary of `Session`, the launcher's comment-based help and `README.md`.\n- Kit members that a test author calls carry a summary written for that author.\n- No commented-out code.\n\n## Related\n**Id:** blk-657b3eb1a17f\n\n- See also: [error handling](error-handling.md)\n- See also: [naming conventions](naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting",
+     "text": "## Formatting\n**Id:** blk-a5a05cca59dd\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation",
+     "text": "### Indentation\n**Id:** blk-48bf49a3a8d9\n\n- Tabs, one per level, in every `.cs` file, including `Kit/`.\n- Four spaces in `Invoke-OniTests.ps1` and `Watch-OniGame.ps1`; two spaces in `TestRunner.csproj` and the yaml files.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces",
+     "text": "### Braces\n**Id:** blk-d5d494815e7f\n\n- Opening brace on its own line (Allman) for namespaces, types, members and multi-line blocks.\n- A body of one short statement goes on the next line without braces (`if (!Session.Active)` followed by `return;` in `Mod.cs`).\n- A `switch` case with one short statement stays on one line (`Session.ReadCommandLine`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length",
+     "text": "### Line Length\n**Id:** blk-c5dee5000810\n\n- No limit and no `.editorconfig`. Long log lines wrap before a `+` with the continuation indented one tab (the start-up `Debug.Log` in `Mod.cs`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain",
+     "text": "## Language and Toolchain\n**Id:** blk-827b53b95cbe\n\n- C# 9 on .NET Framework 4.8, built against the game's assemblies (`common/oni-mod.props` and `oni-mod.targets`). `TestRunner.csproj` sets `ReferenceUnityUI` and references `UnityEngine.ScreenCaptureModule` for `t.Screenshot`.\n- The tool is a mod (`mod.yaml`, `mod_info.yaml`, `TestRunnerMod : UserMod2`) and also a library: a mod's test project references `TestRunner.csproj` for the kit. A successful build deploys it to `Documents\\Klei\\OxygenNotIncluded\\mods\\local\\TestRunner`.\n- Two namespaces: `Isochronous.TestRunner` for the harness (the code that runs a session) and `Isochronous.TestKit` for what a test author uses (`Kit/`: the test context, assertions, attributes, dupes, tools, world helpers). Harness types a test may touch are public; the rest is `internal`.\n- Namespace blocks, not file-scoped namespaces. PowerShell is run with `pwsh`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#layout",
+     "title": "Layout",
+     "text": "## Layout\n**Id:** blk-3eafd0a33a08\n\n| Path | Holds |\n|------|-------|\n| `Mod.cs` | `TestRunnerMod`: command line at load, crash-reporter flags, assembly resolve, quit tracing |\n| `Session.cs` | `Session` (command line, test discovery, results, live-session queue), `TestCase`, `TestResult`, `Json` |\n| `TestBehaviour.cs` | the driver that steps each test, `LogCapture` |\n| `Patches.cs` | the Harmony patches |\n| `Harness.cs` | the global switches a run throws |\n| `FixtureArea.cs` | choosing and clearing the test area |\n| `Worldgen.cs` | tests in a generated world |\n| `Reflect.cs` | the private game members the kit and tests touch |\n| `Diagnostics.cs` | opt-in grid-mark tracing |\n| `Kit/` | the test kit |\n| `Invoke-OniTests.ps1`, `Watch-OniGame.ps1` | launcher and warden |\n| `fixtures/` | fixture saves and their README |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#inert-without-the-argument",
+     "title": "Inert Without the Argument",
+     "text": "## Inert Without the Argument\n**Id:** blk-2fc671d7925c\n\nEvery patch starts with `if (!Session.Active) ...`. `Session.Active` is true only with both `--onitest-dir` and `--onitest-save`. The mod stays installed and changes nothing in a normal game session.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#harmony-patches",
+     "title": "Harmony Patches",
+     "text": "## Harmony Patches\n**Id:** blk-bb5bf3709593\n\n- One static class per patched method, named `<Type>_<Method>_Patch`, with `Prefix` or `Postfix` (`Patches.cs`); trace patches in `Diagnostics.cs` are named `_Trace`.\n- Overloads are pinned by parameter types (`BuildingDef.TryPlace` in `Diagnostics.cs`).\n- A patch that might not exist on another game build is applied by hand in try/catch (`TestRunnerMod.TracePatch`).\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#private-game-members",
+     "title": "Private Game Members",
+     "text": "## Private Game Members\n**Id:** blk-7ca12f96cdb9\n\nThe kit and the tests reach game internals only through `Reflect.cs`: a `public static readonly FieldInfo` per member from `AccessTools`, with a `///` summary saying what it is for, and a line in `Reflect.SelfCheck()`. `FieldInfo` is used and `FieldRefAccess` is not, because a `FieldRef` dynamic method cannot be built on the CoreCLR host that ModCheck runs on.\n\nThe harness has two exceptions. `Worldgen.cs` reads `CharacterSelectionController.proceedButton` and `WattsonMessage.button` with its own `AccessTools.Field` calls (`ProceedButton`, `WattsonButton`), and `SelfCheck` does not list them. `Mod.cs` resolves `App.Restart` and `Application.Quit` with `AccessTools.Method` for the quit trace, applied by hand through `TracePatch`. TODO(owner): move the two `Worldgen.cs` fields into `Reflect.cs` and `SelfCheck`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments",
+     "text": "## Comments\n**Id:** blk-2536019dd87f\n\n- Types, patches and switches get a `///` summary giving the purpose and, where a failure shaped the code, what failed (the settle before a reload in `TestBehaviour`, the focus patches in `Patches.cs`).\n- Options are documented in three places that change together: the `///` summary of `Session`, the launcher's comment-based help and `README.md`.\n- Kit members that a test author calls carry a summary written for that author.\n- No commented-out code.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-657b3eb1a17f\n\n- See also: [error handling](error-handling.md)\n- See also: [naming conventions](naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  }
+ ]
+}

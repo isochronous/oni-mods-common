@@ -1,0 +1,41 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 9",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:6dda634313f05e41fa82b15380317d7aee79b1c17387ccc7d8a0afb46535adde",
+    "domains/entities.md": "sha256:4635069b8cd4c82c6ae06fdb5416875c5ca4f1afbf3b29c5cc0f4e3860ceabfc",
+    "domains/glossary.md": "sha256:c52bea2a7ace05704fa60f14afa41af5a3abbcc6ecf25ad9b6abad270dd90adc"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "mod-loadout",
+        "live-session",
+        "watchdog"
+      ],
+      "section": "handling-patterns/mods-json-and-the-warden"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "reflection",
+        "game-update-compatibility",
+        "logging"
+      ],
+      "section": "key-entities/reflect-and-diagnostics"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "reflection",
+        "game-update-compatibility"
+      ],
+      "section": "cross-domain-terms/self-check"
+    }
+  ]
+}

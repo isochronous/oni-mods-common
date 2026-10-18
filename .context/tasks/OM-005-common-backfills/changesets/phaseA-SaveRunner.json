@@ -1,0 +1,31 @@
+{
+ "task": "OM-005",
+ "why": "replace the scaffold placeholders of the SaveRunner overview and its domains and standards indexes with what the tool is and what its documents hold",
+ "node": "tools/SaveRunner",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "What this is",
+   "body": "SaveRunner is a development mod plus a launcher script that load a save in the real game with nobody at the keyboard, run the colony for a set number of game seconds with every save to disk blocked, record a probe's readings once per game second and quit. The mod author uses it to reproduce a player's report from their save, once with the mod under test and once without it (`-Without <Mod>`), under the real sim and the player's own loadout, and compares the two `probe.csv` files. The mod does nothing unless the game starts with `--saverun=FILE`, so it can stay installed. Version 0.1.0 in `mod_info.yaml`; not for the Workshop. Mod Profile Manager restarts the game on a changed loadout and is left out with `-Without 2854869130,3281716506`."
+  },
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "Where things are",
+   "body": "Files:\n\n- `Mod.cs`: `SaveRunnerMod`, the `UserMod2` entry point. Reads the command line, sets the crash-reporter flags and traces quits.\n- `Runner.cs`: `Runner`, the run's options and state, and `Finish`, which writes the status line and quits.\n- `Patches.cs`: the Harmony patches on `MainMenu.OnSpawn`, `App.LateUpdate` (loads the save from the menu, timeout watchdog), `Game.OnSpawn`, `SaveLoader.Save` (blocked) and `App.Quit`.\n- `RunBehaviour.cs`: `RunBehaviour`, which runs the colony and samples once per game second, and `FridgeProbe`, the `fridges` probe.\n- `Invoke-SaveRun.ps1`: the launcher. Copies the save into `runs/<Label>-<stamp>/`, rewrites `mods.json` for the run (`-With`, `-Without`), starts the game through Steam, restores `mods.json` and prints the status.\n- `SaveRunner.csproj`: builds the mod through `common/oni-mod.props` and `common/oni-mod.targets`, which deploy it to the local mods folder.\n- `mod.yaml`, `mod_info.yaml`: title \"Save Runner (dev tool)\", static id `Isochronous.SaveRunner`, version 0.1.0, minimum build 744825.\n- `README.md`: setup, running, the probes and how it works.\n- `runs/`: created by the launcher; one folder per run with the save copy, `probe.csv`, `probe.csv.status` and `Player.log`. Ignored by `common/.gitignore`.\n- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`."
+  },
+  {
+   "mode": "section",
+   "target": "domains/README.md",
+   "section": "Domains",
+   "body": "Documents in this folder:\n\n- [entities](entities.md): The mod entry point, `Runner`, the Harmony patches, `RunBehaviour`, `FridgeProbe` and the launcher with its parameters, the files a run reads and writes, its rules, key code paths and run states.\n- [glossary](glossary.md): The abbreviations in the probe columns and the terms run, probe, game and real seconds, status file, loadout and menu settle."
+  },
+  {
+   "mode": "section",
+   "target": "standards/README.md",
+   "section": "Standards",
+   "body": "Documents in this folder:\n\n- [code-style](code-style.md): C# and PowerShell formatting, toolchain, file layout, the inert-without-argument rule, Harmony patch conventions and comments.\n- [error-handling](error-handling.md): The four run status values, the driver try/catch, optional hooks, the crash dialog, command-line and launcher failures, the `mods.json` restore and logging.\n- [naming-conventions](naming-conventions.md): Files, patch classes, `Runner` state, probes, the `--saverun-*` options, launcher parameters, run folders and CSV columns."
+  }
+ ]
+}

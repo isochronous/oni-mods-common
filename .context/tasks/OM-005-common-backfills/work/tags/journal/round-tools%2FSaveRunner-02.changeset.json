@@ -1,0 +1,59 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 2",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "standards/code-style.md": "sha256:67106794c6831fb7bdbd4fa953282d4e68fbb8929c66bc1b4a6e76dbfe21cf9f",
+    "standards/error-handling.md": "sha256:cff417a092e6932721170de32634bda8edcc9380e5e8121b5336809703c9e621",
+    "standards/naming-conventions.md": "sha256:30fd843ea222f18f65941e8ad469a61150435de720388a715e0b8e4679ea79d0",
+    "domains/entities.md": "sha256:a366b05d7e118a49ed93f66a41e866f369c836d1a67c9716c12d64b6cb5122d1",
+    "domains/glossary.md": "sha256:3af7177ccb7c68e6b962e6906704852c0b940db9cb2ea715c8d32caff350ce26"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "probe"
+      ],
+      "section": "layout"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "watchdog"
+      ],
+      "section": "run-status"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "mod-entry-point",
+        "probe",
+        "logging"
+      ],
+      "section": "code-naming"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "run-result"
+      ],
+      "section": "key-entities/runner"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "probe"
+      ],
+      "section": "cross-domain-terms/probe"
+    }
+  ]
+}

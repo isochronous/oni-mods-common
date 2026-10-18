@@ -1,0 +1,48 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 5",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:217f9ef9bd483c758a2b7a54af2f4477645e5bfa03669a93e3e151606739d341",
+    "domains/glossary.md": "sha256:657aa6c1be0d9fd5b9f6b4dafd0a099c7a23b038f7657d99f89276c153e9bea2",
+    "standards/error-handling.md": "sha256:1c68c916ff9fef828f5e12b9a962636ab6669453c1a0c075cedfed08ffbd4126",
+    "standards/naming-conventions.md": "sha256:b4ac2a0f92592f16e6ebd2a7da21b89025a7b5becb8affb525e545517c6dbdc0"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "steam-app-id"
+      ],
+      "section": "key-entities/constants"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "steam-app-id"
+      ],
+      "section": "cross-domain-terms/consumer-app-457140"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "steam-cloud",
+        "steamworks-api"
+      ],
+      "section": "handling-patterns/update-calls"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "item-visibility",
+        "workshop-tags"
+      ],
+      "section": "project-specific-conventions/command-line"
+    }
+  ]
+}

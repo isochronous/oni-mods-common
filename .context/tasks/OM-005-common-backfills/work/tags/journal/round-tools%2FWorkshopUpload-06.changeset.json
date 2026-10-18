@@ -1,0 +1,48 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 6",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:1cf702952d9d63a091754b494c563d0a6fa91768482ece099d76d79bd16174a3",
+    "domains/glossary.md": "sha256:11bed76e2ad1645051c1422864f077f022ab9e671b1dbaac4e77704dfebe748c",
+    "standards/error-handling.md": "sha256:9f3ba25b20df596b4dc606e42ebc0f08b8aefc4c374a9087b2be3fb83166279f",
+    "standards/naming-conventions.md": "sha256:4b70739aa239a50029a2e83cb323ece844b9fb6990cb92f77750de18292f79c1"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "steam-app-id",
+        "steam-cloud",
+        "item-description"
+      ],
+      "section": "files-read-and-written"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "steam-cloud"
+      ],
+      "section": "cross-domain-terms/steam-cloud-staging"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "workshop-tags",
+        "console-output"
+      ],
+      "section": "handling-patterns/warnings-that-do-not-stop-the-run"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "steam-cloud"
+      ],
+      "section": "project-specific-conventions/steam-cloud-names"
+    }
+  ]
+}
