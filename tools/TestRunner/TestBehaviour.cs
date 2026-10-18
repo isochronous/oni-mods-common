@@ -162,6 +162,8 @@ namespace Isochronous.TestRunner
 					yield break;
 				}
 				Session.NextIndex = i + 1;
+				if (test.KeepSave && !Session.SaveIsFresh)
+					Debug.LogWarning(Session.Tag + test.Id + " keeps the save, but a test ran since the last load: it reads what that test left");
 				Session.SaveIsFresh = false;
 				Session.LastAssembly = test.AssemblyName;
 				yield return RunOne(test);

@@ -20,8 +20,8 @@ namespace Isochronous.TestKit
 		public bool FreshSave { get; set; }
 
 		/// <summary>
-		/// The test reads the save as it was loaded: the fixture area is not cleared before it (nor
-		/// after the test before it, when that one keeps the save too). For a save made to be checked,
+		/// The test reads the save as it was loaded: the fixture area is not cleared before it (when it
+		/// runs first after a load) nor after the test before it. For a save made to be checked,
 		/// such as one written by another test and loaded with -Fixture. Run it first after a load:
 		/// alone, or with FreshSave.
 		/// </summary>
