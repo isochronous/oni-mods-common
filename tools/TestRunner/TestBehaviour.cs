@@ -132,9 +132,11 @@ namespace Isochronous.TestRunner
 				Session.Finish("runner-error", e.ToString());
 				yield break;
 			}
-			// A generated world is the thing under test: nothing in it is cleared.
+			// A generated world is the thing under test: nothing in it is cleared; nor is a save the
+			// next test reads as it was loaded.
 			bool generated = Worldgen.Current != null;
-			if (!generated)
+			bool keepFirst = Session.NextIndex < Session.Tests.Count && Session.Tests[Session.NextIndex].KeepSave;
+			if (!generated && !keepFirst)
 				yield return FixtureArea.Clear(FixtureArea.Current);
 			for (int i = Session.NextIndex; i < Session.Tests.Count; i++)
 			{
@@ -167,6 +169,8 @@ namespace Isochronous.TestRunner
 					continue;
 				// A box the next test works in too stays up; only its inside is cleared.
 				TestCase next = i + 1 < Session.Tests.Count ? Session.Tests[i + 1] : null;
+				if (next != null && next.KeepSave && !next.FreshSave)
+					continue;
 				if (FixtureArea.BoxStanding && test.Boxed && next != null && next.Boxed && !next.FreshSave)
 					yield return FixtureArea.ClearInside();
 				else

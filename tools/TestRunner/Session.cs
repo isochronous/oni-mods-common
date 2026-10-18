@@ -450,6 +450,7 @@ namespace Isochronous.TestRunner
 		public readonly double TimeoutSeconds;
 		public readonly int Layer;
 		public readonly bool FreshSave;
+		public readonly bool KeepSave;
 		public readonly bool Explicit;
 		public readonly bool Boxed;
 		public readonly bool NoColony;
@@ -464,6 +465,7 @@ namespace Isochronous.TestRunner
 			Method = method;
 			Name = attr.Name ?? method.Name;
 			FreshSave = attr.FreshSave;
+			KeepSave = attr.KeepSave;
 			Explicit = attr.Explicit;
 			Boxed = attr.Boxed;
 			NoColony = attr.NoColony;

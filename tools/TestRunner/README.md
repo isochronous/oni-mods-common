@@ -101,6 +101,10 @@ public static class WireDrags
   few seconds, not a restart), unless no test has run since the last load. For tests that change
   the colony outside the test area, such as one run on a player's save. Only a change of mods or
   mod settings needs a new launch. The status line counts the reloads.
+- `[OniTest(KeepSave = true)]`: the test reads the save as it was loaded, so the fixture area is
+  not cleared before it. For checking a save made for the purpose, such as one another test wrote
+  and `-Fixture` loads (Ovagro Overhead's removal check loads a save without the mod that made it).
+  Run it alone or first after a load (with `FreshSave`).
 - Each mod's tests start on a fresh load of the fixture: when a run moves on to the next test
   assembly, the fixture is loaded again, so nothing one mod's tests left (liquid, heat, a setting)
   reaches the next mod's.
