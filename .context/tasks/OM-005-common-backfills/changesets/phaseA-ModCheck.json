@@ -1,0 +1,31 @@
+{
+ "task": "OM-005",
+ "why": "replace the scaffold placeholders of the ModCheck overview and its domains and standards indexes with what the tool is and what its documents hold",
+ "node": "tools/ModCheck",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "What this is",
+   "body": "ModCheck is a .NET 8 console tool that loads one mod DLL against the real game assemblies and checks, without launching the game, for the two ways a mod breaks after a game update: a type whose vtable cannot be set up, and a call to a member the game no longer has. It lists every failing type and method and returns exit code 0 (passed), 1 (failures) or 2 (usage). `tools/TestRunner/Invoke-OniTests.ps1` runs it on each test DLL before a game session, and the mod author runs it by hand after a game update: `dotnet run --project common/tools/ModCheck -- <game Managed dir> <mod dll>`."
+  },
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "Where things are",
+   "body": "Files:\n\n- `Program.cs`: the whole tool. `Main` (arguments, assembly resolution, the type and method loops, the exit code), `Report`, `AllMethods` and `Unwrap`.\n- `ModCheck.csproj`: console exe on net8.0 with C# 9 and no package references; it does not import `oni-mod.props`.\n- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.\n- `bin/`, `obj/`: build output, ignored by `common/.gitignore`.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`."
+  },
+  {
+   "mode": "section",
+   "target": "domains/README.md",
+   "section": "Domains",
+   "body": "Documents in this folder:\n\n- [entities](entities.md): `Program` and its helpers, the type-load and JIT checks, inputs and output, the rules ModCheck enforces, key code paths and its caller in TestRunner.\n- [glossary](glossary.md): ONI, JIT, CLR, ECall and DIM, and the terms VTable setup failure, missing member, managed directory and warning."
+  },
+  {
+   "mode": "section",
+   "target": "standards/README.md",
+   "section": "Standards",
+   "body": "Documents in this folder:\n\n- [code-style](code-style.md): Formatting, C# 9 on .NET 8 with no packages, imports, the one-file structure and comments.\n- [error-handling](error-handling.md): Exit codes 0, 1 and 2, the OK, FAIL and WARN output lines, per-type isolation, loader exceptions, host artifacts, unwrapping and assembly resolution.\n- [naming-conventions](naming-conventions.md): Project and file names, C# member casing, the two positional arguments and the output vocabulary."
+  }
+ ]
+}

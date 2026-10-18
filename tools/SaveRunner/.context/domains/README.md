@@ -7,4 +7,7 @@ description: "TODO(owner): the subject knowledge SaveRunner keeps here."
 ## Domains
 **Id:** blk-83ac38538101
 
-TODO(owner): the subject knowledge of this node, one record per domain in this folder.
+Documents in this folder:
+
+- [entities](entities.md): The mod entry point, `Runner`, the Harmony patches, `RunBehaviour`, `FridgeProbe` and the launcher with its parameters, the files a run reads and writes, its rules, key code paths and run states.
+- [glossary](glossary.md): The abbreviations in the probe columns and the terms run, probe, game and real seconds, status file, loadout and menu settle.

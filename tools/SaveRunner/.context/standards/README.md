@@ -7,4 +7,8 @@ description: "TODO(owner): the standards SaveRunner holds itself to."
 ## Standards
 **Id:** blk-530959ad2c62
 
-TODO(owner): the standards this project holds itself to, one record per standard in this folder.
+Documents in this folder:
+
+- [code-style](code-style.md): C# and PowerShell formatting, toolchain, file layout, the inert-without-argument rule, Harmony patch conventions and comments.
+- [error-handling](error-handling.md): The four run status values, the driver try/catch, optional hooks, the crash dialog, command-line and launcher failures, the `mods.json` restore and logging.
+- [naming-conventions](naming-conventions.md): Files, patch classes, `Runner` state, probes, the `--saverun-*` options, launcher parameters, run folders and CSV columns.
