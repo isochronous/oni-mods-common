@@ -1,0 +1,156 @@
+{
+ "documents": [
+  {
+   "id": "standards/error-handling.md",
+   "tags": [
+    "exception-handling"
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md",
+   "tags": [
+    "code-style"
+   ]
+  }
+ ],
+ "sections": [
+  {
+   "id": "standards/error-handling.md#principles",
+   "tags": [
+    "run-result",
+    "logging",
+    "mod-loadout",
+    "game-update-compatibility"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#test-results",
+   "tags": [
+    "run-result",
+    "test-assertions",
+    "test-cleanup",
+    "watchdog"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#session-status",
+   "tags": [
+    "run-result",
+    "watchdog",
+    "generated-worlds"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#launcher-exit-codes",
+   "tags": [
+    "run-result",
+    "game-launch",
+    "mod-build",
+    "player-log"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#handling-patterns",
+   "tags": [],
+   "reason": "inherits"
+  },
+  {
+   "id": "standards/error-handling.md#handling-patterns/hand-stepped-coroutines",
+   "tags": [
+    "watchdog"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#handling-patterns/driver-failures",
+   "tags": [
+    "run-result"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#handling-patterns/side-files",
+   "tags": [
+    "run-result",
+    "logging"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#handling-patterns/crash-dialog",
+   "tags": [
+    "crash-dialog"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#handling-patterns/mods-json-and-the-warden",
+   "tags": [
+    "mod-loadout",
+    "live-session",
+    "watchdog"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#handling-patterns/one-run-at-a-time",
+   "tags": [],
+   "reason": "no-good-match",
+   "suggestion": "single-run lock across the machine"
+  },
+  {
+   "id": "standards/error-handling.md#logging",
+   "tags": [
+    "logging",
+    "test-assertions"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#anti-patterns-to-avoid",
+   "tags": [
+    "run-result",
+    "reflection",
+    "test-pacing",
+    "test-assertions"
+   ]
+  },
+  {
+   "id": "standards/error-handling.md#related",
+   "tags": [],
+   "reason": "inherits"
+  },
+  {
+   "id": "standards/naming-conventions.md#files-and-directories",
+   "tags": [
+    "game-mode",
+    "save-files",
+    "live-session",
+    "mod-build"
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md#code-naming",
+   "tags": [
+    "harmony-patching",
+    "reflection",
+    "test-discovery",
+    "test-assertions"
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md#command-line-and-launcher",
+   "tags": [
+    "command-line",
+    "live-session",
+    "game-launch"
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md#results",
+   "tags": [
+    "run-result",
+    "screenshots"
+   ]
+  },
+  {
+   "id": "standards/naming-conventions.md#related",
+   "tags": [],
+   "reason": "inherits"
+  }
+ ]
+}

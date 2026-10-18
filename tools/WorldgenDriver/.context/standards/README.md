@@ -1,4 +1,5 @@
 ---
+tags: code-style, exception-handling
 doc_id: doc-d44de2454fdc
 description: "Index of WorldgenDriver's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers"
 ---

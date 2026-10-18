@@ -1,0 +1,37 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 7",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:711642a75ec53369258045aa87299e904e3531b4f8deb281c531bd8e27c36889",
+    "domains/entities.md": "sha256:26748d2a141efbadc550935148eb1eb1cd81120cd81eed71fbf32e4c933d5897",
+    "domains/glossary.md": "sha256:da7b6a6bfd454669f802a0173769e07631a136b6b276a9e0f925c849cf914458"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "logging"
+      ],
+      "section": "handling-patterns/side-files"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "test-cleanup"
+      ],
+      "section": "key-entities/fixturearea"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "mod-loadout"
+      ],
+      "section": "cross-domain-terms/loadout"
+    }
+  ]
+}

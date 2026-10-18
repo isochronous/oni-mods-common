@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-af4f639c22ff
 description: "WorkshopUpload's naming rules: project and Steam file names, command-to-method mapping, helper, constant and variable naming in Program.cs, command and option spelling, visibility words, tags, Steam Cloud file names and Info output labels"
 applies_to:
@@ -9,7 +10,8 @@ applies_to:
 # WorkshopUpload naming conventions
 
 ## Files and Directories
-**Id:** blk-d3e770073713
+**Id:** blk-d3e770073713  
+**Tags:** tool-build, steam-app-id
 
 - Folder, project file and root namespace share one name: `WorkshopUpload` (`WorkshopUpload.csproj`, `namespace WorkshopUpload;`).
 - One source file, `Program.cs`. Steam files keep Valve's names: `steam_appid.txt`, `steam_api64.dll`.
@@ -18,19 +20,22 @@ applies_to:
 **Id:** blk-aee6995bc1bd
 
 ### Methods
-**Id:** blk-38dfe1c2fab0
+**Id:** blk-38dfe1c2fab0  
+**Tags:** command-line, exit-codes
 
 - PascalCase. A command is a method named for it with an initial capital: `info` is `Info`, `description` is `Description`, `list` is `List`, `update` is `Update`, `publish` is `Publish`, `cloud` is `Cloud`, `download` is `Download`. Each takes the parsed arguments (`ulong id`, or `string[] args`) and returns the exit code.
 - Helpers are verbs: `UploadToCloud`, `ParseTags`, `ParseVisibility`, `ParseOptions`, `Check`, `Await<T>`.
 - All methods are `private static`; the class is `internal static class Program`.
 
 ### Constants
-**Id:** blk-4c50c395882e
+**Id:** blk-4c50c395882e  
+**Tags:** steam-app-id
 
 - PascalCase `private const`: `AppId` (457140, the game) and `UploaderAppId` (636750, Klei's uploader tool).
 
 ### Variables
-**Id:** blk-85ee488abfcb
+**Id:** blk-85ee488abfcb  
+**Tags:** steamworks-api, command-line
 
 - camelCase: `cloudZip`, `cloudPreview`, `zipPath`, `previewPath`, `descFile`, `tagList`.
 - Option values are looked up in a `Dictionary<string, string>` called `opts`.
@@ -41,7 +46,8 @@ applies_to:
 **Id:** blk-885f77fd96da
 
 ### Command line
-**Id:** blk-d4922475357d
+**Id:** blk-d4922475357d  
+**Tags:** command-line, item-visibility, workshop-tags
 
 - A command is the first argument, lower-case: `info`, `description`, `list`, `update`, `publish`, `cloud`, `download`.
 - Options are `--kebab-case` pairs of name and value: `--title`, `--description-file`, `--changenote`, `--visibility`, `--tags`. `ParseOptions` stores them under the name without the dashes, so an option the code reads is spelled exactly as it is typed.
@@ -49,12 +55,14 @@ applies_to:
 - Tags are one comma-separated string using the Workshop's own tag names (`tweaks`, `Base Game`, `Spaced Out!`).
 
 ### Steam Cloud names
-**Id:** blk-dc54fea8c769
+**Id:** blk-dc54fea8c769  
+**Tags:** steam-cloud
 
 - The zip is always `mod_publish_data_file.zip` and a preview is `mod_publish_preview` plus the preview's lower-cased extension. These are the names Klei's own uploader uses; the extension lets Steam treat a GIF as animated.
 
 ### Output
-**Id:** blk-7d64c1088dd3
+**Id:** blk-7d64c1088dd3  
+**Tags:** console-output
 
 - `label:  value` lines padded to align (`result:   `, `title:    `, `file:     `) in `Info`; `Description`, `Cloud` and `Download` use their own short labels.
 

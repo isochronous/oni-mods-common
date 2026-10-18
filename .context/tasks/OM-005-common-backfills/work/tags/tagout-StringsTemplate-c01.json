@@ -1,0 +1,17 @@
+{ "documents": [
+    { "id": "standards/naming-conventions.md", "tags": ["code-style"] }
+  ],
+  "sections": [
+    { "id": "standards/naming-conventions.md#files-and-directories", "tags": ["tool-build", "translation-template", "translations"] },
+    { "id": "standards/naming-conventions.md#code-naming", "tags": [], "reason": "inherits" },
+    { "id": "standards/naming-conventions.md#code-naming/types", "tags": [], "reason": "no-good-match", "suggestion": "type naming and visibility" },
+    { "id": "standards/naming-conventions.md#code-naming/methods", "tags": [], "reason": "no-good-match", "suggestion": "method naming" },
+    { "id": "standards/naming-conventions.md#code-naming/variables", "tags": [], "reason": "no-good-match", "suggestion": "local variable and parameter naming" },
+    { "id": "standards/naming-conventions.md#code-naming/fields", "tags": [], "reason": "no-good-match", "suggestion": "field naming" },
+    { "id": "standards/naming-conventions.md#project-specific-conventions", "tags": [], "reason": "inherits" },
+    { "id": "standards/naming-conventions.md#project-specific-conventions/translation-keys", "tags": ["mod-strings", "translation-template"] },
+    { "id": "standards/naming-conventions.md#project-specific-conventions/report-text", "tags": ["console-output", "translations"] },
+    { "id": "standards/naming-conventions.md#project-specific-conventions/command-line", "tags": ["command-line"] },
+    { "id": "standards/naming-conventions.md#related", "tags": [], "reason": "inherits" }
+  ]
+}

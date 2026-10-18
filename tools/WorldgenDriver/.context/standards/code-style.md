@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-01fc74e4c079
 description: "WorldgenDriver's code style for the C# mod and Invoke-Worldgen.ps1: indentation and braces per language, the net48 build and mod metadata in WorldgenDriver.csproj and mod_info.yaml, imports, comment rules, Driver.Active guards and control flow"
 applies_to:
@@ -35,7 +36,8 @@ WorldgenDriver is two programs in one folder: a development-only game mod in C# 
 - PowerShell: opening brace on the same line (`function Set-Mode([bool]$spacedOut) {`, `foreach (...) {`).
 
 ## Language and Toolchain
-**Id:** blk-e794fe66eb73
+**Id:** blk-e794fe66eb73  
+**Tags:** mod-build
 
 - The mod is C# 9 on .NET Framework 4.8 with the shared build files: `WorldgenDriver.csproj` imports `..\..\oni-mod.props` and `..\..\oni-mod.targets` (that is `common/`), sets `AssemblyName`, `RootNamespace` WorldgenDriver and `Version` 0.1.0, and a successful build deploys to `Documents\Klei\OxygenNotIncluded\mods\local\WorldgenDriver`.
 - Mod metadata is `mod.yaml` (title, description, `staticID: "Isochronous.WorldgenDriver"`) and `mod_info.yaml` (`supportedContent: ALL`, `minimumSupportedBuild: 744825`, `version: 0.1.0`, `APIVersion: 2`). Keep `version` in the csproj and `mod_info.yaml` equal.
@@ -72,7 +74,8 @@ using ProcGen;
 - Do not comment obvious code or leave commented-out code.
 
 ## Control Structures
-**Id:** blk-9b7318d348ff
+**Id:** blk-9b7318d348ff  
+**Tags:** activation-guard, harmony-patching
 
 - Every patch body starts with a guard that returns when the driver is idle:
 

@@ -1,0 +1,69 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/ModCheck — round 2",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\ModCheck",
+  "base": {
+    "domains/entities.md": "sha256:58a3d627956a368541afc535c9e49c395f5bb76b71a6a8d6d694b1ac297aebe9",
+    "overview.md": "sha256:09fdac031556906d44857a52d526ea9d755a46943f4fb812556c903d57b27103",
+    "standards/code-style.md": "sha256:bbd8b1dd06a36c664c0f2f34126ea1e511f4ab2753de5eefb67c8942f3c1df55",
+    "standards/error-handling.md": "sha256:f1dce7440564e950981ad8b8579d40951df74ea671f13ad72fd9d25629e66e14",
+    "standards/naming-conventions.md": "sha256:3d4a516725289b4c313d0499dfe6bf89770261eb246005cce5c395cce34477b0",
+    "domains/glossary.md": "sha256:19229fb4cbffed52d34ffed2564ae077a42e270dad765261297337e9a949dc2f"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "assembly-resolution",
+        "exception-handling",
+        "exit-codes"
+      ],
+      "section": "key-entities/program"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "tool-build"
+      ],
+      "section": "where-things-are"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "runtime-mismatch",
+        "console-output"
+      ],
+      "section": "comments"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "exit-codes",
+        "command-line"
+      ],
+      "section": "exit-codes"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "command-line"
+      ],
+      "section": "command-line"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "jit-check",
+        "game-update-compatibility"
+      ],
+      "section": "cross-domain-terms/missing-member"
+    }
+  ]
+}

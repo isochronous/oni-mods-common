@@ -1,4 +1,5 @@
 ---
+tags: steam-workshop
 doc_id: doc-1aced73ea09f
 description: "Index of WorkshopUpload's domain documents: a link to the entities document and one to the glossary, each with a line listing the commands, files, rules or terms it covers"
 ---

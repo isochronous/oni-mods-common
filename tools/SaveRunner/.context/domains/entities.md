@@ -11,7 +11,8 @@ applies_to:
 # SaveRunner domain
 
 ## Overview
-**Id:** blk-a0e41250aa34
+**Id:** blk-a0e41250aa34  
+**Tags:** activation-guard, save-files, mod-loadout, probe
 
 SaveRunner loads a save in the real game with nobody at the keyboard, runs the colony for a number of game seconds with all saving blocked, records readings once per game second and quits. It exists to reproduce an in-game observation from a player's save, with and without a mod, under real sim behaviour and the player's own mod loadout. Two parts: a development mod (`SaveRunner`, inert unless the game starts with `--saverun=FILE`) and a launcher (`Invoke-SaveRun.ps1`). It is not published to the Workshop.
 
@@ -20,12 +21,14 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 
 ### SaveRunnerMod
 **Id:** blk-ca4d28981335  
+**Tags:** mod-entry-point, command-line, crash-dialog, harmony-patching  
 **Description**: the mod's entry point (`UserMod2`). Reads the command line at load; when a run is on it sets the crash-reporter flags and installs quit tracing.  
 **Location**: `Mod.cs`  
 **Relationships**: calls `Runner.ReadCommandLine`; traces `App.Restart` and `Application.Quit` through `TracePatch`/`TraceQuit`; the Harmony patches in `Patches.cs` are applied by `base.OnLoad`.
 
 ### Runner
 **Id:** blk-b5fe6721e0d5  
+**Tags:** command-line, run-result  
 **Description**: the command line and state of one run, and the way it ends.  
 **Location**: `Runner.cs`
 
@@ -39,6 +42,7 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 
 ### Patches
 **Id:** blk-4905afd4b039  
+**Tags:** harmony-patching, activation-guard, watchdog, save-files  
 **Description**: the Harmony patches, each a no-op unless `Runner.Active`.  
 **Location**: `Patches.cs`
 
@@ -52,17 +56,20 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 
 ### RunBehaviour
 **Id:** blk-1f9288a97c7a  
+**Tags:** probe  
 **Description**: a `MonoBehaviour` on the Game object for one run. Unpauses and sets the speed, accumulates scaled frame time as game seconds, samples the probe once per game second, ends the run at `Runner.Seconds`.  
 **Location**: `RunBehaviour.cs`  
 **Relationships**: owns the CSV `StreamWriter`; calls `FridgeProbe.Sample`; ends through `Runner.Finish`.
 
 ### FridgeProbe
 **Id:** blk-043bf2a0945a  
+**Tags:** probe  
 **Description**: the one probe, `fridges`. For every building with a `RefrigeratorController.Def` and every item in its `Storage`, writes controller state, powered state, whether No Magic Fridges' `FridgeThermostat` is on the building, the def's setpoint, the cell's temperature, element and mass, and per item its element, mass, temperature, `SimTemperatureTransfer` surface area and ground-transfer scale, whether that component is enabled, its sim handle and `deltaKJ`.  
 **Location**: `RunBehaviour.cs`
 
 ### Invoke-SaveRun.ps1
 **Id:** blk-3eb75b734c83  
+**Tags:** game-launch, mod-loadout, command-line  
 **Description**: the launcher. Copies the save into the run folder, rewrites `mods.json` for the run, starts the game through Steam, waits for it to quit, restores `mods.json`, prints the status.  
 **Location**: `Invoke-SaveRun.ps1`
 
@@ -75,7 +82,8 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 | `-TimeoutSec`, `-Label`, `-OutDir`, `-SteamExe`, `-AppId` | real-time limit (900), run-folder prefix, output root, Steam path, game app id (457140) |
 
 ### Files it reads and writes
-**Id:** blk-2c721000393a
+**Id:** blk-2c721000393a  
+**Tags:** save-files, mod-loadout, probe, run-result
 
 | File | Direction | Purpose |
 |------|-----------|---------|
@@ -87,7 +95,8 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 | `Player.log` | copied | into the run folder after the game exits |
 
 ## Business Rules
-**Id:** blk-ae74a2604bba
+**Id:** blk-ae74a2604bba  
+**Tags:** activation-guard, save-files, mod-loadout, game-launch
 
 - Without `--saverun` the mod changes nothing.
 - Nothing is saved while a run is on: `SaveLoader.Save` is skipped, and the game opens a copy of the save.
@@ -97,7 +106,8 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 - The launcher refuses to start when the game is already running.
 
 ## Key Code Paths
-**Id:** blk-d8b4ef45566a
+**Id:** blk-d8b4ef45566a  
+**Tags:** game-launch, harmony-patching, probe, run-result
 
 - **Start**: `Invoke-SaveRun.ps1` builds the arguments and runs `steam.exe -applaunch 457140 --saverun=...`; the game loads the mod, `SaveRunnerMod.OnLoad` reads the arguments. See `Mod.cs`, `Runner.cs`.
 - **Load**: `MainMenu.OnSpawn` postfix notes the time; the `App.LateUpdate` postfix calls `LoadScreen.DoLoad` four seconds later. See `Patches.cs`.
@@ -105,7 +115,8 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 - **End**: `Runner.Finish` writes the status line and quits; the launcher sees the process exit, copies `Player.log`, restores `mods.json`. See `Runner.cs`, `Invoke-SaveRun.ps1`.
 
 ## State Transitions
-**Id:** blk-bafa30d4781e
+**Id:** blk-bafa30d4781e  
+**Tags:** run-result, watchdog
 
 | State | Transitions To | Trigger |
 |-------|---------------|---------|

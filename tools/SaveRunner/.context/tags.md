@@ -68,11 +68,6 @@ A record earns this term when it is about the game's crash dialog and keeping it
 
 A record earns this term when it is about which mods the game has enabled and putting the player's own mod list back afterwards.
 
-## player-log
-**Id:** blk-6cec87a1097f
-
-A record earns this term when it is about reading the game's Player.log to find out what went wrong in a run.
-
 ## save-files
 **Id:** blk-fe98c216aa95
 

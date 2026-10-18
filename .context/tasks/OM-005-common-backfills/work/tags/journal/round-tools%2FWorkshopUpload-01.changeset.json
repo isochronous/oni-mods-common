@@ -1,0 +1,76 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 1",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:7d7d659d0ecf93e6f5b399926df6f46dafd818fc5e7f105530739543a5cb2810",
+    "domains/glossary.md": "sha256:4cf6d2de51c836686578c8b0c42fd236a0fc7218ceea5593e6185b55a78968cf",
+    "overview.md": "sha256:8a82795db8da36d29afd7f59fda5e12100fe10079b5e68c9e9b41b299d44f34a",
+    "standards/code-style.md": "sha256:e7c3a7a400ff1c9c3e2e0f52ed86c46216520b1eb0313b8df7ce987ef7420b67",
+    "standards/error-handling.md": "sha256:00e31085fd33b2fe4cb30be033d94ab382c38a3a4a9920c6cca9f37738b6e32b",
+    "standards/naming-conventions.md": "sha256:d7f43415e1f1e2d150a28c54485d54e738306ea36acebdf74b056dff7aec4432"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "legacy-workshop-item",
+        "steamworks-api",
+        "steam-app-id",
+        "release-process"
+      ],
+      "section": "overview"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "steamworks-api",
+        "steam-cloud",
+        "workshop-tags"
+      ],
+      "section": "abbreviations-and-acronyms"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "steam-app-id",
+        "steamworks-api",
+        "release-process",
+        "item-download"
+      ],
+      "section": "what-this-is"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "tool-build",
+        "steamworks-api",
+        "steam-app-id"
+      ],
+      "section": "language-and-toolchain"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "steamworks-api",
+        "console-output",
+        "command-line"
+      ],
+      "section": "principles"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "tool-build",
+        "steam-app-id"
+      ],
+      "section": "files-and-directories"
+    }
+  ]
+}

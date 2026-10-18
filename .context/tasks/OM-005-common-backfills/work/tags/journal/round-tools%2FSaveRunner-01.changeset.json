@@ -1,0 +1,75 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 1",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "standards/code-style.md": "sha256:7c5083d98fe1f2f23c5fffcd4c8d032d6df02ce1f6a58ed65fffaa26f2e80df6",
+    "standards/error-handling.md": "sha256:66ae05d74c75b71ce1294f53995fb466f7c75bbddea127c148cf585db367c007",
+    "standards/naming-conventions.md": "sha256:58220783708930acfbf2d56c723a9ff23f7c79fb2977998b3ae3cfdcd9125105",
+    "domains/entities.md": "sha256:642701ff22668c7112f71c54e448438867933871754e3be96378acd717f01e28",
+    "domains/glossary.md": "sha256:e1509c8a23ce01828c3b1a5368e4870d065e78c989d1cdf4258b26960f699f2d",
+    "overview.md": "sha256:06c2ffbd5fd8f79ee96565cbcf091b702d0664bb47cef3210721e28679a9bb23"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "mod-build",
+        "mod-entry-point"
+      ],
+      "section": "language-and-toolchain"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "save-files",
+        "logging",
+        "mod-loadout"
+      ],
+      "section": "principles"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "mod-build",
+        "run-result"
+      ],
+      "section": "files-and-directories"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "mod-entry-point",
+        "command-line",
+        "crash-dialog",
+        "harmony-patching"
+      ],
+      "section": "key-entities/saverunnermod"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "game-launch",
+        "save-files"
+      ],
+      "section": "cross-domain-terms/run"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "mod-build",
+        "mod-entry-point",
+        "harmony-patching",
+        "game-launch"
+      ],
+      "section": "where-things-are"
+    }
+  ]
+}

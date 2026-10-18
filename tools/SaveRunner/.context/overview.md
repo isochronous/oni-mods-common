@@ -5,12 +5,14 @@ description: "What SaveRunner is: the dev mod and launcher that replay a player'
 # SaveRunner
 
 ## What this is
-**Id:** blk-da4886ca7cad
+**Id:** blk-da4886ca7cad  
+**Tags:** activation-guard, mod-loadout, save-files, probe
 
 SaveRunner is a development mod plus a launcher script that load a save in the real game with nobody at the keyboard, run the colony for a set number of game seconds with every save to disk blocked, record a probe's readings once per game second and quit. The mod author uses it to reproduce a player's report from their save, once with the mod under test and once without it (`-Without <Mod>`), under the real sim and the player's own loadout, and compares the two `probe.csv` files. The mod does nothing unless the game starts with `--saverun=FILE`, so it can stay installed. Version 0.1.0 in `mod_info.yaml`; not for the Workshop. Mod Profile Manager restarts the game on a changed loadout and is left out with `-Without 2854869130,3281716506`.
 
 ## Where things are
-**Id:** blk-3dee2f4998e2
+**Id:** blk-3dee2f4998e2  
+**Tags:** mod-build, mod-entry-point, harmony-patching, game-launch
 
 Files:
 

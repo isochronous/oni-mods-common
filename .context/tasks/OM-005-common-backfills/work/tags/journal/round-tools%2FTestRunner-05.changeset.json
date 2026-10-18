@@ -1,0 +1,39 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 5",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:4f3eaf90ce11a91354b332d106fc684333630eeab7ea37a703952f7c2df70b20",
+    "domains/entities.md": "sha256:ed9fc674f32aaf51f1a7f0957aeb31901c75de099259f64726bfc175c922b05b",
+    "domains/glossary.md": "sha256:5f992d3ed0877d5cf8df2820eb9cbc547121f8d80586512b5ed03126678c34a0"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "watchdog"
+      ],
+      "section": "handling-patterns/hand-stepped-coroutines"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "activation-guard",
+        "save-files"
+      ],
+      "section": "key-entities/patches"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "mod-loadout",
+        "live-session"
+      ],
+      "section": "cross-domain-terms/warden"
+    }
+  ]
+}

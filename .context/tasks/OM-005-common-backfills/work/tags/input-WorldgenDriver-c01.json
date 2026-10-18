@@ -1,0 +1,90 @@
+{
+ "documents": [
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "WorldgenDriver naming conventions",
+   "description": "WorldgenDriver's naming rules: file, run output and Klei-folder names, class, patch class and member naming, PowerShell parameters, functions and variables, --worldgen options, result statuses, result JSON fields and coordinate format",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-ed918e244212\ndescription: \"WorldgenDriver's naming rules: file, run output and Klei-folder names, class, patch class and member naming, PowerShell parameters, functions and variables, --worldgen options, result statuses, result JSON fields and coordinate format\"\napplies_to:\n  - \"*.cs\"\n  - \"*.ps1\"\n  - \"*.csproj\"\n  - \"*.yaml\"\n---\n\n# WorldgenDriver naming conventions\n\n## Files and Directories\n**Id:** blk-28ae24c5737d\n\n- Folder, project, assembly and namespace are `WorldgenDriver`; the mod's `staticID` is `Isochronous.WorldgenDriver`.\n- C# files by role: `Mod.cs` (the `UserMod2` entry point), `Patches.cs` (every Harmony patch), `Driver.cs` (state, command line, result writing).\n- The launcher is `Invoke-Worldgen.ps1`, a PowerShell Verb-Noun name.\n- Run output goes under `tools/WorldgenDriver/runs/` (git-ignored): `<Label>-<stamp>.jsonl` for results and `<Label>-<stamp>-session<N>.log` for each session's `Player.log`; `<stamp>` is `yyyyMMdd-HHmmss`.\n- In the Klei folder (`Documents\\Klei\\OxygenNotIncluded`): `worldgen-driver\\results.jsonl` and `worldgen-driver\\list.txt`; backups are the original name plus `.worldgen-backup`.\n\n## Code Naming\n**Id:** blk-7321225beeb8\n\n### Classes\n**Id:** blk-eec69329743c\n\n- PascalCase. The mod class is `WorldgenDriverMod`; the state class is `Driver`.\n- A Harmony patch class is `<GameType>_<Method>_Patch`: `MainMenu_OnSpawn_Patch`, `OfflineWorldGen_UpdateProgress_Patch`, `App_LateUpdate_Patch`, `OfflineWorldGen_OnError_Patch`, `OfflineWorldGen_DoExitFlow_Patch`, `App_LoadScene_Patch`, `Game_OnSpawn_Patch`. Each is `public static` with a `Prefix` or `Postfix` method.\n\n### Members\n**Id:** blk-a4fb60b0a844\n\n- `Driver` exposes PascalCase static properties and fields (`Active`, `Coordinate`, `TimeoutSeconds`, `WantExpansion1`, `Applied`); private state is camelCase (`expansionGiven`, `quitting`).\n- Methods are verbs: `ReadCommandLine`, `BeginCoordinate`, `Finish`, `Progress`, `WriteResult`.\n- Log prefix constant: `Driver.Tag`.\n\n### PowerShell\n**Id:** blk-b2d0f975cc8f\n\n- Parameters PascalCase (`-Coordinate`, `-ListFile`, `-Mods`, `-PerSession`, `-TimeoutSec`, `-Label`), switches for flags (`-Load`, `-NoGraphics`), `ValidateSet` for enumerations (`-Mode auto|base|spacedout`, `-Stories`, `-Mixing`).\n- Functions Verb-Noun: `Set-Mode`, `Set-Mods`, `Read-Results`.\n- Script variables camelCase (`$modsJson`, `$resultFile`, `$listPath`, `$sessionLog`).\n\n## Project-Specific Conventions\n**Id:** blk-12a3adabf260\n\n### Command-line options\n**Id:** blk-aa65fc8f3058\n\n- `--worldgen` and `--worldgen-<name>` in kebab-case, each with `=value`: `--worldgen`, `--worldgen-list`, `--worldgen-out`, `--worldgen-timeout`, `--worldgen-expansion1`, `--worldgen-stories`, `--worldgen-mixing`, `--worldgen-load`. Booleans take `1` or `true`.\n\n### Result statuses\n**Id:** blk-f9b58681c447\n\n- Lower-case, hyphenated words: `complete`, `loaded`, `failed`, `bad-args`, `wrong-mode`, `driver-error`, `crash`, `hang`, `stuck-before-start`. The launcher groups and filters by these strings, so a new status is added in `Driver.Finish` and in the launcher's summary together.\n\n### Result JSON\n**Id:** blk-cecebc5b1133\n\n- One line per coordinate, field names camelCase: `status`, `coordinate`, `index`, `cluster`, `seed`, `applied`, `expansion1`, `stage`, `percent`, `secondsSinceProgress`, `secondsSinceStart`, `detail`, `build`, `time`, `errors`.\n- The launcher adds `session` and `log` to its in-memory copies.\n\n### Coordinates\n**Id:** blk-c03f0112aec4\n\n- A coordinate is the game's settings coordinate, upper-case parts joined by `-`, such as `CERS-A-100-0-0-0` (base game) or `M-FLIP-C-100-0-0-0` (Spaced Out).\n\n## Related\n**Id:** blk-a26aafb78ff9\n\n- See also: [code style](code-style.md), [glossary](../domains/glossary.md)\n",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories",
+     "text": "## Files and Directories\n**Id:** blk-28ae24c5737d\n\n- Folder, project, assembly and namespace are `WorldgenDriver`; the mod's `staticID` is `Isochronous.WorldgenDriver`.\n- C# files by role: `Mod.cs` (the `UserMod2` entry point), `Patches.cs` (every Harmony patch), `Driver.cs` (state, command line, result writing).\n- The launcher is `Invoke-Worldgen.ps1`, a PowerShell Verb-Noun name.\n- Run output goes under `tools/WorldgenDriver/runs/` (git-ignored): `<Label>-<stamp>.jsonl` for results and `<Label>-<stamp>-session<N>.log` for each session's `Player.log`; `<stamp>` is `yyyyMMdd-HHmmss`.\n- In the Klei folder (`Documents\\Klei\\OxygenNotIncluded`): `worldgen-driver\\results.jsonl` and `worldgen-driver\\list.txt`; backups are the original name plus `.worldgen-backup`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming",
+     "text": "## Code Naming\n**Id:** blk-7321225beeb8\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/classes",
+     "title": "Classes",
+     "text": "### Classes\n**Id:** blk-eec69329743c\n\n- PascalCase. The mod class is `WorldgenDriverMod`; the state class is `Driver`.\n- A Harmony patch class is `<GameType>_<Method>_Patch`: `MainMenu_OnSpawn_Patch`, `OfflineWorldGen_UpdateProgress_Patch`, `App_LateUpdate_Patch`, `OfflineWorldGen_OnError_Patch`, `OfflineWorldGen_DoExitFlow_Patch`, `App_LoadScene_Patch`, `Game_OnSpawn_Patch`. Each is `public static` with a `Prefix` or `Postfix` method.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/members",
+     "title": "Members",
+     "text": "### Members\n**Id:** blk-a4fb60b0a844\n\n- `Driver` exposes PascalCase static properties and fields (`Active`, `Coordinate`, `TimeoutSeconds`, `WantExpansion1`, `Applied`); private state is camelCase (`expansionGiven`, `quitting`).\n- Methods are verbs: `ReadCommandLine`, `BeginCoordinate`, `Finish`, `Progress`, `WriteResult`.\n- Log prefix constant: `Driver.Tag`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/powershell",
+     "title": "PowerShell",
+     "text": "### PowerShell\n**Id:** blk-b2d0f975cc8f\n\n- Parameters PascalCase (`-Coordinate`, `-ListFile`, `-Mods`, `-PerSession`, `-TimeoutSec`, `-Label`), switches for flags (`-Load`, `-NoGraphics`), `ValidateSet` for enumerations (`-Mode auto|base|spacedout`, `-Stories`, `-Mixing`).\n- Functions Verb-Noun: `Set-Mode`, `Set-Mods`, `Read-Results`.\n- Script variables camelCase (`$modsJson`, `$resultFile`, `$listPath`, `$sessionLog`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions",
+     "title": "Project-Specific Conventions",
+     "text": "## Project-Specific Conventions\n**Id:** blk-12a3adabf260\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/command-line-options",
+     "title": "Command-line options",
+     "text": "### Command-line options\n**Id:** blk-aa65fc8f3058\n\n- `--worldgen` and `--worldgen-<name>` in kebab-case, each with `=value`: `--worldgen`, `--worldgen-list`, `--worldgen-out`, `--worldgen-timeout`, `--worldgen-expansion1`, `--worldgen-stories`, `--worldgen-mixing`, `--worldgen-load`. Booleans take `1` or `true`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/result-statuses",
+     "title": "Result statuses",
+     "text": "### Result statuses\n**Id:** blk-f9b58681c447\n\n- Lower-case, hyphenated words: `complete`, `loaded`, `failed`, `bad-args`, `wrong-mode`, `driver-error`, `crash`, `hang`, `stuck-before-start`. The launcher groups and filters by these strings, so a new status is added in `Driver.Finish` and in the launcher's summary together.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/result-json",
+     "title": "Result JSON",
+     "text": "### Result JSON\n**Id:** blk-cecebc5b1133\n\n- One line per coordinate, field names camelCase: `status`, `coordinate`, `index`, `cluster`, `seed`, `applied`, `expansion1`, `stage`, `percent`, `secondsSinceProgress`, `secondsSinceStart`, `detail`, `build`, `time`, `errors`.\n- The launcher adds `session` and `log` to its in-memory copies.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/coordinates",
+     "title": "Coordinates",
+     "text": "### Coordinates\n**Id:** blk-c03f0112aec4\n\n- A coordinate is the game's settings coordinate, upper-case parts joined by `-`, such as `CERS-A-100-0-0-0` (base game) or `M-FLIP-C-100-0-0-0` (Spaced Out).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-a26aafb78ff9\n\n- See also: [code style](code-style.md), [glossary](../domains/glossary.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  }
+ ]
+}

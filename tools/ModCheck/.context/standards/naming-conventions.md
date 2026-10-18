@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-b5a7b9c0a575
 description: "Naming in ModCheck: the ModCheck.csproj and Program.cs file names, C# casing for types, methods, locals and counters, the two positional arguments, and the stage words and OK, FAIL and WARN prefixes in output"
 applies_to:
@@ -9,7 +10,8 @@ applies_to:
 # Naming Conventions
 
 ## Files and Directories
-**Id:** blk-8ff7fead9871
+**Id:** blk-8ff7fead9871  
+**Tags:** tool-build
 
 - The tool lives in `common/tools/ModCheck`: `ModCheck.csproj` and `Program.cs`. The project, the assembly and the folder share the name `ModCheck`.
 - The ICON store for the tool is `common/tools/ModCheck/.context`.
@@ -25,13 +27,15 @@ applies_to:
 - No `I` interfaces and no type prefixes; there is one class.
 
 ## Command Line
-**Id:** blk-6bdab3ca51dd
+**Id:** blk-6bdab3ca51dd  
+**Tags:** command-line
 
 - Two positional arguments in a fixed order: the game's Managed directory, then the mod DLL. No options or flags.
 - The mod DLL path is made absolute with `Path.GetFullPath` before use.
 
 ## Output Vocabulary
-**Id:** blk-0902df8ac85c
+**Id:** blk-0902df8ac85c  
+**Tags:** console-output
 
 - Stages in a result line are the lowercase words `type` and `jit`; the loader failure is `loader`.
 - Line prefixes are upper case: `OK`, `FAIL`, `WARN`. The final lines are `ALL CHECKS PASSED` or `<n> FAILURE(S)`.

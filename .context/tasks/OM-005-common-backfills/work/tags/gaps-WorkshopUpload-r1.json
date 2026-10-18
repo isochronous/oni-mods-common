@@ -1,0 +1,50 @@
+[
+ {
+  "id": "standards/code-style.md#formatting",
+  "reason": "no-good-match",
+  "suggestion": "source formatting",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/indentation",
+  "reason": "no-good-match",
+  "suggestion": "source formatting",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/line-length",
+  "reason": "no-good-match",
+  "suggestion": "source formatting",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/braces",
+  "reason": "no-good-match",
+  "suggestion": "source formatting",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#imports-includes",
+  "reason": "no-good-match",
+  "suggestion": "using directives",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#comments",
+  "reason": "no-good-match",
+  "suggestion": "code comments",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#comments/when-to-comment",
+  "reason": "no-good-match",
+  "suggestion": "code comments",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#comments/when-not-to-comment",
+  "reason": "no-good-match",
+  "suggestion": "code comments",
+  "kept": []
+ }
+]

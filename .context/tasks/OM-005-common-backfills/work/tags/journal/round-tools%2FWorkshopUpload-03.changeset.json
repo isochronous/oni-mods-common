@@ -1,0 +1,51 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 3",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:1177fad9799b3f6c313c8d74761f2b541ba55b8625524b20146889b35c68701a",
+    "domains/glossary.md": "sha256:398f1c107e3ff6d23f02257b059209194afff76227be65fcf180ba03579e04d7",
+    "standards/error-handling.md": "sha256:2a36b4e82ba5bdbab4c20f5ea743aaaeea4dc8c4d29aea6ee3291c2e0effb27b",
+    "standards/naming-conventions.md": "sha256:328188cc2bad4202e01f99fd6a6a28c10d9b28bd9a8c6f840d2ae1f99dbaf489"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "command-line",
+        "steam-cloud",
+        "item-download",
+        "item-description"
+      ],
+      "section": "key-entities/commands"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "legacy-workshop-item",
+        "item-download"
+      ],
+      "section": "cross-domain-terms/legacy-item"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "steamworks-api",
+        "console-output",
+        "steam-app-id"
+      ],
+      "section": "handling-patterns/steam-initialisation"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "steam-app-id"
+      ],
+      "section": "code-naming/constants"
+    }
+  ]
+}

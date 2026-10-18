@@ -1,0 +1,50 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 4",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:2a43a9cc31c0b7fb65d8f800cc40ad09f5760d778d9cc3a9a556e809bfe32752",
+    "domains/glossary.md": "sha256:406d6fce2c6455805e6f797f1ea2d953ee047b398fcfa97c72f2a36ff1f5916f",
+    "standards/error-handling.md": "sha256:0b56be3a468421610fcbb5e55ca5b7b013dc9143ef0ccdc452764552ac4a039b",
+    "standards/naming-conventions.md": "sha256:a6c1092d9f09765bf0ed6218248ca897ed9fdfac800f549411fec851259f7d7a"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "steam-cloud",
+        "steamworks-api",
+        "workshop-tags",
+        "item-visibility"
+      ],
+      "section": "key-entities/helpers"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "steam-app-id",
+        "steam-cloud"
+      ],
+      "section": "cross-domain-terms/uploader-app-636750"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "steamworks-api"
+      ],
+      "section": "handling-patterns/steam-call-results"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "steamworks-api",
+        "command-line"
+      ],
+      "section": "code-naming/variables"
+    }
+  ]
+}

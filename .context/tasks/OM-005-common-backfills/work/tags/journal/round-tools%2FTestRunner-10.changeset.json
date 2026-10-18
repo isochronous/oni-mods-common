@@ -1,0 +1,31 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 10",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:efc8898f7741bf0cd4f5585003184a59f8bb05f598da7a1c17ff554fbd2be7b6",
+    "domains/entities.md": "sha256:35c4d9c29890694e82f5674032af4478899fff33586669661608de846ca803ff"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "logging",
+        "test-assertions"
+      ],
+      "section": "logging"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "test-assertions",
+        "simulated-input",
+        "test-pacing",
+        "save-files"
+      ],
+      "section": "key-entities/the-kit-isochronous-testkit"
+    }
+  ]
+}

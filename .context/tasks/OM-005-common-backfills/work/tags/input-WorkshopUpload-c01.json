@@ -1,0 +1,83 @@
+{
+ "documents": [
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "WorkshopUpload naming conventions",
+   "description": "WorkshopUpload's naming rules: project and Steam file names, command-to-method mapping, helper, constant and variable naming in Program.cs, command and option spelling, visibility words, tags, Steam Cloud file names and Info output labels",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-af4f639c22ff\ndescription: \"WorkshopUpload's naming rules: project and Steam file names, command-to-method mapping, helper, constant and variable naming in Program.cs, command and option spelling, visibility words, tags, Steam Cloud file names and Info output labels\"\napplies_to:\n  - \"*.cs\"\n  - \"*.csproj\"\n---\n\n# WorkshopUpload naming conventions\n\n## Files and Directories\n**Id:** blk-d3e770073713\n\n- Folder, project file and root namespace share one name: `WorkshopUpload` (`WorkshopUpload.csproj`, `namespace WorkshopUpload;`).\n- One source file, `Program.cs`. Steam files keep Valve's names: `steam_appid.txt`, `steam_api64.dll`.\n\n## Code Naming\n**Id:** blk-aee6995bc1bd\n\n### Methods\n**Id:** blk-38dfe1c2fab0\n\n- PascalCase. A command is a method named for it with an initial capital: `info` is `Info`, `description` is `Description`, `list` is `List`, `update` is `Update`, `publish` is `Publish`, `cloud` is `Cloud`, `download` is `Download`. Each takes the parsed arguments (`ulong id`, or `string[] args`) and returns the exit code.\n- Helpers are verbs: `UploadToCloud`, `ParseTags`, `ParseVisibility`, `ParseOptions`, `Check`, `Await<T>`.\n- All methods are `private static`; the class is `internal static class Program`.\n\n### Constants\n**Id:** blk-4c50c395882e\n\n- PascalCase `private const`: `AppId` (457140, the game) and `UploaderAppId` (636750, Klei's uploader tool).\n\n### Variables\n**Id:** blk-85ee488abfcb\n\n- camelCase: `cloudZip`, `cloudPreview`, `zipPath`, `previewPath`, `descFile`, `tagList`.\n- Option values are looked up in a `Dictionary<string, string>` called `opts`.\n- Steam handle and result types keep Steamworks naming, including its Hungarian-style fields (`details.m_rgchTitle`, `page.m_nResultsReturned`, `result.m_eResult`).\n- Item ids are `ulong id` and wrapped as `new PublishedFileId_t(id)`.\n\n## Project-Specific Conventions\n**Id:** blk-885f77fd96da\n\n### Command line\n**Id:** blk-d4922475357d\n\n- A command is the first argument, lower-case: `info`, `description`, `list`, `update`, `publish`, `cloud`, `download`.\n- Options are `--kebab-case` pairs of name and value: `--title`, `--description-file`, `--changenote`, `--visibility`, `--tags`. `ParseOptions` stores them under the name without the dashes, so an option the code reads is spelled exactly as it is typed.\n- Visibility words: `public`, `friends`, `unlisted`, `private` (anything else is private).\n- Tags are one comma-separated string using the Workshop's own tag names (`tweaks`, `Base Game`, `Spaced Out!`).\n\n### Steam Cloud names\n**Id:** blk-dc54fea8c769\n\n- The zip is always `mod_publish_data_file.zip` and a preview is `mod_publish_preview` plus the preview's lower-cased extension. These are the names Klei's own uploader uses; the extension lets Steam treat a GIF as animated.\n\n### Output\n**Id:** blk-7d64c1088dd3\n\n- `label:  value` lines padded to align (`result:   `, `title:    `, `file:     `) in `Info`; `Description`, `Cloud` and `Download` use their own short labels.\n\n## Related\n**Id:** blk-94be299675d2\n\n- See also: [code style](code-style.md), [glossary](../domains/glossary.md)\n",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories",
+     "text": "## Files and Directories\n**Id:** blk-d3e770073713\n\n- Folder, project file and root namespace share one name: `WorkshopUpload` (`WorkshopUpload.csproj`, `namespace WorkshopUpload;`).\n- One source file, `Program.cs`. Steam files keep Valve's names: `steam_appid.txt`, `steam_api64.dll`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming",
+     "text": "## Code Naming\n**Id:** blk-aee6995bc1bd\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/methods",
+     "title": "Methods",
+     "text": "### Methods\n**Id:** blk-38dfe1c2fab0\n\n- PascalCase. A command is a method named for it with an initial capital: `info` is `Info`, `description` is `Description`, `list` is `List`, `update` is `Update`, `publish` is `Publish`, `cloud` is `Cloud`, `download` is `Download`. Each takes the parsed arguments (`ulong id`, or `string[] args`) and returns the exit code.\n- Helpers are verbs: `UploadToCloud`, `ParseTags`, `ParseVisibility`, `ParseOptions`, `Check`, `Await<T>`.\n- All methods are `private static`; the class is `internal static class Program`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/constants",
+     "title": "Constants",
+     "text": "### Constants\n**Id:** blk-4c50c395882e\n\n- PascalCase `private const`: `AppId` (457140, the game) and `UploaderAppId` (636750, Klei's uploader tool).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/variables",
+     "title": "Variables",
+     "text": "### Variables\n**Id:** blk-85ee488abfcb\n\n- camelCase: `cloudZip`, `cloudPreview`, `zipPath`, `previewPath`, `descFile`, `tagList`.\n- Option values are looked up in a `Dictionary<string, string>` called `opts`.\n- Steam handle and result types keep Steamworks naming, including its Hungarian-style fields (`details.m_rgchTitle`, `page.m_nResultsReturned`, `result.m_eResult`).\n- Item ids are `ulong id` and wrapped as `new PublishedFileId_t(id)`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions",
+     "title": "Project-Specific Conventions",
+     "text": "## Project-Specific Conventions\n**Id:** blk-885f77fd96da\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/command-line",
+     "title": "Command line",
+     "text": "### Command line\n**Id:** blk-d4922475357d\n\n- A command is the first argument, lower-case: `info`, `description`, `list`, `update`, `publish`, `cloud`, `download`.\n- Options are `--kebab-case` pairs of name and value: `--title`, `--description-file`, `--changenote`, `--visibility`, `--tags`. `ParseOptions` stores them under the name without the dashes, so an option the code reads is spelled exactly as it is typed.\n- Visibility words: `public`, `friends`, `unlisted`, `private` (anything else is private).\n- Tags are one comma-separated string using the Workshop's own tag names (`tweaks`, `Base Game`, `Spaced Out!`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/steam-cloud-names",
+     "title": "Steam Cloud names",
+     "text": "### Steam Cloud names\n**Id:** blk-dc54fea8c769\n\n- The zip is always `mod_publish_data_file.zip` and a preview is `mod_publish_preview` plus the preview's lower-cased extension. These are the names Klei's own uploader uses; the extension lets Steam treat a GIF as animated.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/output",
+     "title": "Output",
+     "text": "### Output\n**Id:** blk-7d64c1088dd3\n\n- `label:  value` lines padded to align (`result:   `, `title:    `, `file:     `) in `Info`; `Description`, `Cloud` and `Download` use their own short labels.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-94be299675d2\n\n- See also: [code style](code-style.md), [glossary](../domains/glossary.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  }
+ ]
+}

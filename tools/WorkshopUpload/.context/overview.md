@@ -1,16 +1,19 @@
 ---
+tags: steam-workshop, legacy-workshop-item
 description: WorkshopUpload's purpose (legacy ISteamRemoteStorage publishing for the game), the app ids it runs under, its seven commands and its callers, and a map of Program.cs, WorkshopUpload.csproj, steam_appid.txt and steam_api64.dll
 ---
 
 # WorkshopUpload
 
 ## What this is
-**Id:** blk-846080fa7238
+**Id:** blk-846080fa7238  
+**Tags:** steam-app-id, steamworks-api, release-process, item-download
 
 WorkshopUpload publishes and updates Oxygen Not Included mods on the Steam Workshop as legacy single-file items, and inspects items. The game has no Workshop depot and downloads only items published through the old `ISteamRemoteStorage` API, so this .NET 8 console app over Steamworks.NET publishes and updates through that API only; an item updated through `ISteamUGC` stops being downloadable by the game. It runs as Klei's Oxygen Not Included Uploader (app 636750, chosen by `steam_appid.txt`) with the game (app 457140) as the consumer app, and needs the Steam client running and logged in as the item's owner. Its commands are `info`, `description`, `list`, `update`, `publish`, `cloud` and `download`. `tools/Release/release.py` calls it to push a release zip, preview, description and change note to a mod's Workshop item, and `tools/ModTest/Test-OniMods.ps1` uses `download` to fetch a newly subscribed item for `-Steam`.
 
 ## Where things are
-**Id:** blk-6dcf139ddfa3
+**Id:** blk-6dcf139ddfa3  
+**Tags:** tool-build, steam-app-id, steamworks-api
 
 Top-level folders and key files:
 

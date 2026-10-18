@@ -1,0 +1,31 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 10",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:9c866f161a48aab887d1db31d1554820318d881f49ef261f04420856a5bf6060",
+    "domains/entities.md": "sha256:50f311b5755fbd092047d8e79680a442caa5c981e8eda768e252bd51736a766b"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "activation-guard",
+        "save-files",
+        "crash-dialog"
+      ],
+      "section": "anti-patterns-to-avoid"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "watchdog"
+      ],
+      "section": "state-transitions"
+    }
+  ]
+}

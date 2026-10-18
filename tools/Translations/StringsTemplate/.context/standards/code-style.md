@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-d57d9d21981a
 description: "StringsTemplate's code style for Program.cs and StringsTemplate.csproj: indentation, line length, Allman braces, C# 9 on .NET 8 project settings, the build command, the using block, when to comment and control-flow patterns"
 applies_to:
@@ -37,7 +38,8 @@ foreach (string po in Directory.GetFiles(translationsDir, "*.po").OrderBy(p => p
 ```
 
 ## Language and Toolchain
-**Id:** blk-0c006bb6c374
+**Id:** blk-0c006bb6c374  
+**Tags:** tool-build
 
 - C# 9 (`LangVersion` 9.0) on .NET 8 (`net8.0`), `OutputType` Exe, `Nullable` disabled. It runs on .NET 8, not on the game's .NET Framework 4.8, so it does not import `common/oni-mod.props`.
 - No `ImplicitUsings`: every namespace is imported by hand.
@@ -77,7 +79,8 @@ using System.Text.RegularExpressions;
 - TODO(owner): `ReadPo` carries two stacked `<summary>` blocks, the first a one-line leftover of the second; drop the first.
 
 ## Control Structures
-**Id:** blk-5ff9e7024b0c
+**Id:** blk-5ff9e7024b0c  
+**Tags:** exit-codes, console-output
 
 - `Main` returns early with an exit code for usage and fatal setup errors, then runs the checks in order and returns 0 or 1.
 - Check methods return an `int` count of problems and print each one as they find it; `Main` adds the counts up (see `error-handling.md`).

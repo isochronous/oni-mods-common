@@ -1,0 +1,60 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 4",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/code-style.md": "sha256:4cfb7c4e0204f7f7f697f4fb28832519d67927c077814c6f910bf4ec72c49d97",
+    "standards/error-handling.md": "sha256:f824094cf519b0c7efdc547ba5f569962fd2c6202baecb7f276c6e76be87c154",
+    "standards/naming-conventions.md": "sha256:c671f5745862d95094b8b19ba3f35a9aeeda7f604815194ea9682983b6d8d634",
+    "domains/entities.md": "sha256:46d15a1d46b97571379f31547617360a1af6bf49325099634d335440f920c55c",
+    "domains/glossary.md": "sha256:92b8fd12e1d4e7c09e25791cda0480b257411582a8f6b905a0e51c7ad2c1ff7e"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "reflection"
+      ],
+      "section": "private-game-members"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "game-launch",
+        "mod-build",
+        "player-log"
+      ],
+      "section": "launcher-exit-codes"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "screenshots"
+      ],
+      "section": "results"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "watchdog",
+        "test-cleanup",
+        "logging"
+      ],
+      "section": "key-entities/testbehaviour"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "live-session"
+      ],
+      "section": "cross-domain-terms/run-session-and-live-session"
+    }
+  ]
+}

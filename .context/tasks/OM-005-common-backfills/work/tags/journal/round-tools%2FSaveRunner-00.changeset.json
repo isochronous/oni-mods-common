@@ -1,0 +1,86 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 0",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "domains/README.md": "sha256:4c5c6bef2def8862efc4a9e889cfe75edfa535a1485574425e216d4b14929fc5",
+    "standards/README.md": "sha256:1a42f6c03f301898a01ca37636f88ede45097095d37a28c1a2af94fa0862638d",
+    "standards/code-style.md": "sha256:85587d104ce5e1af6a423b17fab4411523ca90ea0725f734fbd2d5341841fd5c",
+    "standards/error-handling.md": "sha256:f91ac771146925a1b33cdee053fc1171c46631e04fe6e8b167be9f1a3dbf8726",
+    "standards/naming-conventions.md": "sha256:8c4bdcf4cd7588f17fd8fa02c6dc5b74280aad20e34d0c64053805c8f9445be8",
+    "domains/entities.md": "sha256:628d0c5c3d6e1b658864a5938faac2f5a51cc84625fa6d26a037e00521d846e7",
+    "domains/glossary.md": "sha256:f16dc946d04525e2dc9801ebeca2aed40a57830ad8a2a14eb7de6a55c6e26ac6",
+    "overview.md": "sha256:087fb450835584497542fdb38e560e57ebe48c4dd76d4c74af7a526f4371ba59"
+  },
+  "ops": [
+    {
+      "target": "domains/README.md",
+      "mode": "tag",
+      "add": [
+        "mod-entry-point",
+        "harmony-patching",
+        "probe",
+        "game-launch"
+      ]
+    },
+    {
+      "target": "standards/README.md",
+      "mode": "tag",
+      "add": [
+        "code-style",
+        "exception-handling"
+      ]
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "exception-handling"
+      ]
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "code-style"
+      ]
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "activation-guard",
+        "save-files",
+        "mod-loadout",
+        "probe"
+      ],
+      "section": "overview"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "probe"
+      ],
+      "section": "abbreviations-and-acronyms"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "activation-guard",
+        "mod-loadout",
+        "save-files",
+        "probe"
+      ],
+      "section": "what-this-is"
+    }
+  ]
+}

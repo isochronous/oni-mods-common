@@ -1,4 +1,5 @@
 ---
+tags: code-style, exception-handling, exit-codes
 doc_id: doc-b5f9174931d9
 description: "Index of WorkshopUpload's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers"
 ---

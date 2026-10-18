@@ -1,4 +1,5 @@
 ---
+tags: translations
 doc_id: doc-1533a2e8de9a
 description: StringsTemplate's Program.Main and its helpers in Program.cs (Entry, Collect, WritePot, CheckOptionKeys, CheckPo, ReadPo and the parameter and link checks), the files it reads and writes, its business rules, terms and code paths
 applies_to:
@@ -9,7 +10,8 @@ applies_to:
 # StringsTemplate domain
 
 ## Overview
-**Id:** blk-77fa8ff1839f
+**Id:** blk-77fa8ff1839f  
+**Tags:** translation-template, mod-strings, command-line
 
 StringsTemplate writes a mod's translation template and checks its translations without starting the game. It is a .NET 8 console app. It loads a built mod DLL against the game's real assemblies, reads the mod's `ModStrings` tree (the classes the `Isochronous.Translations` loader registers as `STRINGS.*`), writes `<Mod>.pot`, and compares every `<locale>.po` in the translations folder against it. `tools/Translations/translations.py` runs it for each mod; it can also be run by hand:
 
@@ -24,6 +26,7 @@ Source: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks an
 
 ### Program.Main
 **Id:** blk-b1319f3547fd  
+**Tags:** command-line, assembly-resolution, exit-codes, console-output  
 **Description**: Entry point. Validates the three arguments, installs the `AssemblyResolve` handler, loads the DLL, finds the top-level `ModStrings` type, collects the entries, writes the `.pot`, runs the option-key check and the po checks, prints the verdict and returns the exit code (0, 1 or 2).  
 **Location**: `tools/Translations/StringsTemplate/Program.cs`
 
@@ -31,6 +34,7 @@ Source: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks an
 
 ### Entry
 **Id:** blk-87683f136a98  
+**Tags:** mod-strings  
 **Description**: One translatable string: its key (`STRINGS.A.B.C`) and the English text of the `LocString`.  
 **Location**: `Program.cs` (nested `private sealed class Entry`)
 
@@ -43,31 +47,37 @@ Source: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks an
 
 ### Collect
 **Id:** blk-eea74830c54d  
+**Tags:** mod-strings  
 **Description**: Walks a type's public static `LocString` fields and its nested types, building keys from the names.  
 **Location**: `Program.cs`
 
 ### WritePot
 **Id:** blk-d9891737717a  
+**Tags:** translation-template  
 **Description**: Writes the template: a gettext header, then per entry a `#. <key>` comment, `msgctxt` (the key), `msgid` (the English, with quotes and newlines escaped) and an empty `msgstr`. Overwrites the file every run, UTF-8 without a BOM, LF line ends.  
 **Location**: `Program.cs`
 
 ### CheckOptionKeys
 **Id:** blk-765f8c52e2f8  
+**Tags:** mod-options, mod-strings  
 **Description**: Finds `OptionAttribute` and `ConfigFileAttribute` (PLib) on every type, property and field of the mod by attribute type name, and fails any `Title`, `Tooltip` or `Category` that starts with `STRINGS.` and is not in the entry list.  
 **Location**: `Program.cs`
 
 ### CheckPo, ReadPo, Parameter, Quoted
 **Id:** blk-f451620721c1  
+**Tags:** refused-translation  
 **Description**: `CheckPo` reads a po with `ReadPo` (msgctxt to (msgid, msgstr), parsed the way the game's reader does) and compares it to the entries, counting missing, empty, stale, refused and obsolete ones. `Parameter` joins a keyword line with the quoted continuation lines under it; `Quoted` strips the quotes and throws `FormatException` for a line the game's reader would throw on.  
 **Location**: `Program.cs`
 
 ### SameParameters, LinkCount, LinksMatch
 **Id:** blk-0c8a3abcea91  
+**Tags:** refused-translation  
 **Description**: The game's acceptance rules for a translated string: the set of distinct `{...}` tokens equals the English set; the `<link=` count does not exceed the English count; every `<link=` has a `</link>`.  
 **Location**: `Program.cs`
 
 ## Files read and written
-**Id:** blk-1cfa0c1f2c1d
+**Id:** blk-1cfa0c1f2c1d  
+**Tags:** translation-template, assembly-resolution
 
 | File | Direction | Description |
 |------|-----------|-------------|
@@ -77,7 +87,8 @@ Source: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks an
 | `<translations dir>/*.po` | read | one per locale, checked, never modified |
 
 ## Business Rules
-**Id:** blk-bfa5d623d61d
+**Id:** blk-bfa5d623d61d  
+**Tags:** mod-strings, translation-template, exit-codes, refused-translation
 
 - The key of a string is its path in `ModStrings`: `ModStrings.A.B.C` is `STRINGS.A.B.C`. Only public static fields of type `LocString` count.
 - The `.pot` is regenerated from the DLL every run, so it always matches the code.
@@ -86,7 +97,8 @@ Source: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks an
 - The tool never edits a po file.
 
 ## Domain Terminology
-**Id:** blk-55b5f3a241f8
+**Id:** blk-55b5f3a241f8  
+**Tags:** mod-strings, translation-template, refused-translation
 
 | Term | Definition |
 |------|-----------|
@@ -97,7 +109,8 @@ Source: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks an
 | refused | a translation the game would reject at load |
 
 ## Key Code Paths
-**Id:** blk-aa442e0b3e88
+**Id:** blk-aa442e0b3e88  
+**Tags:** tool-build, translation-template
 
 - **Template and check run**: `Main` -> `Collect` -> `WritePot` -> `CheckOptionKeys` -> `CheckPo` per po -- see `Program.cs`.
 - **Po parse**: `CheckPo` -> `ReadPo` -> `Parameter` -> `Quoted` -- see `Program.cs`.

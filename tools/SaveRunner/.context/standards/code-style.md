@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-b16e31474a05
 description: "SaveRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through SaveRunner.csproj, the one-concern-per-file layout and how to add a probe, the Runner.Active guard, Harmony patch form and comments"
 applies_to:
@@ -31,7 +32,8 @@ applies_to:
 - No limit and no `.editorconfig`. Long log lines wrap before a `+` with the continuation indented one tab (the start-up `Debug.Log` in `Mod.cs`).
 
 ## Language and Toolchain
-**Id:** blk-545208d8763a
+**Id:** blk-545208d8763a  
+**Tags:** mod-build, mod-entry-point
 
 - C# 9 on .NET Framework 4.8 (`common/oni-mod.props`: `LangVersion` 9.0, `TargetFramework` net48), built against the game's own assemblies through `common/oni-mod.targets`.
 - `SaveRunner.csproj` imports the props, sets `AssemblyName`, `RootNamespace` and `Version`, then imports the targets. A successful build deploys the mod to `Documents\Klei\OxygenNotIncluded\mods\local\SaveRunner`.
@@ -39,7 +41,8 @@ applies_to:
 - Namespace blocks, not file-scoped namespaces.
 
 ## Layout
-**Id:** blk-233f0aed6e04
+**Id:** blk-233f0aed6e04  
+**Tags:** probe
 
 One concern per file, all in the node root:
 
@@ -54,19 +57,22 @@ One concern per file, all in the node root:
 A new probe is a static class beside `FridgeProbe` with a `Sample(int t, StreamWriter writer, bool toLog)` method, a branch in `RunBehaviour.Begin` for its CSV header and one in `RunBehaviour.Sample`, and an entry in the launcher's `-Probe` `ValidateSet`.
 
 ## Inert Without the Argument
-**Id:** blk-969f0779ab20
+**Id:** blk-969f0779ab20  
+**Tags:** activation-guard
 
 Every patch and hook starts with `if (!Runner.Active) return` (or the equivalent). The mod must stay installed and change nothing when the game starts without `--saverun`. `SaveRunnerMod.OnLoad` returns before patching the quit traces when `Runner.Active` is false.
 
 ## Harmony Patches
-**Id:** blk-fa011f2987f3
+**Id:** blk-fa011f2987f3  
+**Tags:** harmony-patching, exception-handling
 
 - One static class per patched method, with `[HarmonyPatch(typeof(X), "Method")]` or `nameof` when the member is public, and a `Prefix` or `Postfix` inside (`Patches.cs`).
 - The overload is pinned by parameter types when the method has several (`SaveLoader.Save(string, bool, bool)`).
 - Private members are named by string; a patch that could be missing on another game build is applied by hand inside try/catch (`SaveRunnerMod.TracePatch`).
 
 ## Comments
-**Id:** blk-9fd4a51454ee
+**Id:** blk-9fd4a51454ee  
+**Tags:** command-line
 
 - Types and patch classes get a `///` summary that says what the code is for and, where a bug shaped it, what went wrong: the four-second menu settle in `Patches.cs`, the crash dialog in `Mod.cs`.
 - Command-line options are documented in the `///` summary of `Runner`, in the launcher's comment-based help and in `README.md`; change all three together.

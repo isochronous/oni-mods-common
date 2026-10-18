@@ -1,0 +1,90 @@
+{
+ "documents": [
+  {
+   "id": "standards/naming-conventions.md",
+   "title": "StringsTemplate naming conventions",
+   "description": "StringsTemplate's naming rules: folder, project and output file names, type, method, variable and field naming in Program.cs, how translation keys are built and sorted, report line keywords and positional argument order",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-718fdd9d28d5\ndescription: \"StringsTemplate's naming rules: folder, project and output file names, type, method, variable and field naming in Program.cs, how translation keys are built and sorted, report line keywords and positional argument order\"\napplies_to:\n  - \"*.cs\"\n  - \"*.csproj\"\n---\n\n# StringsTemplate naming conventions\n\n## Files and Directories\n**Id:** blk-51503f510e6b\n\n- Folder, project file and assembly share one name: `StringsTemplate` (`StringsTemplate.csproj`, `StringsTemplate.dll`). The tool lives under `tools/Translations/`, next to `translations.py`.\n- C# source is a single `Program.cs`.\n- Outputs are named after the checked mod's assembly: `<translations dir>/<Mod>.pot` (the assembly name of the DLL passed in). Inputs are `<locale>.po` files in the same folder.\n\n## Code Naming\n**Id:** blk-7f6a26ed0265\n\n### Types\n**Id:** blk-2114efedfc0a\n\n- PascalCase. `Program` is `internal static`; the only other type is the nested `private sealed class Entry`. There is no namespace.\n\n### Methods\n**Id:** blk-5e970e3a44e3\n\n- PascalCase verbs naming the job: `Collect`, `WritePot`, `Escape`, `Unescape`, `CheckOptionKeys`, `CheckPo`, `ReadPo`, `Parameter`, `Quoted`, `SameParameters`, `LinkCount`, `LinksMatch`.\n- Methods that check something are `Check*` and return the number of problems; predicates read as questions (`SameParameters`, `LinksMatch`).\n- All methods are `private static`.\n\n### Variables\n**Id:** blk-04b060e253dd\n\n- camelCase for locals and parameters, named for what they hold: `managedDir`, `modDll`, `translationsDir`, `translated`, `entries`.\n- Counters are short words in one declaration (`int missing = 0, stale = 0, empty = 0, refused = 0, obsolete = 0;`).\n- The static regex field is PascalCase (`Parameters`) and `readonly`.\n- Lambda parameters are one letter (`p`, `e`, `a`, `b`, `m`).\n\n### Fields\n**Id:** blk-0e13b825438b\n\n- `Entry` has public fields `Key` and `English`; there are no properties.\n\n## Project-Specific Conventions\n**Id:** blk-96cf073a4c6d\n\n### Translation keys\n**Id:** blk-d15b30cc4eaf\n\n- A key is the path through the mod's `ModStrings` tree with a `STRINGS.` prefix: `ModStrings.A.B.C` is `STRINGS.A.B.C`. The tool builds it from nested type names and the `LocString` field name, so the C# names are the keys.\n- Keys are sorted with `string.CompareOrdinal` in the `.pot`.\n\n### Report text\n**Id:** blk-491fc8e9674c\n\n- Each line starts with an upper-case keyword (`FAIL`, `MISSING`, `STALE`, `REFUSED`, `EMPTY`, `OBSOLETE`) followed by the po file name and key.\n\n### Command line\n**Id:** blk-4f71c0738539\n\n- Positional arguments only, in this order: game Managed directory, mod DLL, translations directory.\n\n## Related\n**Id:** blk-ea3099460d90\n\n- See also: [code style](code-style.md), [glossary](../domains/glossary.md)\n",
+   "sections": [
+    {
+     "id": "standards/naming-conventions.md#files-and-directories",
+     "title": "Files and Directories",
+     "text": "## Files and Directories\n**Id:** blk-51503f510e6b\n\n- Folder, project file and assembly share one name: `StringsTemplate` (`StringsTemplate.csproj`, `StringsTemplate.dll`). The tool lives under `tools/Translations/`, next to `translations.py`.\n- C# source is a single `Program.cs`.\n- Outputs are named after the checked mod's assembly: `<translations dir>/<Mod>.pot` (the assembly name of the DLL passed in). Inputs are `<locale>.po` files in the same folder.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming",
+     "title": "Code Naming",
+     "text": "## Code Naming\n**Id:** blk-7f6a26ed0265\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/types",
+     "title": "Types",
+     "text": "### Types\n**Id:** blk-2114efedfc0a\n\n- PascalCase. `Program` is `internal static`; the only other type is the nested `private sealed class Entry`. There is no namespace.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/methods",
+     "title": "Methods",
+     "text": "### Methods\n**Id:** blk-5e970e3a44e3\n\n- PascalCase verbs naming the job: `Collect`, `WritePot`, `Escape`, `Unescape`, `CheckOptionKeys`, `CheckPo`, `ReadPo`, `Parameter`, `Quoted`, `SameParameters`, `LinkCount`, `LinksMatch`.\n- Methods that check something are `Check*` and return the number of problems; predicates read as questions (`SameParameters`, `LinksMatch`).\n- All methods are `private static`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/variables",
+     "title": "Variables",
+     "text": "### Variables\n**Id:** blk-04b060e253dd\n\n- camelCase for locals and parameters, named for what they hold: `managedDir`, `modDll`, `translationsDir`, `translated`, `entries`.\n- Counters are short words in one declaration (`int missing = 0, stale = 0, empty = 0, refused = 0, obsolete = 0;`).\n- The static regex field is PascalCase (`Parameters`) and `readonly`.\n- Lambda parameters are one letter (`p`, `e`, `a`, `b`, `m`).\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#code-naming/fields",
+     "title": "Fields",
+     "text": "### Fields\n**Id:** blk-0e13b825438b\n\n- `Entry` has public fields `Key` and `English`; there are no properties.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions",
+     "title": "Project-Specific Conventions",
+     "text": "## Project-Specific Conventions\n**Id:** blk-96cf073a4c6d\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/translation-keys",
+     "title": "Translation keys",
+     "text": "### Translation keys\n**Id:** blk-d15b30cc4eaf\n\n- A key is the path through the mod's `ModStrings` tree with a `STRINGS.` prefix: `ModStrings.A.B.C` is `STRINGS.A.B.C`. The tool builds it from nested type names and the `LocString` field name, so the C# names are the keys.\n- Keys are sorted with `string.CompareOrdinal` in the `.pot`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/report-text",
+     "title": "Report text",
+     "text": "### Report text\n**Id:** blk-491fc8e9674c\n\n- Each line starts with an upper-case keyword (`FAIL`, `MISSING`, `STALE`, `REFUSED`, `EMPTY`, `OBSOLETE`) followed by the po file name and key.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#project-specific-conventions/command-line",
+     "title": "Command line",
+     "text": "### Command line\n**Id:** blk-4f71c0738539\n\n- Positional arguments only, in this order: game Managed directory, mod DLL, translations directory.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/naming-conventions.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-ea3099460d90\n\n- See also: [code style](code-style.md), [glossary](../domains/glossary.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  }
+ ]
+}

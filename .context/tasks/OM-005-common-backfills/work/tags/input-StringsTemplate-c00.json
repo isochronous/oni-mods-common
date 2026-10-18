@@ -1,0 +1,410 @@
+{
+ "documents": [
+  {
+   "id": "domains/README.md",
+   "title": "Domains",
+   "description": "Index of StringsTemplate's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-4d04fbea7620\ndescription: \"Index of StringsTemplate's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers\"\n---\n\n# Domains\n\n## Domains\n**Id:** blk-01cefd5d41dc\n\nDocuments in this folder:\n\n- [entities](entities.md): `Program.Main` and its helpers (`Entry`, `Collect`, `WritePot`, `CheckOptionKeys`, the po reader and checks), the files read and written, the rules it enforces, its terminology, code paths and states.\n- [glossary](glossary.md): the terms a newcomer needs: ModStrings, key (msgctxt), pot and po, stale, refused, obsolete, Managed directory, and the terms to avoid.\n",
+   "sections": [
+    {
+     "id": "domains/README.md#domains",
+     "title": "Domains",
+     "text": "## Domains\n**Id:** blk-01cefd5d41dc\n\nDocuments in this folder:\n\n- [entities](entities.md): `Program.Main` and its helpers (`Entry`, `Collect`, `WritePot`, `CheckOptionKeys`, the po reader and checks), the files read and written, the rules it enforces, its terminology, code paths and states.\n- [glossary](glossary.md): the terms a newcomer needs: ModStrings, key (msgctxt), pot and po, stale, refused, obsolete, Managed directory, and the terms to avoid.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/entities.md",
+   "title": "StringsTemplate domain",
+   "description": "StringsTemplate's Program.Main and its helpers in Program.cs (Entry, Collect, WritePot, CheckOptionKeys, CheckPo, ReadPo and the parameter and link checks), the files it reads and writes, its business rules, terms and code paths",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-1533a2e8de9a\ndescription: StringsTemplate's Program.Main and its helpers in Program.cs (Entry, Collect, WritePot, CheckOptionKeys, CheckPo, ReadPo and the parameter and link checks), the files it reads and writes, its business rules, terms and code paths\napplies_to:\n  - \"*.cs\"\n  - \"*.csproj\"\n---\n\n# StringsTemplate domain\n\n## Overview\n**Id:** blk-77fa8ff1839f\n\nStringsTemplate writes a mod's translation template and checks its translations without starting the game. It is a .NET 8 console app. It loads a built mod DLL against the game's real assemblies, reads the mod's `ModStrings` tree (the classes the `Isochronous.Translations` loader registers as `STRINGS.*`), writes `<Mod>.pot`, and compares every `<locale>.po` in the translations folder against it. `tools/Translations/translations.py` runs it for each mod; it can also be run by hand:\n\n```\nStringsTemplate <game Managed dir> <mod dll> <translations dir>\n```\n\nSource: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks and patches nothing; it only reads.\n\n## Key Entities\n**Id:** blk-37a6176b8829\n\n### Program.Main\n**Id:** blk-b1319f3547fd  \n**Description**: Entry point. Validates the three arguments, installs the `AssemblyResolve` handler, loads the DLL, finds the top-level `ModStrings` type, collects the entries, writes the `.pot`, runs the option-key check and the po checks, prints the verdict and returns the exit code (0, 1 or 2).  \n**Location**: `tools/Translations/StringsTemplate/Program.cs`\n\n**Relationships**: calls `Collect` for every nested type of `ModStrings`, then `WritePot`, `CheckOptionKeys`, and `CheckPo` once per po file in name order.\n\n### Entry\n**Id:** blk-87683f136a98  \n**Description**: One translatable string: its key (`STRINGS.A.B.C`) and the English text of the `LocString`.  \n**Location**: `Program.cs` (nested `private sealed class Entry`)\n\n| Property | Type | Description |\n|----------|------|-------------|\n| Key | string | `STRINGS.` plus the nested type names and the field name |\n| English | string | the `LocString.text` read by reflection after the `ModStrings` initializers ran; empty when the value is null |\n\n**Relationships**: `Collect` produces a sorted `List<Entry>`; `WritePot` and `CheckPo` consume it.\n\n### Collect\n**Id:** blk-eea74830c54d  \n**Description**: Walks a type's public static `LocString` fields and its nested types, building keys from the names.  \n**Location**: `Program.cs`\n\n### WritePot\n**Id:** blk-d9891737717a  \n**Description**: Writes the template: a gettext header, then per entry a `#. <key>` comment, `msgctxt` (the key), `msgid` (the English, with quotes and newlines escaped) and an empty `msgstr`. Overwrites the file every run, UTF-8 without a BOM, LF line ends.  \n**Location**: `Program.cs`\n\n### CheckOptionKeys\n**Id:** blk-765f8c52e2f8  \n**Description**: Finds `OptionAttribute` and `ConfigFileAttribute` (PLib) on every type, property and field of the mod by attribute type name, and fails any `Title`, `Tooltip` or `Category` that starts with `STRINGS.` and is not in the entry list.  \n**Location**: `Program.cs`\n\n### CheckPo, ReadPo, Parameter, Quoted\n**Id:** blk-f451620721c1  \n**Description**: `CheckPo` reads a po with `ReadPo` (msgctxt to (msgid, msgstr), parsed the way the game's reader does) and compares it to the entries, counting missing, empty, stale, refused and obsolete ones. `Parameter` joins a keyword line with the quoted continuation lines under it; `Quoted` strips the quotes and throws `FormatException` for a line the game's reader would throw on.  \n**Location**: `Program.cs`\n\n### SameParameters, LinkCount, LinksMatch\n**Id:** blk-0c8a3abcea91  \n**Description**: The game's acceptance rules for a translated string: the set of distinct `{...}` tokens equals the English set; the `<link=` count does not exceed the English count; every `<link=` has a `</link>`.  \n**Location**: `Program.cs`\n\n## Files read and written\n**Id:** blk-1cfa0c1f2c1d\n\n| File | Direction | Description |\n|------|-----------|-------------|\n| `<mod dll>` | read | the built mod (for example `src/<Mod>/bin/Release/<Mod>.dll`), loaded with `Assembly.LoadFrom` |\n| `<game Managed dir>\\*.dll` | read | resolves the mod's references (`Assembly-CSharp`, Unity, PLib) |\n| `<translations dir>/<Mod>.pot` | written | template, created or overwritten |\n| `<translations dir>/*.po` | read | one per locale, checked, never modified |\n\n## Business Rules\n**Id:** blk-bfa5d623d61d\n\n- The key of a string is its path in `ModStrings`: `ModStrings.A.B.C` is `STRINGS.A.B.C`. Only public static fields of type `LocString` count.\n- The `.pot` is regenerated from the DLL every run, so it always matches the code.\n- A po entry is stale when its `msgid` is not the English in the DLL now; stale, missing and refused entries and unknown option keys fail the run (exit 1). Empty and obsolete entries are reported only.\n- A po line the game's reader cannot parse fails the whole file, as it would in the game.\n- The tool never edits a po file.\n\n## Domain Terminology\n**Id:** blk-55b5f3a241f8\n\n| Term | Definition |\n|------|-----------|\n| ModStrings | the mod's static class tree of `LocString`s; the source of every key |\n| pot | the template this tool writes: every key with its English and an empty translation |\n| po | a locale's translation file, `<locale>.po` |\n| stale | the po's English no longer matches the DLL's |\n| refused | a translation the game would reject at load |\n\n## Key Code Paths\n**Id:** blk-aa442e0b3e88\n\n- **Template and check run**: `Main` -> `Collect` -> `WritePot` -> `CheckOptionKeys` -> `CheckPo` per po -- see `Program.cs`.\n- **Po parse**: `CheckPo` -> `ReadPo` -> `Parameter` -> `Quoted` -- see `Program.cs`.\n- **Caller**: `main()` in `tools/Translations/translations.py` builds the project at `TOOL`, then runs `bin/Release/net8.0/StringsTemplate.dll` on each mod's DLL with the game's Managed folder and the mod's `translations` folder.\n\n## State Transitions\n**Id:** blk-5650565fc4ce\n\nNone. The tool keeps no state between runs.\n\n## Related\n**Id:** blk-dda6f3110a4e\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "domains/entities.md#overview",
+     "title": "Overview",
+     "text": "## Overview\n**Id:** blk-77fa8ff1839f\n\nStringsTemplate writes a mod's translation template and checks its translations without starting the game. It is a .NET 8 console app. It loads a built mod DLL against the game's real assemblies, reads the mod's `ModStrings` tree (the classes the `Isochronous.Translations` loader registers as `STRINGS.*`), writes `<Mod>.pot`, and compares every `<locale>.po` in the translations folder against it. `tools/Translations/translations.py` runs it for each mod; it can also be run by hand:\n\n```\nStringsTemplate <game Managed dir> <mod dll> <translations dir>\n```\n\nSource: `tools/Translations/StringsTemplate/Program.cs`. It has no game hooks and patches nothing; it only reads.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities",
+     "title": "Key Entities",
+     "text": "## Key Entities\n**Id:** blk-37a6176b8829\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/program-main",
+     "title": "Program.Main",
+     "text": "### Program.Main\n**Id:** blk-b1319f3547fd  \n**Description**: Entry point. Validates the three arguments, installs the `AssemblyResolve` handler, loads the DLL, finds the top-level `ModStrings` type, collects the entries, writes the `.pot`, runs the option-key check and the po checks, prints the verdict and returns the exit code (0, 1 or 2).  \n**Location**: `tools/Translations/StringsTemplate/Program.cs`\n\n**Relationships**: calls `Collect` for every nested type of `ModStrings`, then `WritePot`, `CheckOptionKeys`, and `CheckPo` once per po file in name order.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/entry",
+     "title": "Entry",
+     "text": "### Entry\n**Id:** blk-87683f136a98  \n**Description**: One translatable string: its key (`STRINGS.A.B.C`) and the English text of the `LocString`.  \n**Location**: `Program.cs` (nested `private sealed class Entry`)\n\n| Property | Type | Description |\n|----------|------|-------------|\n| Key | string | `STRINGS.` plus the nested type names and the field name |\n| English | string | the `LocString.text` read by reflection after the `ModStrings` initializers ran; empty when the value is null |\n\n**Relationships**: `Collect` produces a sorted `List<Entry>`; `WritePot` and `CheckPo` consume it.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/collect",
+     "title": "Collect",
+     "text": "### Collect\n**Id:** blk-eea74830c54d  \n**Description**: Walks a type's public static `LocString` fields and its nested types, building keys from the names.  \n**Location**: `Program.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/writepot",
+     "title": "WritePot",
+     "text": "### WritePot\n**Id:** blk-d9891737717a  \n**Description**: Writes the template: a gettext header, then per entry a `#. <key>` comment, `msgctxt` (the key), `msgid` (the English, with quotes and newlines escaped) and an empty `msgstr`. Overwrites the file every run, UTF-8 without a BOM, LF line ends.  \n**Location**: `Program.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/checkoptionkeys",
+     "title": "CheckOptionKeys",
+     "text": "### CheckOptionKeys\n**Id:** blk-765f8c52e2f8  \n**Description**: Finds `OptionAttribute` and `ConfigFileAttribute` (PLib) on every type, property and field of the mod by attribute type name, and fails any `Title`, `Tooltip` or `Category` that starts with `STRINGS.` and is not in the entry list.  \n**Location**: `Program.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/checkpo-readpo-parameter-quoted",
+     "title": "CheckPo, ReadPo, Parameter, Quoted",
+     "text": "### CheckPo, ReadPo, Parameter, Quoted\n**Id:** blk-f451620721c1  \n**Description**: `CheckPo` reads a po with `ReadPo` (msgctxt to (msgid, msgstr), parsed the way the game's reader does) and compares it to the entries, counting missing, empty, stale, refused and obsolete ones. `Parameter` joins a keyword line with the quoted continuation lines under it; `Quoted` strips the quotes and throws `FormatException` for a line the game's reader would throw on.  \n**Location**: `Program.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-entities/sameparameters-linkcount-linksmatch",
+     "title": "SameParameters, LinkCount, LinksMatch",
+     "text": "### SameParameters, LinkCount, LinksMatch\n**Id:** blk-0c8a3abcea91  \n**Description**: The game's acceptance rules for a translated string: the set of distinct `{...}` tokens equals the English set; the `<link=` count does not exceed the English count; every `<link=` has a `</link>`.  \n**Location**: `Program.cs`\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#files-read-and-written",
+     "title": "Files read and written",
+     "text": "## Files read and written\n**Id:** blk-1cfa0c1f2c1d\n\n| File | Direction | Description |\n|------|-----------|-------------|\n| `<mod dll>` | read | the built mod (for example `src/<Mod>/bin/Release/<Mod>.dll`), loaded with `Assembly.LoadFrom` |\n| `<game Managed dir>\\*.dll` | read | resolves the mod's references (`Assembly-CSharp`, Unity, PLib) |\n| `<translations dir>/<Mod>.pot` | written | template, created or overwritten |\n| `<translations dir>/*.po` | read | one per locale, checked, never modified |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#business-rules",
+     "title": "Business Rules",
+     "text": "## Business Rules\n**Id:** blk-bfa5d623d61d\n\n- The key of a string is its path in `ModStrings`: `ModStrings.A.B.C` is `STRINGS.A.B.C`. Only public static fields of type `LocString` count.\n- The `.pot` is regenerated from the DLL every run, so it always matches the code.\n- A po entry is stale when its `msgid` is not the English in the DLL now; stale, missing and refused entries and unknown option keys fail the run (exit 1). Empty and obsolete entries are reported only.\n- A po line the game's reader cannot parse fails the whole file, as it would in the game.\n- The tool never edits a po file.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#domain-terminology",
+     "title": "Domain Terminology",
+     "text": "## Domain Terminology\n**Id:** blk-55b5f3a241f8\n\n| Term | Definition |\n|------|-----------|\n| ModStrings | the mod's static class tree of `LocString`s; the source of every key |\n| pot | the template this tool writes: every key with its English and an empty translation |\n| po | a locale's translation file, `<locale>.po` |\n| stale | the po's English no longer matches the DLL's |\n| refused | a translation the game would reject at load |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#key-code-paths",
+     "title": "Key Code Paths",
+     "text": "## Key Code Paths\n**Id:** blk-aa442e0b3e88\n\n- **Template and check run**: `Main` -> `Collect` -> `WritePot` -> `CheckOptionKeys` -> `CheckPo` per po -- see `Program.cs`.\n- **Po parse**: `CheckPo` -> `ReadPo` -> `Parameter` -> `Quoted` -- see `Program.cs`.\n- **Caller**: `main()` in `tools/Translations/translations.py` builds the project at `TOOL`, then runs `bin/Release/net8.0/StringsTemplate.dll` on each mod's DLL with the game's Managed folder and the mod's `translations` folder.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#state-transitions",
+     "title": "State Transitions",
+     "text": "## State Transitions\n**Id:** blk-5650565fc4ce\n\nNone. The tool keeps no state between runs.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/entities.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-dda6f3110a4e\n\n- See also: [glossary](glossary.md)\n- Governed by: [naming conventions](../standards/naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "domains/glossary.md",
+   "title": "StringsTemplate glossary",
+   "description": "StringsTemplate glossary: abbreviations (pot, po, LocString, PLib), terms to avoid with their replacements, and definitions of ModStrings, key (msgctxt), stale, refused, obsolete and the Managed directory, with where each is used",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-32e91bfd48ae\ndescription: \"StringsTemplate glossary: abbreviations (pot, po, LocString, PLib), terms to avoid with their replacements, and definitions of ModStrings, key (msgctxt), stale, refused, obsolete and the Managed directory, with where each is used\"\n---\n\n# StringsTemplate glossary\n\nTerms a newcomer to StringsTemplate needs. The tool's own things are in [entities](entities.md).\n\n## Abbreviations and Acronyms\n**Id:** blk-7e2793659fb3\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| pot | Portable Object Template | the `<Mod>.pot` the tool writes |\n| po | Portable Object | a locale's translation file, `<locale>.po` |\n| LocString | the game's localized string type | the field type the tool collects from `ModStrings` |\n| PLib | the PeterHan mod library | its `[Option]` attribute is checked for unknown `STRINGS.` keys |\n| DLC | downloadable content | not used by this tool |\n\n## Terms to Avoid\n**Id:** blk-388ad4844aad\n\n| Avoid | Use Instead | Reason |\n|-------|-------------|--------|\n| \"translation file\" for the template | pot | the template has no translations; only `.po` files do |\n| \"string id\" | key | the code and the po files call `STRINGS.A.B.C` the key (`msgctxt`) |\n| \"missing\" for a blank translation | empty | `MISSING` means the key is absent from the po; `EMPTY` means it is there with no text |\n\n## Cross-Domain Terms\n**Id:** blk-c52c80493ed0\n\n### ModStrings\n**Id:** blk-3c9e14f660b8  \n**Definition**: The top-level static class, named exactly `ModStrings` and not nested, in each mod's DLL. Its nested classes hold public static `LocString` fields; the nesting is the key.  \n**Used in**: `Program.Main`, `Collect`; the `Isochronous.Translations` loader that registers the tree at game start.\n\n### Key (msgctxt)\n**Id:** blk-b20d63f89dd0  \n**Definition**: `STRINGS.` plus the nested type names and field name, such as `STRINGS.UI.TOOLS.SWEEPZONES.<FIELD>` for a field in the Sweep Zones mod's `ModStrings.UI.TOOLS.SWEEPZONES` class. It is the `msgctxt` of an entry in both the pot and the po files.  \n**Used in**: every report line.\n\n### Stale\n**Id:** blk-b9b671421f4a  \n**Definition**: A po entry whose `msgid` differs from the English the DLL now holds, meaning the English changed after the translation was made.  \n**Used in**: `CheckPo`; counts toward exit code 1.\n\n### Refused\n**Id:** blk-4dde81fafde8  \n**Definition**: A translation the game rejects when loading it: a different set of `{0}`-style parameters than the English, more `<link=` tags than the English, or a `<link=` without `</link>`.  \n**Used in**: `CheckPo`, `SameParameters`, `LinkCount`, `LinksMatch`.\n\n### Obsolete\n**Id:** blk-dd97c8315b8b  \n**Definition**: A po key that no longer exists in the DLL. Reported, not counted.  \n**Used in**: `CheckPo`.\n\n### Managed directory\n**Id:** blk-8e28af007c68  \n**Definition**: The game's `OxygenNotIncluded_Data\\Managed` folder, searched for assemblies the mod DLL references.  \n**Used in**: first command-line argument; the `AssemblyResolve` handler.\n\n## Related\n**Id:** blk-c4070a6745c1\n\n- See also: [entities](entities.md)\n",
+   "sections": [
+    {
+     "id": "domains/glossary.md#abbreviations-and-acronyms",
+     "title": "Abbreviations and Acronyms",
+     "text": "## Abbreviations and Acronyms\n**Id:** blk-7e2793659fb3\n\n| Abbreviation | Full Term | Context |\n|--------------|-----------|---------|\n| pot | Portable Object Template | the `<Mod>.pot` the tool writes |\n| po | Portable Object | a locale's translation file, `<locale>.po` |\n| LocString | the game's localized string type | the field type the tool collects from `ModStrings` |\n| PLib | the PeterHan mod library | its `[Option]` attribute is checked for unknown `STRINGS.` keys |\n| DLC | downloadable content | not used by this tool |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#terms-to-avoid",
+     "title": "Terms to Avoid",
+     "text": "## Terms to Avoid\n**Id:** blk-388ad4844aad\n\n| Avoid | Use Instead | Reason |\n|-------|-------------|--------|\n| \"translation file\" for the template | pot | the template has no translations; only `.po` files do |\n| \"string id\" | key | the code and the po files call `STRINGS.A.B.C` the key (`msgctxt`) |\n| \"missing\" for a blank translation | empty | `MISSING` means the key is absent from the po; `EMPTY` means it is there with no text |\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms",
+     "title": "Cross-Domain Terms",
+     "text": "## Cross-Domain Terms\n**Id:** blk-c52c80493ed0\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/modstrings",
+     "title": "ModStrings",
+     "text": "### ModStrings\n**Id:** blk-3c9e14f660b8  \n**Definition**: The top-level static class, named exactly `ModStrings` and not nested, in each mod's DLL. Its nested classes hold public static `LocString` fields; the nesting is the key.  \n**Used in**: `Program.Main`, `Collect`; the `Isochronous.Translations` loader that registers the tree at game start.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/key-msgctxt",
+     "title": "Key (msgctxt)",
+     "text": "### Key (msgctxt)\n**Id:** blk-b20d63f89dd0  \n**Definition**: `STRINGS.` plus the nested type names and field name, such as `STRINGS.UI.TOOLS.SWEEPZONES.<FIELD>` for a field in the Sweep Zones mod's `ModStrings.UI.TOOLS.SWEEPZONES` class. It is the `msgctxt` of an entry in both the pot and the po files.  \n**Used in**: every report line.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/stale",
+     "title": "Stale",
+     "text": "### Stale\n**Id:** blk-b9b671421f4a  \n**Definition**: A po entry whose `msgid` differs from the English the DLL now holds, meaning the English changed after the translation was made.  \n**Used in**: `CheckPo`; counts toward exit code 1.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/refused",
+     "title": "Refused",
+     "text": "### Refused\n**Id:** blk-4dde81fafde8  \n**Definition**: A translation the game rejects when loading it: a different set of `{0}`-style parameters than the English, more `<link=` tags than the English, or a `<link=` without `</link>`.  \n**Used in**: `CheckPo`, `SameParameters`, `LinkCount`, `LinksMatch`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/obsolete",
+     "title": "Obsolete",
+     "text": "### Obsolete\n**Id:** blk-dd97c8315b8b  \n**Definition**: A po key that no longer exists in the DLL. Reported, not counted.  \n**Used in**: `CheckPo`.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#cross-domain-terms/managed-directory",
+     "title": "Managed directory",
+     "text": "### Managed directory\n**Id:** blk-8e28af007c68  \n**Definition**: The game's `OxygenNotIncluded_Data\\Managed` folder, searched for assemblies the mod DLL references.  \n**Used in**: first command-line argument; the `AssemblyResolve` handler.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "domains/glossary.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-c4070a6745c1\n\n- See also: [entities](entities.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "overview.md",
+   "title": "StringsTemplate",
+   "description": "StringsTemplate's purpose, command line, checks and exit codes, who runs it and when, and a map of its files (Program.cs, StringsTemplate.csproj and the Release build output) and its .context documents",
+   "document_tags": [],
+   "text": "---\ndescription: StringsTemplate's purpose, command line, checks and exit codes, who runs it and when, and a map of its files (Program.cs, StringsTemplate.csproj and the Release build output) and its .context documents\n---\n\n# StringsTemplate\n\n## What this is\n**Id:** blk-e125ed2b68c6\n\nStringsTemplate writes an Oxygen Not Included mod's translation template and checks its translations from the built mod DLL, without launching the game. It is a .NET 8 console app (C# 9) that loads the DLL against the game's own assemblies in the `Managed` folder, runs the `ModStrings` initializers and walks that class tree the way `Isochronous.Translations` (`common/src/Translations.cs`) registers it: `ModStrings.A.B.C` is the key `STRINGS.A.B.C`, with the field's English text. Run as `StringsTemplate <game Managed dir> <mod dll> <translations dir>`, it rewrites `<Mod>.pot` in the translations folder, reports missing, stale, empty, obsolete and refused entries in every `<locale>.po` there, checks that every PLib `[Option]` key written as a `STRINGS.` key exists, and exits 1 when a po has missing, stale or refused entries or an option key is unknown (2 for a usage error). The mod developer runs it through `tools/Translations/translations.py` after changing strings and before a release; that script builds this tool and runs it for every mod whose csproj sets `<UseTranslations>true</UseTranslations>`.\n\n## Where things are\n**Id:** blk-04261b4be94e\n\nTop-level folders and key files:\n\n- `Program.cs`: the whole tool: `Main`, the `ModStrings` walk (`Collect`), `WritePot`, `CheckOptionKeys`, and the po checks (`CheckPo`, `ReadPo` and the parameter and link comparisons).\n- `StringsTemplate.csproj`: the .NET 8 console project, C# 9, nullable off, no package references. A Release build lands at `bin/Release/net8.0/StringsTemplate.dll`, where `translations.py` runs it; `bin/` and `obj/` are ignored by git.\n- `tools/Translations/translations.py`, one folder up and outside this node: finds the game's `Managed` folder (`ONI_GAME_FOLDER` or the Steam library), builds this tool and runs it per mod.\n- The user-facing guide is the Translations section of `common/README.md`.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+   "sections": [
+    {
+     "id": "overview.md#what-this-is",
+     "title": "What this is",
+     "text": "## What this is\n**Id:** blk-e125ed2b68c6\n\nStringsTemplate writes an Oxygen Not Included mod's translation template and checks its translations from the built mod DLL, without launching the game. It is a .NET 8 console app (C# 9) that loads the DLL against the game's own assemblies in the `Managed` folder, runs the `ModStrings` initializers and walks that class tree the way `Isochronous.Translations` (`common/src/Translations.cs`) registers it: `ModStrings.A.B.C` is the key `STRINGS.A.B.C`, with the field's English text. Run as `StringsTemplate <game Managed dir> <mod dll> <translations dir>`, it rewrites `<Mod>.pot` in the translations folder, reports missing, stale, empty, obsolete and refused entries in every `<locale>.po` there, checks that every PLib `[Option]` key written as a `STRINGS.` key exists, and exits 1 when a po has missing, stale or refused entries or an option key is unknown (2 for a usage error). The mod developer runs it through `tools/Translations/translations.py` after changing strings and before a release; that script builds this tool and runs it for every mod whose csproj sets `<UseTranslations>true</UseTranslations>`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "overview.md#where-things-are",
+     "title": "Where things are",
+     "text": "## Where things are\n**Id:** blk-04261b4be94e\n\nTop-level folders and key files:\n\n- `Program.cs`: the whole tool: `Main`, the `ModStrings` walk (`Collect`), `WritePot`, `CheckOptionKeys`, and the po checks (`CheckPo`, `ReadPo` and the parameter and link comparisons).\n- `StringsTemplate.csproj`: the .NET 8 console project, C# 9, nullable off, no package references. A Release build lands at `bin/Release/net8.0/StringsTemplate.dll`, where `translations.py` runs it; `bin/` and `obj/` are ignored by git.\n- `tools/Translations/translations.py`, one folder up and outside this node: finds the game's `Managed` folder (`ONI_GAME_FOLDER` or the Steam library), builds this tool and runs it per mod.\n- The user-facing guide is the Translations section of `common/README.md`.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/README.md",
+   "title": "Standards",
+   "description": "Index of StringsTemplate's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-8a60b3d665fd\ndescription: \"Index of StringsTemplate's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers\"\n---\n\n# Standards\n\n## Standards\n**Id:** blk-02e80909d120\n\nDocuments in this folder:\n\n- [code-style](code-style.md): tabs, Allman braces, line length, C# 9 on .NET 8, the single `Program.cs`, imports, comment rules and control flow.\n- [error-handling](error-handling.md): exit codes 0, 1 and 2, the FAIL, MISSING, STALE, REFUSED, EMPTY and OBSOLETE report lines, reading a po file, loading the mod, option keys, and the one `FormatException` catch.\n- [naming-conventions](naming-conventions.md): file, type, method, variable and field naming, translation keys, output file names, report keywords and the command line.\n",
+   "sections": [
+    {
+     "id": "standards/README.md#standards",
+     "title": "Standards",
+     "text": "## Standards\n**Id:** blk-02e80909d120\n\nDocuments in this folder:\n\n- [code-style](code-style.md): tabs, Allman braces, line length, C# 9 on .NET 8, the single `Program.cs`, imports, comment rules and control flow.\n- [error-handling](error-handling.md): exit codes 0, 1 and 2, the FAIL, MISSING, STALE, REFUSED, EMPTY and OBSOLETE report lines, reading a po file, loading the mod, option keys, and the one `FormatException` catch.\n- [naming-conventions](naming-conventions.md): file, type, method, variable and field naming, translation keys, output file names, report keywords and the command line.\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/code-style.md",
+   "title": "StringsTemplate code style",
+   "description": "StringsTemplate's code style for Program.cs and StringsTemplate.csproj: indentation, line length, Allman braces, C# 9 on .NET 8 project settings, the build command, the using block, when to comment and control-flow patterns",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-d57d9d21981a\ndescription: \"StringsTemplate's code style for Program.cs and StringsTemplate.csproj: indentation, line length, Allman braces, C# 9 on .NET 8 project settings, the build command, the using block, when to comment and control-flow patterns\"\napplies_to:\n  - \"*.cs\"\n  - \"*.csproj\"\n---\n\n# StringsTemplate code style\n\nStringsTemplate is one C# file, `tools/Translations/StringsTemplate/Program.cs`, plus its project file. These are the conventions that file follows.\n\n## Formatting\n**Id:** blk-e0236b53a4c4\n\n### Indentation\n**Id:** blk-81781ba21fec\n\n- Tabs, one per level, in `Program.cs`.\n- `StringsTemplate.csproj` uses two spaces.\n- No `.editorconfig` or formatter is configured. TODO(owner): record the tab and brace rules in an `.editorconfig` if editors should enforce them.\n\n### Line Length\n**Id:** blk-6ae96e09b047\n\n- No limit. Long conditions and message strings stay on one line (the `Console.WriteLine` summary in `CheckPo` is the longest); a long concatenation breaks before a `+` and the continuation indents one tab.\n\n### Braces\n**Id:** blk-32bcfa6795e4\n\n- Opening brace on its own line (Allman) for types, methods and multi-line blocks.\n- A body of one short statement goes on the next line without braces:\n\n```csharp\nforeach (string po in Directory.GetFiles(translationsDir, \"*.po\").OrderBy(p => p))\n\tproblems += CheckPo(po, entries);\n```\n\n## Language and Toolchain\n**Id:** blk-0c006bb6c374\n\n- C# 9 (`LangVersion` 9.0) on .NET 8 (`net8.0`), `OutputType` Exe, `Nullable` disabled. It runs on .NET 8, not on the game's .NET Framework 4.8, so it does not import `common/oni-mod.props`.\n- No `ImplicitUsings`: every namespace is imported by hand.\n- No NuGet packages. It loads the mod DLL and the game's assemblies by reflection at run time (`Assembly.LoadFrom`), so it carries no compile-time reference to either.\n- One file, one `internal static class Program`, no namespace. A nested `private sealed class Entry` holds a key and its English text.\n- Build: `dotnet build tools/Translations/StringsTemplate -c Release`, giving `bin/Release/net8.0/StringsTemplate.dll`, the path `tools/Translations/translations.py` runs.\n\n## Imports/Includes\n**Id:** blk-c3be4d343981\n\n`using` directives sit at the top of the file in one block with no blank lines, alphabetical with `System` first:\n\n```csharp\nusing System;\nusing System.Collections.Generic;\nusing System.IO;\nusing System.Linq;\nusing System.Reflection;\nusing System.Text;\nusing System.Text.RegularExpressions;\n```\n\n## Comments\n**Id:** blk-07518595d112\n\n### When to Comment\n**Id:** blk-95ee88720bc2\n\n- A `//` block at the top of `Program.cs` states what the tool does, its command line and its exit code. Keep it in step with `Main`.\n- A `///` summary goes on a helper whose rule comes from the game and is not obvious from the code: `Escape` (\"the escaping the game's reader undoes\"), `ReadPo` (parsed the way `Localization.GetParameter` does it) and the `Parameters` regex (\"the game's rule: the set of distinct {...} tokens must be the same\").\n- Say why a check exists, citing the game behaviour it mirrors, not what the line does.\n\n### When NOT to Comment\n**Id:** blk-1ed6f4eb6519\n\n- Do not comment obvious code or leave commented-out code.\n- TODO(owner): `ReadPo` carries two stacked `<summary>` blocks, the first a one-line leftover of the second; drop the first.\n\n## Control Structures\n**Id:** blk-5ff9e7024b0c\n\n- `Main` returns early with an exit code for usage and fatal setup errors, then runs the checks in order and returns 0 or 1.\n- Check methods return an `int` count of problems and print each one as they find it; `Main` adds the counts up (see `error-handling.md`).\n- LINQ is used for sorting, filtering and set building (`entries.Sort`, `OrderBy`, `Select`, `HashSet`); explicit `foreach` loops where a loop prints or counts.\n- Output is built with string concatenation, not interpolation or `string.Format`.\n\n## Related\n**Id:** blk-b753901f3854\n\n- See also: [error handling](error-handling.md), [naming conventions](naming-conventions.md)\n",
+   "sections": [
+    {
+     "id": "standards/code-style.md#formatting",
+     "title": "Formatting",
+     "text": "## Formatting\n**Id:** blk-e0236b53a4c4\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/indentation",
+     "title": "Indentation",
+     "text": "### Indentation\n**Id:** blk-81781ba21fec\n\n- Tabs, one per level, in `Program.cs`.\n- `StringsTemplate.csproj` uses two spaces.\n- No `.editorconfig` or formatter is configured. TODO(owner): record the tab and brace rules in an `.editorconfig` if editors should enforce them.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/line-length",
+     "title": "Line Length",
+     "text": "### Line Length\n**Id:** blk-6ae96e09b047\n\n- No limit. Long conditions and message strings stay on one line (the `Console.WriteLine` summary in `CheckPo` is the longest); a long concatenation breaks before a `+` and the continuation indents one tab.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#formatting/braces",
+     "title": "Braces",
+     "text": "### Braces\n**Id:** blk-32bcfa6795e4\n\n- Opening brace on its own line (Allman) for types, methods and multi-line blocks.\n- A body of one short statement goes on the next line without braces:\n\n```csharp\nforeach (string po in Directory.GetFiles(translationsDir, \"*.po\").OrderBy(p => p))\n\tproblems += CheckPo(po, entries);\n```\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#language-and-toolchain",
+     "title": "Language and Toolchain",
+     "text": "## Language and Toolchain\n**Id:** blk-0c006bb6c374\n\n- C# 9 (`LangVersion` 9.0) on .NET 8 (`net8.0`), `OutputType` Exe, `Nullable` disabled. It runs on .NET 8, not on the game's .NET Framework 4.8, so it does not import `common/oni-mod.props`.\n- No `ImplicitUsings`: every namespace is imported by hand.\n- No NuGet packages. It loads the mod DLL and the game's assemblies by reflection at run time (`Assembly.LoadFrom`), so it carries no compile-time reference to either.\n- One file, one `internal static class Program`, no namespace. A nested `private sealed class Entry` holds a key and its English text.\n- Build: `dotnet build tools/Translations/StringsTemplate -c Release`, giving `bin/Release/net8.0/StringsTemplate.dll`, the path `tools/Translations/translations.py` runs.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#imports-includes",
+     "title": "Imports/Includes",
+     "text": "## Imports/Includes\n**Id:** blk-c3be4d343981\n\n`using` directives sit at the top of the file in one block with no blank lines, alphabetical with `System` first:\n\n```csharp\nusing System;\nusing System.Collections.Generic;\nusing System.IO;\nusing System.Linq;\nusing System.Reflection;\nusing System.Text;\nusing System.Text.RegularExpressions;\n```\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments",
+     "title": "Comments",
+     "text": "## Comments\n**Id:** blk-07518595d112\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments/when-to-comment",
+     "title": "When to Comment",
+     "text": "### When to Comment\n**Id:** blk-95ee88720bc2\n\n- A `//` block at the top of `Program.cs` states what the tool does, its command line and its exit code. Keep it in step with `Main`.\n- A `///` summary goes on a helper whose rule comes from the game and is not obvious from the code: `Escape` (\"the escaping the game's reader undoes\"), `ReadPo` (parsed the way `Localization.GetParameter` does it) and the `Parameters` regex (\"the game's rule: the set of distinct {...} tokens must be the same\").\n- Say why a check exists, citing the game behaviour it mirrors, not what the line does.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#comments/when-not-to-comment",
+     "title": "When NOT to Comment",
+     "text": "### When NOT to Comment\n**Id:** blk-1ed6f4eb6519\n\n- Do not comment obvious code or leave commented-out code.\n- TODO(owner): `ReadPo` carries two stacked `<summary>` blocks, the first a one-line leftover of the second; drop the first.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#control-structures",
+     "title": "Control Structures",
+     "text": "## Control Structures\n**Id:** blk-5ff9e7024b0c\n\n- `Main` returns early with an exit code for usage and fatal setup errors, then runs the checks in order and returns 0 or 1.\n- Check methods return an `int` count of problems and print each one as they find it; `Main` adds the counts up (see `error-handling.md`).\n- LINQ is used for sorting, filtering and set building (`entries.Sort`, `OrderBy`, `Select`, `HashSet`); explicit `foreach` loops where a loop prints or counts.\n- Output is built with string concatenation, not interpolation or `string.Format`.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/code-style.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-b753901f3854\n\n- See also: [error handling](error-handling.md), [naming conventions](naming-conventions.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  },
+  {
+   "id": "standards/error-handling.md",
+   "title": "StringsTemplate error handling",
+   "description": "StringsTemplate's error handling: its principles, the exit code table (0, 1, 2), the report keywords and which count toward failure, the FormatException catch in CheckPo, mod loading, option-key checks and anti-patterns",
+   "document_tags": [],
+   "text": "---\ndoc_id: doc-c4b68e21b1de\ndescription: \"StringsTemplate's error handling: its principles, the exit code table (0, 1, 2), the report keywords and which count toward failure, the FormatException catch in CheckPo, mod loading, option-key checks and anti-patterns\"\napplies_to:\n  - \"*.cs\"\n  - \"*.csproj\"\n---\n\n# StringsTemplate error handling\n\nStringsTemplate is a console checker run by a script, so its error handling is its output and its exit code. A problem is a line on the console and a count that decides the exit code.\n\n## Principles\n**Id:** blk-be2fa051ef59\n\n1. **Report every problem, then fail.** `CheckPo` and `CheckOptionKeys` print each finding and keep going; `Main` fails after the last check, so one run shows the whole list.\n2. **Name the key.** Every line carries the translation key (`STRINGS.A.B.C`) and the po file it concerns.\n3. **Mirror the game where a check stands for it.** The parse `FAIL` says what the game's reader does (\"the game's reader throws here and drops the whole file\"), and `REFUSED` names the rule the game enforces on the English `{n}` parameters and `<link>` tags. `MISSING`, `STALE`, `EMPTY` and `OBSOLETE` are bookkeeping between the po and the DLL, not game refusals.\n4. **Do not swallow.** The one `catch` in the tool turns a malformed po into a reported failure; nothing is caught and ignored.\n\n## Exit codes\n**Id:** blk-4943aa3d2f64\n\n| Code | Meaning | Where |\n|------|---------|-------|\n| 0 | `ALL CHECKS PASSED` | end of `Main` |\n| 1 | `N PROBLEM(S)`, or `FAIL` for a DLL with no `ModStrings` class or no `LocString` fields | `Main` |\n| 2 | fewer than three arguments; the usage line is printed | start of `Main` |\n\nAn exception that nothing catches (a missing DLL path, a game assembly that cannot load) ends the process with the .NET unhandled-exception output and a non-zero code. TODO(owner): decide whether bad paths should print a one-line `FAIL` and return 1, as the `ModStrings` check does.\n\n## Report keywords\n**Id:** blk-4e29c6e83e7b\n\nAll messages go to standard output through `Console.WriteLine`, each starting with an upper-case keyword:\n\n| Keyword | Meaning | Counts toward exit code 1 |\n|---------|---------|---------------------------|\n| `FAIL` | structural failure: no `ModStrings`, no strings, an option key not in the tree, a po that does not parse | yes |\n| `MISSING` | key is in the DLL, not in the po | yes |\n| `STALE` | the po's `msgid` differs from the English now in the DLL (both texts are printed) | yes |\n| `REFUSED` | the translation changes the set of `{...}` parameters, or has more `<link=` tags than the English or unmatched `</link>` | yes |\n| `EMPTY` | the po has the key with an empty `msgstr` | no |\n| `OBSOLETE` | the po has a key the DLL no longer has | no |\n\nEach po ends with a one-line tally (`<file>: n/total translated, ...`).\n\n## Handling Patterns\n**Id:** blk-2ced13ba9b17\n\n### Reading a po file\n**Id:** blk-f76eaa17fcbe\n\n`ReadPo` and `Quoted` throw `FormatException` for a quoted line the game's reader would choke on. `CheckPo` is the only catcher: it prints `FAIL <message>` and returns 1 for that file, and the other po files are still checked.\n\n```csharp\ncatch (FormatException e)\n{\n\tConsole.WriteLine(\"FAIL \" + e.Message);\n\treturn 1;\n}\n```\n\nThe message names the file and line number.\n\n### Loading the mod\n**Id:** blk-d1067c01b2e8\n\n`AssemblyResolve` looks in the game's Managed folder and returns null when the file is not there. Missing `ModStrings` or an empty tree is a `FAIL` with return 1 before any file is written.\n\n### Option keys\n**Id:** blk-ccfb13edda27\n\n`CheckOptionKeys` reads PLib `[Option]` and `[ConfigFile]` attributes by name (no PLib reference) and reports a `Title`, `Tooltip` or `Category` starting with `STRINGS.` that is not a key in the tree.\n\n## Anti-Patterns to Avoid\n**Id:** blk-8314ecaf5051\n\n- Printing a problem without counting it, or counting without printing: `EMPTY` and `OBSOLETE` are printed and not counted on purpose; keep that split explicit.\n- Passing a bad po silently. The game drops the whole file on a bad line, so the tool reports it.\n- Relying on the exit code to say more than pass or fail: `translations.py` runs the tool with its output passed through to the console and counts any non-zero exit as one problem, so it does not tell 1 from 2. Keep the output readable for a person and the exit code non-zero for any problem.\n\n## Related\n**Id:** blk-e6e4e7300510\n\n- See also: [code style](code-style.md), [entities](../domains/entities.md)\n",
+   "sections": [
+    {
+     "id": "standards/error-handling.md#principles",
+     "title": "Principles",
+     "text": "## Principles\n**Id:** blk-be2fa051ef59\n\n1. **Report every problem, then fail.** `CheckPo` and `CheckOptionKeys` print each finding and keep going; `Main` fails after the last check, so one run shows the whole list.\n2. **Name the key.** Every line carries the translation key (`STRINGS.A.B.C`) and the po file it concerns.\n3. **Mirror the game where a check stands for it.** The parse `FAIL` says what the game's reader does (\"the game's reader throws here and drops the whole file\"), and `REFUSED` names the rule the game enforces on the English `{n}` parameters and `<link>` tags. `MISSING`, `STALE`, `EMPTY` and `OBSOLETE` are bookkeeping between the po and the DLL, not game refusals.\n4. **Do not swallow.** The one `catch` in the tool turns a malformed po into a reported failure; nothing is caught and ignored.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#exit-codes",
+     "title": "Exit codes",
+     "text": "## Exit codes\n**Id:** blk-4943aa3d2f64\n\n| Code | Meaning | Where |\n|------|---------|-------|\n| 0 | `ALL CHECKS PASSED` | end of `Main` |\n| 1 | `N PROBLEM(S)`, or `FAIL` for a DLL with no `ModStrings` class or no `LocString` fields | `Main` |\n| 2 | fewer than three arguments; the usage line is printed | start of `Main` |\n\nAn exception that nothing catches (a missing DLL path, a game assembly that cannot load) ends the process with the .NET unhandled-exception output and a non-zero code. TODO(owner): decide whether bad paths should print a one-line `FAIL` and return 1, as the `ModStrings` check does.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#report-keywords",
+     "title": "Report keywords",
+     "text": "## Report keywords\n**Id:** blk-4e29c6e83e7b\n\nAll messages go to standard output through `Console.WriteLine`, each starting with an upper-case keyword:\n\n| Keyword | Meaning | Counts toward exit code 1 |\n|---------|---------|---------------------------|\n| `FAIL` | structural failure: no `ModStrings`, no strings, an option key not in the tree, a po that does not parse | yes |\n| `MISSING` | key is in the DLL, not in the po | yes |\n| `STALE` | the po's `msgid` differs from the English now in the DLL (both texts are printed) | yes |\n| `REFUSED` | the translation changes the set of `{...}` parameters, or has more `<link=` tags than the English or unmatched `</link>` | yes |\n| `EMPTY` | the po has the key with an empty `msgstr` | no |\n| `OBSOLETE` | the po has a key the DLL no longer has | no |\n\nEach po ends with a one-line tally (`<file>: n/total translated, ...`).\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns",
+     "title": "Handling Patterns",
+     "text": "## Handling Patterns\n**Id:** blk-2ced13ba9b17\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/reading-a-po-file",
+     "title": "Reading a po file",
+     "text": "### Reading a po file\n**Id:** blk-f76eaa17fcbe\n\n`ReadPo` and `Quoted` throw `FormatException` for a quoted line the game's reader would choke on. `CheckPo` is the only catcher: it prints `FAIL <message>` and returns 1 for that file, and the other po files are still checked.\n\n```csharp\ncatch (FormatException e)\n{\n\tConsole.WriteLine(\"FAIL \" + e.Message);\n\treturn 1;\n}\n```\n\nThe message names the file and line number.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/loading-the-mod",
+     "title": "Loading the mod",
+     "text": "### Loading the mod\n**Id:** blk-d1067c01b2e8\n\n`AssemblyResolve` looks in the game's Managed folder and returns null when the file is not there. Missing `ModStrings` or an empty tree is a `FAIL` with return 1 before any file is written.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#handling-patterns/option-keys",
+     "title": "Option keys",
+     "text": "### Option keys\n**Id:** blk-ccfb13edda27\n\n`CheckOptionKeys` reads PLib `[Option]` and `[ConfigFile]` attributes by name (no PLib reference) and reports a `Title`, `Tooltip` or `Category` starting with `STRINGS.` that is not a key in the tree.\n",
+     "level": 3,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#anti-patterns-to-avoid",
+     "title": "Anti-Patterns to Avoid",
+     "text": "## Anti-Patterns to Avoid\n**Id:** blk-8314ecaf5051\n\n- Printing a problem without counting it, or counting without printing: `EMPTY` and `OBSOLETE` are printed and not counted on purpose; keep that split explicit.\n- Passing a bad po silently. The game drops the whole file on a bad line, so the tool reports it.\n- Relying on the exit code to say more than pass or fail: `translations.py` runs the tool with its output passed through to the console and counts any non-zero exit as one problem, so it does not tell 1 from 2. Keep the output readable for a person and the exit code non-zero for any problem.\n",
+     "level": 2,
+     "enclosing_tags": []
+    },
+    {
+     "id": "standards/error-handling.md#related",
+     "title": "Related",
+     "text": "## Related\n**Id:** blk-e6e4e7300510\n\n- See also: [code style](code-style.md), [entities](../domains/entities.md)\n",
+     "level": 2,
+     "enclosing_tags": []
+    }
+   ]
+  }
+ ]
+}

@@ -1,4 +1,5 @@
 ---
+tags: exception-handling, exit-codes, console-output
 doc_id: doc-c4b68e21b1de
 description: "StringsTemplate's error handling: its principles, the exit code table (0, 1, 2), the report keywords and which count toward failure, the FormatException catch in CheckPo, mod loading, option-key checks and anti-patterns"
 applies_to:
@@ -11,7 +12,8 @@ applies_to:
 StringsTemplate is a console checker run by a script, so its error handling is its output and its exit code. A problem is a line on the console and a count that decides the exit code.
 
 ## Principles
-**Id:** blk-be2fa051ef59
+**Id:** blk-be2fa051ef59  
+**Tags:** refused-translation, mod-strings
 
 1. **Report every problem, then fail.** `CheckPo` and `CheckOptionKeys` print each finding and keep going; `Main` fails after the last check, so one run shows the whole list.
 2. **Name the key.** Every line carries the translation key (`STRINGS.A.B.C`) and the po file it concerns.
@@ -30,7 +32,8 @@ StringsTemplate is a console checker run by a script, so its error handling is i
 An exception that nothing catches (a missing DLL path, a game assembly that cannot load) ends the process with the .NET unhandled-exception output and a non-zero code. TODO(owner): decide whether bad paths should print a one-line `FAIL` and return 1, as the `ModStrings` check does.
 
 ## Report keywords
-**Id:** blk-4e29c6e83e7b
+**Id:** blk-4e29c6e83e7b  
+**Tags:** translations, refused-translation
 
 All messages go to standard output through `Console.WriteLine`, each starting with an upper-case keyword:
 
@@ -49,7 +52,8 @@ Each po ends with a one-line tally (`<file>: n/total translated, ...`).
 **Id:** blk-2ced13ba9b17
 
 ### Reading a po file
-**Id:** blk-f76eaa17fcbe
+**Id:** blk-f76eaa17fcbe  
+**Tags:** refused-translation
 
 `ReadPo` and `Quoted` throw `FormatException` for a quoted line the game's reader would choke on. `CheckPo` is the only catcher: it prints `FAIL <message>` and returns 1 for that file, and the other po files are still checked.
 
@@ -64,17 +68,20 @@ catch (FormatException e)
 The message names the file and line number.
 
 ### Loading the mod
-**Id:** blk-d1067c01b2e8
+**Id:** blk-d1067c01b2e8  
+**Tags:** assembly-resolution, mod-strings
 
 `AssemblyResolve` looks in the game's Managed folder and returns null when the file is not there. Missing `ModStrings` or an empty tree is a `FAIL` with return 1 before any file is written.
 
 ### Option keys
-**Id:** blk-ccfb13edda27
+**Id:** blk-ccfb13edda27  
+**Tags:** mod-options, mod-strings
 
 `CheckOptionKeys` reads PLib `[Option]` and `[ConfigFile]` attributes by name (no PLib reference) and reports a `Title`, `Tooltip` or `Category` starting with `STRINGS.` that is not a key in the tree.
 
 ## Anti-Patterns to Avoid
-**Id:** blk-8314ecaf5051
+**Id:** blk-8314ecaf5051  
+**Tags:** refused-translation, translations
 
 - Printing a problem without counting it, or counting without printing: `EMPTY` and `OBSOLETE` are printed and not counted on purpose; keep that split explicit.
 - Passing a bad po silently. The game drops the whole file on a bad line, so the tool reports it.

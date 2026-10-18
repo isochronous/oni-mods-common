@@ -1,0 +1,37 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 6",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:10c2dd1ddb2cb88eb311720db569e13ea46ac1b62ae9885a0e02848d4da03aaa",
+    "domains/entities.md": "sha256:a20e2181ef2d6d38588211f575a1be24dff6b272ee4730acb70203a9e160db21",
+    "domains/glossary.md": "sha256:8f9cc708fc4ba0759a1eb290b40c80f89f596d29018335cf7fe3c868b8cf0622"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result"
+      ],
+      "section": "handling-patterns/driver-failures"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "simulated-input"
+      ],
+      "section": "key-entities/harness"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "test-pacing",
+        "watchdog"
+      ],
+      "section": "cross-domain-terms/wait"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-11cf3f1ecd90
 description: "ModCheck's C# code style: tabs and Allman braces, C# 9 on .NET 8 with no packages in ModCheck.csproj, using order, the single static Program class layout in Program.cs, and what comments must say"
 applies_to:
@@ -19,7 +20,8 @@ ModCheck is one file, `Program.cs`, and one project file, `ModCheck.csproj`.
 - The repository has no `.editorconfig`. TODO(owner): decide whether to add one recording tabs and brace placement for all of `common/`.
 
 ## Language and Toolchain
-**Id:** blk-3d0e75841249
+**Id:** blk-3d0e75841249  
+**Tags:** tool-build, runtime-mismatch
 
 - C# 9 (`LangVersion` 9.0) on .NET 8 (`TargetFramework` net8.0), `OutputType` Exe. The project does not import `common/oni-mod.props`: it is a console program, not a mod, and has no game references at build time.
 - ModCheck must run on .NET 8 or later, never .NET Framework. The game's interfaces use default interface methods, which the desktop CLR rejects and CoreCLR accepts, as does the game's Mono runtime. The header comment of `Program.cs` says so; keep it when the file changes.
@@ -38,7 +40,8 @@ ModCheck is one file, `Program.cs`, and one project file, `ModCheck.csproj`.
 - A new check goes in as another loop body in `Main` or another helper beside the existing ones, and reports through `Report` so the failure and warning counts stay accurate.
 
 ## Comments
-**Id:** blk-9bbfb0a9ecda
+**Id:** blk-9bbfb0a9ecda  
+**Tags:** runtime-mismatch, console-output
 
 - A block comment at the top of `Program.cs` says what the tool verifies, why it needs .NET 8, and the usage line. Update it with any behaviour change.
 - Comments inside the code give the reason for a rule, which is the runtime difference between the check host (CoreCLR) and the game's Mono: why `BeginInvoke` and `EndInvoke` are skipped on delegates, why the `ECall` message is a warning. No comments that restate the code.

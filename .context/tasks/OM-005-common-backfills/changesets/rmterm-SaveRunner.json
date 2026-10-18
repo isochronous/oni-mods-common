@@ -1,0 +1,1 @@
+{"task":"OM-005","why":"player-log was minted for SaveRunner but the tagging pass put it on no record","node":"tools/SaveRunner","ops":[{"mode":"remove","target":"tags.md","sections":["player-log"],"reason":"no record in this node carries the term"}]}

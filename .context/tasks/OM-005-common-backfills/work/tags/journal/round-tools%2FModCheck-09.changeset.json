@@ -1,0 +1,20 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/ModCheck — round 9",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\ModCheck",
+  "base": {
+    "standards/error-handling.md": "sha256:35fc0ccc22f9fc98c5cc447fb60edae09a2224321fe67b783067a5811d5cabe1"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "console-output",
+        "exit-codes",
+        "runtime-mismatch"
+      ],
+      "section": "anti-patterns-to-avoid"
+    }
+  ]
+}

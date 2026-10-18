@@ -1,0 +1,18 @@
+[
+ {
+  "id": "SaveRunner-c00",
+  "kind": "ordinary",
+  "documents": [
+   "domains/README.md",
+   "domains/entities.md",
+   "domains/glossary.md",
+   "overview.md",
+   "standards/README.md",
+   "standards/code-style.md",
+   "standards/error-handling.md",
+   "standards/naming-conventions.md"
+  ],
+  "sections": 53,
+  "dependsOn": null
+ }
+]

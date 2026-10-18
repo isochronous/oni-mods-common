@@ -1,0 +1,20 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 12",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "domains/entities.md": "sha256:e6e1113e44055aeddcb7a17982012249dc5dfd4d838e4639c71a213466b3ed7b"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "live-session",
+        "mod-loadout",
+        "watchdog"
+      ],
+      "section": "key-entities/watch-onigame-ps1"
+    }
+  ]
+}

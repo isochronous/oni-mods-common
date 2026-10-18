@@ -1,0 +1,71 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/ModCheck — round 1",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\ModCheck",
+  "base": {
+    "domains/entities.md": "sha256:719f7ab46e992e31224f8718c00599e79c83cfe61155bb325336ea788acb2d6d",
+    "overview.md": "sha256:672a90a39beb73de10b3473322696c855756e7400c645a47fc83067b3de382e4",
+    "standards/code-style.md": "sha256:6dd3681ce3f8710a170d6345ca7ad0f3d70a5a018202ae62731102a27e5db3da",
+    "standards/error-handling.md": "sha256:15cd34151814cfaff020169a7fe422b042d7d1ac171972d6254929bf4b3ba8cf",
+    "standards/naming-conventions.md": "sha256:372a4fef1986ca67f0b4a54ad9956dcfbb36d2a99d5e14f8c942b87b53bb99fa",
+    "domains/glossary.md": "sha256:450d3766a905b2846b2343804fa03b87fe14d4e89d57d6916ed84f768fc9e5d8"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "type-load-check",
+        "jit-check"
+      ],
+      "section": "overview"
+    },
+    {
+      "target": "overview.md",
+      "mode": "tag",
+      "add": [
+        "type-load-check",
+        "jit-check",
+        "exit-codes",
+        "command-line"
+      ],
+      "section": "what-this-is"
+    },
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "tool-build",
+        "runtime-mismatch"
+      ],
+      "section": "language-and-toolchain"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "exit-codes",
+        "runtime-mismatch",
+        "console-output"
+      ],
+      "section": "principles"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "tool-build"
+      ],
+      "section": "files-and-directories"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "type-load-check",
+        "game-update-compatibility"
+      ],
+      "section": "cross-domain-terms/vtable-setup-failure"
+    }
+  ]
+}

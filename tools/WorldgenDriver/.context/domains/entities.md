@@ -1,4 +1,5 @@
 ---
+tags: generated-worlds
 doc_id: doc-8cec0a95808d
 description: WorldgenDriver's mod class in Mod.cs, the Driver state and --worldgen options in Driver.cs, the seven patches in Patches.cs, the Invoke-Worldgen.ps1 functions, files read and written, business rules, code paths and per-coordinate states
 applies_to:
@@ -11,7 +12,8 @@ applies_to:
 # WorldgenDriver domain
 
 ## Overview
-**Id:** blk-b6ed29aae2e0
+**Id:** blk-b6ed29aae2e0  
+**Tags:** command-line, game-launch, activation-guard
 
 WorldgenDriver generates clusters in the real game with nobody at the keyboard. It has two halves. The development-only mod (`Mod.cs`, `Patches.cs`, `Driver.cs`) reads `--worldgen*` options from the game's command line and, at the main menu, applies each coordinate and opens the worldgen screen; it watches progress, writes one JSON line per coordinate and returns to the menu or quits. The launcher (`Invoke-Worldgen.ps1`) prepares the game's configuration, starts the game through Steam, collects results and restarts the game after a hang or crash. Without a `--worldgen` argument the mod does nothing, so it can stay installed.
 
@@ -22,6 +24,7 @@ It is used to reproduce worldgen bug reports and to check a mod build against a 
 
 ### WorldgenDriverMod
 **Id:** blk-1e7cd48f4614  
+**Tags:** mod-entry-point, activation-guard, harmony-patching, command-line  
 **Description**: The `UserMod2` entry point. `OnLoad` reads the command line and applies the Harmony patches only when a coordinate was requested; otherwise it logs `no --worldgen argument; idle`.  
 **Location**: `tools/WorldgenDriver/Mod.cs`
 
@@ -29,6 +32,7 @@ It is used to reproduce worldgen bug reports and to check a mod build against a 
 
 ### Driver
 **Id:** blk-cb417a1e3041  
+**Tags:** command-line, run-result  
 **Description**: Static session state and the result writer: the coordinate list and the current index, the timeout, the wanted mode, the story and mixing overrides, per-coordinate state (cluster id, seed, applied coordinate, stage, percent, errors) and the `Started`/`Finished` flags.  
 **Location**: `tools/WorldgenDriver/Driver.cs`
 
@@ -46,7 +50,8 @@ It is used to reproduce worldgen bug reports and to check a mod build against a 
 **Relationships**: `Patches.cs` calls `BeginCoordinate`, `Progress`, `Finish` and reads the settings; `Finish` calls `App.LoadScene("frontend")` for the next coordinate or `App.Quit()`.
 
 ### Patches (`Patches.cs`)
-**Id:** blk-84d2affac2b8
+**Id:** blk-84d2affac2b8  
+**Tags:** harmony-patching, world-coordinate, worldgen-progress, watchdog
 
 | Patch | Hook | Role |
 |-------|------|------|
@@ -60,6 +65,7 @@ It is used to reproduce worldgen bug reports and to check a mod build against a 
 
 ### Invoke-Worldgen.ps1
 **Id:** blk-2c4e50d4b9fc  
+**Tags:** game-launch, game-mode, mod-loadout, run-result  
 **Description**: The launcher. Groups coordinates by mode, runs them in sessions of up to `-PerSession` (default 25), one game start per session, and prints a summary.  
 **Location**: `tools/WorldgenDriver/Invoke-Worldgen.ps1`
 
@@ -72,7 +78,8 @@ It is used to reproduce worldgen bug reports and to check a mod build against a 
 **Relationships**: starts the game with `steam.exe -applaunch 457140` and the `--worldgen-*` arguments, polls the result file, copies `Player.log` after each session.
 
 ## Files read and written
-**Id:** blk-2d4957e55f9e
+**Id:** blk-2d4957e55f9e  
+**Tags:** mod-loadout, run-result, player-log
 
 | File | Direction | Description |
 |------|-----------|-------------|
@@ -87,7 +94,8 @@ It is used to reproduce worldgen bug reports and to check a mod build against a 
 The README mentions `runs/coverage-*.txt` coordinate lists. `runs/` is gitignored, so a checkout has none. TODO(owner): decide whether to commit the coverage lists.
 
 ## Business Rules
-**Id:** blk-016ad7dc25b9
+**Id:** blk-016ad7dc25b9  
+**Tags:** activation-guard, game-mode, mod-loadout, world-coordinate
 
 - The mod is idle without `--worldgen`; it must stay safe to leave installed.
 - A coordinate is applied the way the destination screen's coordinate box does, and the result's `applied` field carries the coordinate the game actually used (it differs when `-Stories` or `-Mixing` override it).
@@ -96,13 +104,15 @@ The README mentions `runs/coverage-*.txt` coordinate lists. `runs/` is gitignore
 - A hang or crash ends the session; the launcher starts another for what is left, and gives up on a mode group after two sessions in a row with no result.
 
 ## Key Code Paths
-**Id:** blk-8d4b33a1d147
+**Id:** blk-8d4b33a1d147  
+**Tags:** world-coordinate, run-result, game-launch
 
 - **One coordinate**: `MainMenu_OnSpawn_Patch` -> `Driver.BeginCoordinate` -> apply settings -> open the worldgen screen -> progress reports -> `App_LoadScene_Patch` (`complete`) or `DoExitFlow` (`failed`) -> `Driver.Finish` -> `WriteResult` -> `App.LoadScene("frontend")` or `App.Quit()` -- `Patches.cs`, `Driver.cs`.
 - **One session**: `Set-Mode`, `Set-Mods`, write `list.txt`, `Start-Process steam.exe -applaunch`, poll `Read-Results` until the game exits -- `Invoke-Worldgen.ps1`.
 
 ## State Transitions
-**Id:** blk-98bc32d0b35e
+**Id:** blk-98bc32d0b35e  
+**Tags:** run-result
 
 Per coordinate, in the mod:
 

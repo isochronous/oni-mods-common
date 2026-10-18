@@ -1,0 +1,18 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 10",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/glossary.md": "sha256:76560808af7ed8e1089b73f97c5123634a55631578e301859b0cfab8ecd33a8d"
+  },
+  "ops": [
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "world-coordinate"
+      ],
+      "section": "cross-domain-terms/stories-and-mixing"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+[
+ {
+  "id": "domains/entities.md",
+  "reason": "no-good-match",
+  "suggestion": "SaveRunner component map and run flow",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md",
+  "reason": "no-good-match",
+  "suggestion": "SaveRunner terminology and abbreviations",
+  "kept": []
+ },
+ {
+  "id": "overview.md",
+  "reason": "no-good-match",
+  "suggestion": "what the SaveRunner tool is and where its files are",
+  "kept": []
+ },
+ {
+  "id": "domains/glossary.md#cross-domain-terms/menu-settle",
+  "reason": "no-good-match",
+  "suggestion": "wait between the main menu appearing and the save load",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/indentation",
+  "reason": "no-good-match",
+  "suggestion": "source formatting: indentation, braces, line length",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/braces",
+  "reason": "no-good-match",
+  "suggestion": "source formatting: indentation, braces, line length",
+  "kept": []
+ },
+ {
+  "id": "standards/code-style.md#formatting/line-length",
+  "reason": "no-good-match",
+  "suggestion": "source formatting: indentation, braces, line length",
+  "kept": []
+ }
+]

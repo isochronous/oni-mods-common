@@ -5,7 +5,8 @@ description: "What TestRunner is: the harness mod and Invoke-OniTests.ps1 launch
 # TestRunner
 
 ## What this is
-**Id:** blk-666b8641eaaa
+**Id:** blk-666b8641eaaa  
+**Tags:** activation-guard, game-launch, mod-loadout, live-session
 
 TestRunner runs an Oxygen Not Included mod's in-game tests in the real game with nobody at the keyboard. It has two halves. The harness is a development-only mod (`Isochronous.TestRunner`, version 0.1.0 in `mod_info.yaml`, minimum build 744825, not for the Workshop): started with `--onitest-dir=DIR --onitest-save=FILE`, it loads a fixture save, blocks saves outside `DIR`, runs every `[OniTest]` coroutine in `DIR/tests/*.dll`, writes one JSON line per test and a status line, then quits or stays up 15 s for the next run. The launcher, `Invoke-OniTests.ps1`, builds a mod's `<Mod>.Tests` project, checks it with `tools/ModCheck`, sets the enabled mods in `mods.json`, starts the game through Steam (or hands the run to a game already up with the same loadout) and prints a line per test. Tests compile against the test kit, `Isochronous.TestKit` in `Kit/`, and drive the game the way a player does. Without its arguments the mod does nothing, so it stays installed. The mod developer and the agents working on ONI-Mods use it: every mod's `src/<ModName>.Tests/` project runs through it.
 

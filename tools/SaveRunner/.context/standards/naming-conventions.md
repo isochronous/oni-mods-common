@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-6fac7cccfdc2
 description: "Naming in SaveRunner: C# file and type names, the <Type>_<Method>_Patch classes, Runner state fields, probe names, the --saverun-* game options and how Invoke-SaveRun.ps1 parameters map to them, run folders and CSV columns"
 applies_to:
@@ -11,7 +12,8 @@ applies_to:
 # Naming Conventions
 
 ## Files and Directories
-**Id:** blk-9f3b33d81a6e
+**Id:** blk-9f3b33d81a6e  
+**Tags:** mod-build, run-result
 
 - C# files are PascalCase and named for the main type they hold: `Mod.cs`, `Runner.cs`, `Patches.cs`, `RunBehaviour.cs`. `Patches.cs` holds every patch class.
 - The launcher is `Invoke-SaveRun.ps1`, a PowerShell Verb-Noun name.
@@ -19,7 +21,8 @@ applies_to:
 - Run output lives in `runs/<Label>-<yyyyMMdd-HHmmss>/` (ignored by `common/.gitignore`): `colony.sav`, `probe.csv`, `probe.csv.status`, `Player.log`.
 
 ## Code Naming
-**Id:** blk-4cf0ed5fa17e
+**Id:** blk-4cf0ed5fa17e  
+**Tags:** harmony-patching, mod-entry-point, probe, logging
 
 - Namespace `SaveRunner`; types PascalCase; locals and parameters camelCase; private fields camelCase with no prefix (`elapsed`, `samples`, `writer`).
 - The mod class is `<Tool>Mod : UserMod2` (`SaveRunnerMod`).
@@ -29,7 +32,8 @@ applies_to:
 - Log tag: `Runner.Tag`, the string `[SaveRunner] `.
 
 ## Command Line and Launcher
-**Id:** blk-5068e4f0855f
+**Id:** blk-5068e4f0855f  
+**Tags:** command-line, game-launch, mod-loadout
 
 - Game arguments are `--saverun` followed by `-<option>`, lower case, hyphen-separated, as `--saverun-seconds=N`. `--saverun=FILE` itself names the save. `Runner` reads `--key=value` and a bare `--key` as an empty value.
 - Launcher parameters are PowerShell PascalCase (`-Seconds`, `-Speed`, `-Probe`, `-With`, `-Without`, `-TimeoutSec`, `-Label`, `-OutDir`, `-SteamExe`, `-AppId`). `-Seconds`, `-Speed`, `-Probe` and `-TimeoutSec` map straight to `--saverun-seconds`, `--saverun-speed`, `--saverun-probe` and `--saverun-timeout`. `-Save` becomes `--saverun=<copy of the save in the run folder>`, and the run folder, named from `-OutDir` and `-Label`, gives `--saverun-out=<run folder>/probe.csv`. `-With`, `-Without`, `-SteamExe` and `-AppId` configure only the launcher: the loadout, the Steam path and the app to launch.
@@ -37,7 +41,8 @@ applies_to:
 - Probe names are lower case plurals of the thing sampled (`fridges`).
 
 ## CSV Columns
-**Id:** blk-885a11539bd3
+**Id:** blk-885a11539bd3  
+**Tags:** probe
 
 Header names are camelCase with units spelled in the name (`setpointC`, `cellTempC`, `massKg`, `deltaKJ`), sample time first as `t`. Each game second writes one row per item in a fridge, or one row for a fridge with no items.
 

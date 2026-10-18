@@ -1,4 +1,5 @@
 ---
+tags: translations
 doc_id: doc-32e91bfd48ae
 description: "StringsTemplate glossary: abbreviations (pot, po, LocString, PLib), terms to avoid with their replacements, and definitions of ModStrings, key (msgctxt), stale, refused, obsolete and the Managed directory, with where each is used"
 ---
@@ -8,7 +9,8 @@ description: "StringsTemplate glossary: abbreviations (pot, po, LocString, PLib)
 Terms a newcomer to StringsTemplate needs. The tool's own things are in [entities](entities.md).
 
 ## Abbreviations and Acronyms
-**Id:** blk-7e2793659fb3
+**Id:** blk-7e2793659fb3  
+**Tags:** translation-template, mod-strings, mod-options
 
 | Abbreviation | Full Term | Context |
 |--------------|-----------|---------|
@@ -19,7 +21,8 @@ Terms a newcomer to StringsTemplate needs. The tool's own things are in [entitie
 | DLC | downloadable content | not used by this tool |
 
 ## Terms to Avoid
-**Id:** blk-388ad4844aad
+**Id:** blk-388ad4844aad  
+**Tags:** translation-template, mod-strings, console-output
 
 | Avoid | Use Instead | Reason |
 |-------|-------------|--------|
@@ -32,11 +35,13 @@ Terms a newcomer to StringsTemplate needs. The tool's own things are in [entitie
 
 ### ModStrings
 **Id:** blk-3c9e14f660b8  
+**Tags:** mod-strings  
 **Definition**: The top-level static class, named exactly `ModStrings` and not nested, in each mod's DLL. Its nested classes hold public static `LocString` fields; the nesting is the key.  
 **Used in**: `Program.Main`, `Collect`; the `Isochronous.Translations` loader that registers the tree at game start.
 
 ### Key (msgctxt)
 **Id:** blk-b20d63f89dd0  
+**Tags:** mod-strings, translation-template  
 **Definition**: `STRINGS.` plus the nested type names and field name, such as `STRINGS.UI.TOOLS.SWEEPZONES.<FIELD>` for a field in the Sweep Zones mod's `ModStrings.UI.TOOLS.SWEEPZONES` class. It is the `msgctxt` of an entry in both the pot and the po files.  
 **Used in**: every report line.
 
@@ -47,6 +52,7 @@ Terms a newcomer to StringsTemplate needs. The tool's own things are in [entitie
 
 ### Refused
 **Id:** blk-4dde81fafde8  
+**Tags:** refused-translation  
 **Definition**: A translation the game rejects when loading it: a different set of `{0}`-style parameters than the English, more `<link=` tags than the English, or a `<link=` without `</link>`.  
 **Used in**: `CheckPo`, `SameParameters`, `LinkCount`, `LinksMatch`.
 
@@ -57,6 +63,7 @@ Terms a newcomer to StringsTemplate needs. The tool's own things are in [entitie
 
 ### Managed directory
 **Id:** blk-8e28af007c68  
+**Tags:** assembly-resolution, command-line  
 **Definition**: The game's `OxygenNotIncluded_Data\Managed` folder, searched for assemblies the mod DLL references.  
 **Used in**: first command-line argument; the `AssemblyResolve` handler.
 

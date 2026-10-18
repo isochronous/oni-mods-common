@@ -1,0 +1,51 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 4",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:3c6ff249ab7f1d5388fb0a521005cafc349436133ca91589420c55c8e1d1087f",
+    "standards/error-handling.md": "sha256:00929597ffaa2300eefbf10b50753d9019f95ddf6b1aaa82c65d64436acc67af",
+    "standards/naming-conventions.md": "sha256:9aeee7f28d02aec77d51af804c1cde7e8ba2a92534aad6ae938d3996d0434fcd",
+    "domains/glossary.md": "sha256:c2e00438c8447a44018d319a3c3dc15c8582b4eea33fe9f1b3e3f3d135c7bab2"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "world-coordinate",
+        "worldgen-progress",
+        "watchdog"
+      ],
+      "section": "key-entities/patches-patches-cs"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "generated-worlds",
+        "run-result",
+        "logging"
+      ],
+      "section": "handling-patterns/worldgen-errors"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "game-launch"
+      ],
+      "section": "code-naming/powershell"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "game-mode",
+        "world-coordinate"
+      ],
+      "section": "cross-domain-terms/spaced-out-mode-and-base-game-mode"
+    }
+  ]
+}

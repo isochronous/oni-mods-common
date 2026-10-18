@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-718fdd9d28d5
 description: "StringsTemplate's naming rules: folder, project and output file names, type, method, variable and field naming in Program.cs, how translation keys are built and sorted, report line keywords and positional argument order"
 applies_to:
@@ -9,7 +10,8 @@ applies_to:
 # StringsTemplate naming conventions
 
 ## Files and Directories
-**Id:** blk-51503f510e6b
+**Id:** blk-51503f510e6b  
+**Tags:** tool-build, translation-template, translations
 
 - Folder, project file and assembly share one name: `StringsTemplate` (`StringsTemplate.csproj`, `StringsTemplate.dll`). The tool lives under `tools/Translations/`, next to `translations.py`.
 - C# source is a single `Program.cs`.
@@ -47,18 +49,21 @@ applies_to:
 **Id:** blk-96cf073a4c6d
 
 ### Translation keys
-**Id:** blk-d15b30cc4eaf
+**Id:** blk-d15b30cc4eaf  
+**Tags:** mod-strings, translation-template
 
 - A key is the path through the mod's `ModStrings` tree with a `STRINGS.` prefix: `ModStrings.A.B.C` is `STRINGS.A.B.C`. The tool builds it from nested type names and the `LocString` field name, so the C# names are the keys.
 - Keys are sorted with `string.CompareOrdinal` in the `.pot`.
 
 ### Report text
-**Id:** blk-491fc8e9674c
+**Id:** blk-491fc8e9674c  
+**Tags:** console-output, translations
 
 - Each line starts with an upper-case keyword (`FAIL`, `MISSING`, `STALE`, `REFUSED`, `EMPTY`, `OBSOLETE`) followed by the po file name and key.
 
 ### Command line
-**Id:** blk-4f71c0738539
+**Id:** blk-4f71c0738539  
+**Tags:** command-line
 
 - Positional arguments only, in this order: game Managed directory, mod DLL, translations directory.
 

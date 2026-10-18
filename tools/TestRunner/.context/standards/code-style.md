@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-f1aa1ec42c48
 description: "TestRunner's C# and PowerShell style: indentation and braces, C# 9 on net48 through TestRunner.csproj, the harness and kit namespaces, file layout, the Session.Active guard, Harmony patch form, private members through Reflect.cs, comments"
 applies_to:
@@ -32,7 +33,8 @@ applies_to:
 - No limit and no `.editorconfig`. Long log lines wrap before a `+` with the continuation indented one tab (the start-up `Debug.Log` in `Mod.cs`).
 
 ## Language and Toolchain
-**Id:** blk-827b53b95cbe
+**Id:** blk-827b53b95cbe  
+**Tags:** mod-build
 
 - C# 9 on .NET Framework 4.8, built against the game's assemblies (`common/oni-mod.props` and `oni-mod.targets`). `TestRunner.csproj` sets `ReferenceUnityUI` and references `UnityEngine.ScreenCaptureModule` for `t.Screenshot`.
 - The tool is a mod (`mod.yaml`, `mod_info.yaml`, `TestRunnerMod : UserMod2`) and also a library: a mod's test project references `TestRunner.csproj` for the kit. A successful build deploys it to `Documents\Klei\OxygenNotIncluded\mods\local\TestRunner`.
@@ -58,19 +60,22 @@ applies_to:
 | `fixtures/` | fixture saves and their README |
 
 ## Inert Without the Argument
-**Id:** blk-2fc671d7925c
+**Id:** blk-2fc671d7925c  
+**Tags:** activation-guard
 
 Every patch starts with `if (!Session.Active) ...`. `Session.Active` is true only with both `--onitest-dir` and `--onitest-save`. The mod stays installed and changes nothing in a normal game session.
 
 ## Harmony Patches
-**Id:** blk-bb5bf3709593
+**Id:** blk-bb5bf3709593  
+**Tags:** harmony-patching, game-update-compatibility
 
 - One static class per patched method, named `<Type>_<Method>_Patch`, with `Prefix` or `Postfix` (`Patches.cs`); trace patches in `Diagnostics.cs` are named `_Trace`.
 - Overloads are pinned by parameter types (`BuildingDef.TryPlace` in `Diagnostics.cs`).
 - A patch that might not exist on another game build is applied by hand in try/catch (`TestRunnerMod.TracePatch`).
 
 ## Private Game Members
-**Id:** blk-7ca12f96cdb9
+**Id:** blk-7ca12f96cdb9  
+**Tags:** reflection
 
 The kit and the tests reach game internals only through `Reflect.cs`: a `public static readonly FieldInfo` per member from `AccessTools`, with a `///` summary saying what it is for, and a line in `Reflect.SelfCheck()`. `FieldInfo` is used and `FieldRefAccess` is not, because a `FieldRef` dynamic method cannot be built on the CoreCLR host that ModCheck runs on.
 

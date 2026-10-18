@@ -1,4 +1,5 @@
 ---
+tags: code-style
 doc_id: doc-dc570c7ff4d7
 description: "WorkshopUpload's code style for Program.cs and WorkshopUpload.csproj: indentation, line length, Allman braces, .NET 8 and Steamworks.NET project settings, steam_appid.txt, the build command, imports, comment rules and control flow"
 applies_to:
@@ -32,7 +33,8 @@ WorkshopUpload is one C# file, `tools/WorkshopUpload/Program.cs`, plus its proje
 - A body of one short statement goes on the next line without braces (`if (cloudZip != null)` lines in `Update`).
 
 ## Language and Toolchain
-**Id:** blk-c0c064d7a567
+**Id:** blk-c0c064d7a567  
+**Tags:** tool-build, steamworks-api, steam-app-id
 
 - .NET 8 (`net8.0`), `RuntimeIdentifier` win-x64, `SelfContained` false, `Nullable` disabled, `ImplicitUsings` enabled. `LangVersion` is not set, so the .NET 8 default (C# 12) applies; the file uses file-scoped `namespace WorkshopUpload;`, switch expressions and `using var`. It runs on .NET 8, not the game's .NET Framework 4.8, so it does not import `common/oni-mod.props`.
 - Steamworks.NET 2024.8.0 from NuGet is the only package. The native `steam_api64.dll` next to it (Steamworks SDK 1.60 or newer, copied to the output) is Valve's; the game's own copy is too old for this wrapper.
@@ -61,7 +63,8 @@ WorkshopUpload is one C# file, `tools/WorkshopUpload/Program.cs`, plus its proje
 - A `// ---- commands ----` rule separates the command methods from the helpers.
 
 ## Control Structures
-**Id:** blk-9cef3a262ece
+**Id:** blk-9cef3a262ece  
+**Tags:** exit-codes, command-line, console-output
 
 - `Main` prints usage and returns 2 when there are no arguments, before touching Steam; it then initialises Steam and dispatches with a `switch` on `args[0]` inside `try`/`finally`. An unknown command and the argument checks of `update` and `publish` return 2 inside the `try`.
 - Each command is a `private static int` method returning its exit code; early `return 1` or `return 2` on the first failed step.

@@ -1,0 +1,47 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/Translations/StringsTemplate — round 4",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "base": {
+    "domains/entities.md": "sha256:493a19ff74f9f20428b5f2142d63d40749f1e855a659458741f780f04d5282cb",
+    "domains/glossary.md": "sha256:1502015eae33e9bbfab863276045431474e4bd8006270ee951deffbe6dcc8b4d",
+    "standards/error-handling.md": "sha256:ab507bd870573c0770d5fbe1269760be39a5e23f015ad416b484bc28af86cbd5",
+    "standards/naming-conventions.md": "sha256:1636a797ab27d2abaf44f3d65d9ca03330a74aecefd24ec5314dbb4cd98ffa37"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "mod-strings"
+      ],
+      "section": "key-entities/collect"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "mod-strings",
+        "translation-template"
+      ],
+      "section": "cross-domain-terms/key-msgctxt"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "assembly-resolution",
+        "mod-strings"
+      ],
+      "section": "handling-patterns/loading-the-mod"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "command-line"
+      ],
+      "section": "project-specific-conventions/command-line"
+    }
+  ]
+}

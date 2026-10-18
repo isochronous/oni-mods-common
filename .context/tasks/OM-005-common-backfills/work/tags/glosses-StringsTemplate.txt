@@ -1,0 +1,13 @@
+term                  count  gloss
+assembly-resolution       0  A record earns this term when it is about how the tool finds the game assemblies that a loaded mod DLL references.
+code-style                0  A record earns this term when it is about the house style in which the tool's C# source code is written.
+command-line              0  A record earns this term when it is about the arguments and options the tool is started with and how it reads them.
+console-output            0  A record earns this term when it is about the lines the tool prints to the console and how they are worded.
+exception-handling        0  A record earns this term when it is about where the tool catches exceptions and what it does once it has caught one.
+exit-codes                0  A record earns this term when it is about the exit code the tool's process ends with and what each value means.
+mod-options               0  A record earns this term when it is about the player-facing settings a mod exposes on its options screen and how the mod reads them.
+mod-strings               0  A record earns this term when it is about the player-visible text a mod defines in ModStrings and the translations of that text.
+refused-translation       0  A record earns this term when it is about the rules by which the game rejects a translation or a whole po file at load.
+tool-build                0  A record earns this term when it is about building the tool with dotnet from its project file and the output that build produces.
+translation-template      0  A record earns this term when it is about the .pot template the tool writes from the mod's strings.
+translations              0  A record earns this term when it is about translating a mod's player-visible strings and checking its translation files.

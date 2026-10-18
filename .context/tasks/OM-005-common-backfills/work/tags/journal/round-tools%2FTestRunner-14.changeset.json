@@ -1,0 +1,21 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/TestRunner — round 14",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\TestRunner",
+  "base": {
+    "domains/entities.md": "sha256:610cad77584e6dcef1e01bea3f6ff22b1465399ae73bdc16046a00c22512d2ff"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "activation-guard",
+        "test-discovery",
+        "live-session",
+        "game-mode"
+      ],
+      "section": "business-rules"
+    }
+  ]
+}

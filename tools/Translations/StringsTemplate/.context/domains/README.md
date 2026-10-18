@@ -1,4 +1,5 @@
 ---
+tags: translations, translation-template, mod-strings
 doc_id: doc-4d04fbea7620
 description: "Index of StringsTemplate's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers"
 ---

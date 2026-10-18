@@ -1,4 +1,5 @@
 ---
+tags: code-style, exception-handling, exit-codes, console-output
 doc_id: doc-8a60b3d665fd
 description: "Index of StringsTemplate's standards documents: links to code style, error handling and naming conventions, each with a line listing the topics it covers"
 ---

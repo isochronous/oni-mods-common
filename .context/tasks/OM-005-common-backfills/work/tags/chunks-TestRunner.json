@@ -1,0 +1,26 @@
+[
+ {
+  "id": "TestRunner-c00",
+  "kind": "ordinary",
+  "documents": [
+   "domains/README.md",
+   "domains/entities.md",
+   "domains/glossary.md",
+   "overview.md",
+   "standards/README.md",
+   "standards/code-style.md"
+  ],
+  "sections": 49,
+  "dependsOn": null
+ },
+ {
+  "id": "TestRunner-c01",
+  "kind": "ordinary",
+  "documents": [
+   "standards/error-handling.md",
+   "standards/naming-conventions.md"
+  ],
+  "sections": 19,
+  "dependsOn": null
+ }
+]

@@ -1,4 +1,5 @@
 ---
+tags: type-load-check, jit-check
 doc_id: doc-de7cb544ba6b
 description: "ModCheck domains index: links to the entities and glossary documents, each with the subjects it covers, from Program and the type-load and JIT checks to the abbreviations and output terms"
 ---

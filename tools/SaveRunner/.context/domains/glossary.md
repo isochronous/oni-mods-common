@@ -8,7 +8,8 @@ description: "SaveRunner glossary: the abbreviations ONI, SMI, STT, SO and NMF u
 Terms a newcomer to SaveRunner needs. Entity detail is in [entities](entities.md).
 
 ## Abbreviations and Acronyms
-**Id:** blk-bd9fd4d15776
+**Id:** blk-bd9fd4d15776  
+**Tags:** probe
 
 | Abbreviation | Full Term | Context |
 |--------------|-----------|---------|
@@ -23,26 +24,31 @@ Terms a newcomer to SaveRunner needs. Entity detail is in [entities](entities.md
 
 ### Run
 **Id:** blk-fca79a60d4bc  
+**Tags:** game-launch, save-files  
 **Definition**: one game launch by `Invoke-SaveRun.ps1`: load a save, play for `--saverun-seconds` game seconds, write the probe, quit. Its folder is `runs/<Label>-<stamp>`.  
 **Used in**: the launcher, `Runner`, every file name under `runs/`.
 
 ### Probe
 **Id:** blk-4e73227a1e2f  
+**Tags:** probe  
 **Definition**: a named recorder sampled once per game second during a run. `fridges` is the only one.  
 **Used in**: `--saverun-probe`, `RunBehaviour`, `FridgeProbe`.
 
 ### Game seconds and real seconds
 **Id:** blk-dd09f79f5775  
+**Tags:** watchdog, command-line  
 **Definition**: game seconds are scaled frame time (speed 3 passes three of them per real second); `--saverun-seconds` is in game seconds, `--saverun-timeout` in real seconds.  
 **Used in**: `RunBehaviour.Update`, `App_LateUpdate_Patch`.
 
 ### Status file
 **Id:** blk-67145d475ebb  
+**Tags:** run-result  
 **Definition**: `<out>.status`, one JSON line (`done`, `timeout`, `no-save` or `runner-error`) that tells the launcher how the run ended.  
 **Used in**: `Runner.Finish`, the launcher's final report.
 
 ### Loadout
 **Id:** blk-e9f19f346fa7  
+**Tags:** mod-loadout  
 **Definition**: the list of enabled mods in `mods.json`. A run keeps the player's loadout, adds SaveRunner and `-With`, removes `-Without`, and puts the original back afterwards.  
 **Used in**: `Invoke-SaveRun.ps1` (`Set-Mods`).
 

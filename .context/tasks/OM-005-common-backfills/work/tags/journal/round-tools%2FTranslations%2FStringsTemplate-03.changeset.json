@@ -1,0 +1,46 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/Translations/StringsTemplate — round 3",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\Translations\\StringsTemplate",
+  "base": {
+    "domains/entities.md": "sha256:b167e9d85c1153561c3f959cad9967aa0227c9de089c6dda183e2268afc1d042",
+    "domains/glossary.md": "sha256:82a75d10dd3f65cb83283281649f617c45b858fc16e32e2df24b3d794293ef05",
+    "standards/error-handling.md": "sha256:4ee4630a3e5bf13f14ac6e1e344013f2afa7e6ed7e8b96baa0bacb82f5973c9d",
+    "standards/naming-conventions.md": "sha256:172a5f1a32c36aee00d5c796db73b60d7103db0f6b6334cd2017d893e72d85ff"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "mod-strings"
+      ],
+      "section": "key-entities/entry"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "mod-strings"
+      ],
+      "section": "cross-domain-terms/modstrings"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "refused-translation"
+      ],
+      "section": "handling-patterns/reading-a-po-file"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "console-output",
+        "translations"
+      ],
+      "section": "project-specific-conventions/report-text"
+    }
+  ]
+}

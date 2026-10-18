@@ -1,0 +1,38 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorkshopUpload — round 9",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorkshopUpload",
+  "base": {
+    "domains/entities.md": "sha256:aafbcdcd490464c69254ec4e9b4de977e56beebdbae61704cfc814bee1bd47ed",
+    "domains/glossary.md": "sha256:9f1f844a8d79f57ad15988aa8f2c9f3ab20ac6e98bac3de26e7e761808bb2979",
+    "standards/error-handling.md": "sha256:b69c3cca5bb6dcd0648c4669f022d15b0961127ad5ceac6cbcdd6c9c44946a11"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "item-visibility"
+      ],
+      "section": "state-transitions"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "item-description"
+      ],
+      "section": "cross-domain-terms/change-note"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "steamworks-api",
+        "legacy-workshop-item",
+        "console-output"
+      ],
+      "section": "anti-patterns-to-avoid"
+    }
+  ]
+}

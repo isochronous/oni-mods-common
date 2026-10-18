@@ -1,0 +1,18 @@
+{
+ "documents": [
+  { "id": "standards/naming-conventions.md", "tags": ["code-style"] }
+ ],
+ "sections": [
+  { "id": "standards/naming-conventions.md#files-and-directories", "tags": ["run-result"] },
+  { "id": "standards/naming-conventions.md#code-naming", "tags": [], "reason": "inherits" },
+  { "id": "standards/naming-conventions.md#code-naming/classes", "tags": ["harmony-patching", "mod-entry-point"] },
+  { "id": "standards/naming-conventions.md#code-naming/members", "tags": ["logging"] },
+  { "id": "standards/naming-conventions.md#code-naming/powershell", "tags": ["game-launch"] },
+  { "id": "standards/naming-conventions.md#project-specific-conventions", "tags": [], "reason": "inherits" },
+  { "id": "standards/naming-conventions.md#project-specific-conventions/command-line-options", "tags": ["command-line"] },
+  { "id": "standards/naming-conventions.md#project-specific-conventions/result-statuses", "tags": ["run-result"] },
+  { "id": "standards/naming-conventions.md#project-specific-conventions/result-json", "tags": ["run-result"] },
+  { "id": "standards/naming-conventions.md#project-specific-conventions/coordinates", "tags": ["world-coordinate"] },
+  { "id": "standards/naming-conventions.md#related", "tags": [], "reason": "inherits" }
+ ]
+}

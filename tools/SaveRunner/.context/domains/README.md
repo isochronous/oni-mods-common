@@ -1,4 +1,5 @@
 ---
+tags: mod-entry-point, harmony-patching, probe, game-launch
 doc_id: doc-c232feeeb4ec
 description: "SaveRunner domains index: links to the entities and glossary documents, each with what it covers, from the mod, patches, probe, launcher and run states to the probe-column abbreviations and run terms"
 ---

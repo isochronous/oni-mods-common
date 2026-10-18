@@ -1,0 +1,49 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/WorldgenDriver — round 8",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\WorldgenDriver",
+  "base": {
+    "domains/entities.md": "sha256:decda1e318af1a84817d825fd6925b5a8ea2073963c45fc0bf1961e911106e21",
+    "standards/error-handling.md": "sha256:1328e0375f9848df6ec254e844de5ce9281d72448852d11f4820926dfac99632",
+    "standards/naming-conventions.md": "sha256:ed47b23b3d68b9d7fe21349b3e91941817d99e812799b3fefffba5352334fbf8",
+    "domains/glossary.md": "sha256:786a073d0e02cf2321438073b0779219862de77697b68440362b20f40c3afa47"
+  },
+  "ops": [
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "world-coordinate",
+        "run-result",
+        "game-launch"
+      ],
+      "section": "key-code-paths"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "mod-loadout",
+        "harmony-patching"
+      ],
+      "section": "anti-patterns-to-avoid"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "world-coordinate"
+      ],
+      "section": "project-specific-conventions/coordinates"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "watchdog"
+      ],
+      "section": "cross-domain-terms/watchdog"
+    }
+  ]
+}

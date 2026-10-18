@@ -1,0 +1,29 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 6",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "standards/error-handling.md": "sha256:8f36d3c8e32eee935f83949a5817d736755363274b1fba404a1849fbc2ee903e",
+    "domains/entities.md": "sha256:1e518cfae9913f7f0c844b6e604ec72cace331d0bb5284497ab4e8d657c4078f"
+  },
+  "ops": [
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "crash-dialog"
+      ],
+      "section": "handling-patterns/crash-dialog"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "game-launch",
+        "mod-loadout",
+        "command-line"
+      ],
+      "section": "key-entities/invoke-saverun-ps1"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "task": "OM-005",
+  "why": "tag backfill r1 for node tools/SaveRunner — round 4",
+  "node": "C:\\dev\\ONI-Mods\\common\\tools\\SaveRunner",
+  "base": {
+    "standards/code-style.md": "sha256:d2b276e6cd42c02d5315a7c58b5b5c3a037e369aef6697cab6c5e84d73524a1e",
+    "standards/error-handling.md": "sha256:495cda28c4d44cf1bffcf8d1ca09a56787e4cbdc8df0dbaa3c0ece79ddf82050",
+    "standards/naming-conventions.md": "sha256:781de66ec207d90f38f787defc6f28e90db2710dcbddfb71171090af116a9c6f",
+    "domains/entities.md": "sha256:e3be1c4d07bc62fe64eed95969943473d6fe0e0d32e6adc57f7fc88e7fc23033",
+    "domains/glossary.md": "sha256:eb0552fe7406717a99d2c74c0a58014fa74459762b30f45ebf69b339f1bea170"
+  },
+  "ops": [
+    {
+      "target": "standards/code-style.md",
+      "mode": "tag",
+      "add": [
+        "harmony-patching",
+        "exception-handling"
+      ],
+      "section": "harmony-patches"
+    },
+    {
+      "target": "standards/error-handling.md",
+      "mode": "tag",
+      "add": [
+        "run-result",
+        "logging"
+      ],
+      "section": "handling-patterns/fire-and-forget-file-writes"
+    },
+    {
+      "target": "standards/naming-conventions.md",
+      "mode": "tag",
+      "add": [
+        "probe"
+      ],
+      "section": "csv-columns"
+    },
+    {
+      "target": "domains/entities.md",
+      "mode": "tag",
+      "add": [
+        "probe"
+      ],
+      "section": "key-entities/runbehaviour"
+    },
+    {
+      "target": "domains/glossary.md",
+      "mode": "tag",
+      "add": [
+        "run-result"
+      ],
+      "section": "cross-domain-terms/status-file"
+    }
+  ]
+}

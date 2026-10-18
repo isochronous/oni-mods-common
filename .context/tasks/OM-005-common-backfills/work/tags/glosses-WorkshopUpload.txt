@@ -1,0 +1,17 @@
+term                  count  gloss
+code-style                0  A record earns this term when it is about the house style in which the tool's C# source code is written.
+command-line              0  A record earns this term when it is about the arguments and options the tool is started with and how it reads them.
+console-output            0  A record earns this term when it is about the lines the tool prints to the console and how they are worded.
+exception-handling        0  A record earns this term when it is about where the tool catches exceptions and what it does once it has caught one.
+exit-codes                0  A record earns this term when it is about the exit code the tool's process ends with and what each value means.
+item-description          0  A record earns this term when it is about the text shown on a Workshop item's page and in its change history.
+item-download             0  A record earns this term when it is about having Steam download a Workshop item and checking what it installed.
+item-visibility           0  A record earns this term when it is about who can see a Workshop item and how its visibility is set.
+legacy-workshop-item      0  A record earns this term when it is about the legacy ISteamRemoteStorage single-file items that are the only Workshop items the game can download.
+release-process           0  A record earns this term when it is about cutting a release of a mod, from version bump and tag to the published download.
+steam-app-id              0  A record earns this term when it is about the Steam app ids the tool runs under and the steam_appid.txt file that selects one.
+steam-cloud               0  A record earns this term when it is about staging files in the user's Steam Cloud before a publish or update refers to them.
+steam-workshop            0  A record earns this term when it is about publishing a mod to its Steam Workshop item or updating that item.
+steamworks-api            0  A record earns this term when it is about calling Steam through Steamworks.NET and checking the result of each call.
+tool-build                0  A record earns this term when it is about building the tool with dotnet from its project file and the output that build produces.
+workshop-tags             0  A record earns this term when it is about the tags a Workshop item carries for the Workshop's browse views.

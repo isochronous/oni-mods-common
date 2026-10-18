@@ -1,4 +1,5 @@
 ---
+tags: exception-handling
 doc_id: doc-bf18c260f56c
 description: "WorldgenDriver's error handling: principles, the result status table with where each is raised, patch exception handling, worldgen error collection, result writing in Driver.cs, logging, launcher recovery and backup restore in Invoke-Worldgen.ps1, anti-patterns"
 applies_to:
@@ -13,7 +14,8 @@ applies_to:
 WorldgenDriver runs unattended: nobody watches the game, so every outcome has to become a result line or a log line. The mod turns each way a generation can end into a status; the launcher turns each way a session can end into a restart or a stop.
 
 ## Principles
-**Id:** blk-6b5e188da28e
+**Id:** blk-6b5e188da28e  
+**Tags:** run-result, mod-loadout, watchdog
 
 1. **Every coordinate the driver attempts gets exactly one result line.** `Driver.Finish` writes it once; the `Finished` and `quitting` flags make a second call do nothing. A session that ends on `wrong-mode`, `driver-error`, `crash`, `hang` or `stuck-before-start` writes nothing for the coordinates after the current one, and a game the launcher kills (`killed`) or never sees start (`no-process`) leaves its coordinate in flight without a line. The launcher runs those again in the next session and gives up on the group after two sessions in a row with no result.
 2. **Name the failure.** The status says which way it ended (`failed`, `hang`, `crash`), `stage` and `percent` say where, `detail` and `errors` say why.
@@ -21,7 +23,8 @@ WorldgenDriver runs unattended: nobody watches the game, so every outcome has to
 4. **Never leave the player's setup changed.** The launcher backs up `mods.json` and `kplayerprefs.yaml` and restores them in `finally`.
 
 ## Result statuses
-**Id:** blk-0c3aa2a70e1c
+**Id:** blk-0c3aa2a70e1c  
+**Tags:** run-result, watchdog, game-mode
 
 `Driver.Finish(status, detail)` is the only writer. `canContinue` is true for the first four; any other status quits the game.
 
@@ -41,28 +44,33 @@ WorldgenDriver runs unattended: nobody watches the game, so every outcome has to
 **Id:** blk-01c055e6d4f7
 
 ### Patches
-**Id:** blk-08d7268a068c
+**Id:** blk-08d7268a068c  
+**Tags:** harmony-patching, logging
 
 `MainMenu_OnSpawn_Patch` wraps its work in `try`/`catch (Exception e)`: it logs `Debug.LogWarning(Driver.Tag + e)` and finishes with `driver-error`. Other patches are guarded by `Driver.Active` and do not throw. The two prefixes that replace game behaviour (`DoExitFlow`, `App.LoadScene`) return `false` only while the driver is active and unfinished.
 
 ### Worldgen errors
-**Id:** blk-066c3d0efe40
+**Id:** blk-066c3d0efe40  
+**Tags:** generated-worlds, run-result, logging
 
 `OfflineWorldGen.OnError` appends the error text (description plus exception) to `Driver.Errors` under a lock and logs a warning. The list is written into the result's `errors` array whatever the final status.
 
 ### Result file
-**Id:** blk-5f1243febda9
+**Id:** blk-5f1243febda9  
+**Tags:** run-result, logging
 
 `WriteResult` creates the folder and appends one UTF-8 JSON line. A failure to write is caught, logged with `Debug.LogWarning` and does not stop the session.
 
 ### Logging
-**Id:** blk-3a01efe65d43
+**Id:** blk-3a01efe65d43  
+**Tags:** logging, player-log
 
 - Every message starts with `Driver.Tag`, `[WorldgenDriver] `, through `Debug.Log` or `Debug.LogWarning`.
 - The launcher copies `Player.log` next to the results after each session, so a failed or hung coordinate can be traced.
 
 ### Launcher
-**Id:** blk-64bfa31b7823
+**Id:** blk-64bfa31b7823  
+**Tags:** game-launch, watchdog, run-result, mod-loadout
 
 - `$ErrorActionPreference = 'Stop'`; preconditions `throw` with a message that says what to do: no coordinates, the game already running, Steam not found, the driver not deployed (names the `dotnet build` command), a local mod folder that does not exist.
 - A line that does not end in `}` (the game was still writing it) is skipped silently; a line that ends in `}` and fails `ConvertFrom-Json` is skipped with `Write-Warning`. Only complete, parsed lines count.
@@ -72,7 +80,8 @@ WorldgenDriver runs unattended: nobody watches the game, so every outcome has to
 - Final output: results grouped by status and a table of every status other than `complete` and `loaded`.
 
 ## Anti-Patterns to Avoid
-**Id:** blk-3ff6be6bc8ec
+**Id:** blk-3ff6be6bc8ec  
+**Tags:** run-result, mod-loadout, harmony-patching
 
 - Writing a result line from more than one place for one coordinate. Go through `Finish`.
 - Catching an exception in a patch and doing nothing: finish with `driver-error` so the launcher sees it.
