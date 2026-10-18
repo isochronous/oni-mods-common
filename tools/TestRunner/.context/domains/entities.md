@@ -101,13 +101,14 @@ TestRunner runs a mod's in-game tests in the real game with nobody at the keyboa
 
 ### The kit (`Isochronous.TestKit`)
 **Id:** blk-c6e1619a47bb  
-**Tags:** test-assertions, simulated-input, test-pacing, save-files  
+**Tags:** test-assertions, simulated-input, test-pacing, save-files
+
 **Description**: what a test author uses.  
 **Location**: `Kit/`
 
 | Type | File | Purpose |
 |------|------|---------|
-| `OniTestAttribute`, `LayerAttribute` | `Attributes.cs` | mark tests and set their options (`Timeout`, `FreshSave`, `Explicit`, `Boxed`, `NoColony`, `Worldgen`) |
+| `OniTestAttribute`, `LayerAttribute` | `Attributes.cs` | mark tests and set their options (`Timeout`, `FreshSave`, `KeepSave`, `Explicit`, `Boxed`, `NoColony`, `Worldgen`) |
 | `OniAssertException`, `SkipException` | `Attributes.cs` | thrown by `t.Assert` and `t.Skip` |
 | `TestContext` | `TestContext.cs` | `Assert`, `World`, `Tools`, `Dupes`, waits (`Frames`, `WaitGameSeconds`, `WaitRealSeconds`, `WaitUntil`), `Rect`, `Area`, `Log`, `Cleanup`, `AllowLogError`, `Skip`, `Speed`, `InstantBuild`, `ResearchAll`, `Screenshot`, `Press`, `PointAt`, `LookAt`, `Generated` |
 | `Wait` and its subclasses, `CellRect` | `TestContext.cs` | what a test yields; a rectangle of cells |

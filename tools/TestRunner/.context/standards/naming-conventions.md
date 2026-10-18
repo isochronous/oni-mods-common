@@ -34,7 +34,7 @@ applies_to:
 - Patch classes are `<Type>_<Method>_Patch`; trace patches end in `_Trace`.
 - Reflection handles in `Reflect` are named `<Type><Member>` (`KInputManagerHasFocus`, `InterfaceToolIsAppFocused`, `PathNodeCell`); the self-check message uses the game's own `Type.member`.
 - Waits are classes ending in `Wait` deriving from `Wait` (`FrameWait`, `GameSecondsWait`, `UntilWait`); the `TestContext` factory methods that make them are `Frames`, `WaitGameSeconds`, `WaitRealSeconds`, `WaitUntil`.
-- Attributes end in `Attribute` and are used without the suffix: `[OniTest]`, `[Layer]`. `OniTest` options are PascalCase properties: `Timeout`, `FreshSave`, `Explicit`, `Boxed`, `NoColony`, `Worldgen`.
+- Attributes end in `Attribute` and are used without the suffix: `[OniTest]`, `[Layer]`. `OniTest` options are PascalCase properties: `Timeout`, `FreshSave`, `KeepSave`, `Explicit`, `Boxed`, `NoColony`, `Worldgen`.
 - Test classes are `public static` classes named for the area under test (`WireDrags`); test methods are `public static IEnumerator <Name>(TestContext t)` named for what is checked (`DragFromEnd`). The test id is `<Assembly>/<Class>.<Method>`. The attribute's display name starts with a short mod prefix (`"DAB: wire dragged from a bridge end to its neighbour connects both"`).
 - Assertion methods are short (`True`, `False`, `Eq`, `NotEq`, `Null`, `NotNull`, `Has`, `Lacks`, `Fail`) and take the message last.
 
