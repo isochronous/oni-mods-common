@@ -33,7 +33,7 @@ applies_to:
 
 ## Language and Toolchain
 **Id:** blk-545208d8763a  
-**Tags:** mod-build, mod-entry-point
+**Tags:** mod-build
 
 - C# 9 on .NET Framework 4.8 (`common/oni-mod.props`: `LangVersion` 9.0, `TargetFramework` net48), built against the game's own assemblies through `common/oni-mod.targets`.
 - `SaveRunner.csproj` imports the props, sets `AssemblyName`, `RootNamespace` and `Version`, then imports the targets. A successful build deploys the mod to `Documents\Klei\OxygenNotIncluded\mods\local\SaveRunner`.
@@ -72,7 +72,6 @@ Every patch and hook starts with `if (!Runner.Active) return` (or the equivalent
 
 ## Comments
 **Id:** blk-9fd4a51454ee  
-**Tags:** command-line
 
 - Types and patch classes get a `///` summary that says what the code is for and, where a bug shaped it, what went wrong: the four-second menu settle in `Patches.cs`, the crash dialog in `Mod.cs`.
 - Command-line options are documented in the `///` summary of `Runner`, in the launcher's comment-based help and in `README.md`; change all three together.

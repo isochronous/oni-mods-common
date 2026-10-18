@@ -1,0 +1,72 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 4.3, 4.4, 4.5, 1.6, 1.7 and 2.3: no tags on the file map, exception-handling alone on error-handling with exit-codes and console-output on their sections, translation-template on What this is, the FAIL exits and the .gitattributes line in the overview, and index descriptions naming the node's topics",
+ "node": "tools/Translations/StringsTemplate",
+ "ops": [
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "remove": [
+    "translation-template"
+   ]
+  },
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "What this is",
+   "body": "StringsTemplate writes an Oxygen Not Included mod's translation template and checks its translations from the built mod DLL, without launching the game. It is a .NET 8 console app (C# 9) that loads the DLL against the game's own assemblies in the `Managed` folder, runs the `ModStrings` initializers and walks that class tree the way `Isochronous.Translations` (`common/src/Translations.cs`) registers it: `ModStrings.A.B.C` is the key `STRINGS.A.B.C`, with the field's English text. Run as `StringsTemplate <game Managed dir> <mod dll> <translations dir>`, it rewrites `<Mod>.pot` in the translations folder, reports missing, stale, empty, obsolete and refused entries in every `<locale>.po` there, checks that every PLib `[Option]` key written as a `STRINGS.` key exists, and exits 1 on a `FAIL` (no `ModStrings` class, no `LocString` fields, an unknown option key, a po that does not parse) or when a po has missing, stale or refused entries, and 2 for a usage error. The mod developer runs it through `tools/Translations/translations.py` after changing strings and before a release; that script builds this tool and runs it for every mod whose csproj sets `<UseTranslations>true</UseTranslations>`.",
+   "tags": [
+    "translation-template"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "overview.md",
+   "section": "Where things are",
+   "remove": [
+    "tool-build"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "remove": [
+    "exit-codes",
+    "console-output"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Exit codes",
+   "add": [
+    "exit-codes"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Report keywords",
+   "add": [
+    "console-output"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/error-handling.md",
+   "section": "Anti-Patterns to Avoid",
+   "add": [
+    "exit-codes",
+    "console-output"
+   ]
+  },
+  {
+   "mode": "tag",
+   "target": "standards/README.md",
+   "remove": [
+    "exit-codes",
+    "console-output"
+   ]
+  }
+ ]
+}

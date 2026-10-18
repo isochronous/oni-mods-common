@@ -1,5 +1,5 @@
 ---
-tags: exception-handling, exit-codes, console-output
+tags: exception-handling
 doc_id: doc-c4b68e21b1de
 description: "StringsTemplate's error handling: its principles, the exit code table (0, 1, 2), the report keywords and which count toward failure, the FormatException catch in CheckPo, mod loading, option-key checks and anti-patterns"
 applies_to:
@@ -21,7 +21,8 @@ StringsTemplate is a console checker run by a script, so its error handling is i
 4. **Do not swallow.** The one `catch` in the tool turns a malformed po into a reported failure; nothing is caught and ignored.
 
 ## Exit codes
-**Id:** blk-4943aa3d2f64
+**Id:** blk-4943aa3d2f64  
+**Tags:** exit-codes
 
 | Code | Meaning | Where |
 |------|---------|-------|
@@ -33,7 +34,7 @@ An exception that nothing catches (a missing DLL path, a game assembly that cann
 
 ## Report keywords
 **Id:** blk-4e29c6e83e7b  
-**Tags:** translations, refused-translation
+**Tags:** translations, refused-translation, console-output
 
 All messages go to standard output through `Console.WriteLine`, each starting with an upper-case keyword:
 
@@ -81,7 +82,7 @@ The message names the file and line number.
 
 ## Anti-Patterns to Avoid
 **Id:** blk-8314ecaf5051  
-**Tags:** refused-translation, translations
+**Tags:** refused-translation, translations, exit-codes, console-output
 
 - Printing a problem without counting it, or counting without printing: `EMPTY` and `OBSOLETE` are printed and not counted on purpose; keep that split explicit.
 - Passing a bad po silently. The game drops the whole file on a bad line, so the tool reports it.

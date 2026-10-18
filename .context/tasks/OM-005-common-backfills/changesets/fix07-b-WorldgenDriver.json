@@ -1,0 +1,23 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 1.7 and 2.3: the .gitattributes line in the overview file map, and index descriptions naming the node's own topics; a change-set of its own because each of these replaces a region (the frontmatter, the file map) that a tag write in fix07-WorldgenDriver.json also replaces",
+ "node": "tools/WorldgenDriver",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "Where things are",
+   "body": "Top-level folders and key files:\n\n- `Mod.cs`: the `UserMod2` entry point. Reads the command line and applies the Harmony patches only when a `--worldgen` argument is present.\n- `Patches.cs`: the seven Harmony patches: apply the coordinate and open the worldgen screen at the main menu, record progress, the watchdog on `App.LateUpdate`, and the failure, completion and loaded-colony hooks.\n- `Driver.cs`: the coordinate list, per-coordinate state and timing, and the result writer.\n- `Invoke-Worldgen.ps1`: the launcher.\n- `WorldgenDriver.csproj`: imports `oni-mod.props` and `oni-mod.targets` from the root of common; a build deploys the mod to the game's `mods/local/WorldgenDriver` folder. `mod.yaml` and `mod_info.yaml` beside it.\n- `README.md`: setup, running, the options, the output and how it works.\n- The launcher writes `runs/<Label>-<stamp>.jsonl` and a `Player.log` per session to `runs/`, which the first run creates and git ignores.\n- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`."
+  },
+  {
+   "mode": "describe",
+   "target": "standards/README.md",
+   "description": "WorldgenDriver standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and patch guards to result statuses, launcher recovery, command-line options and coordinates"
+  },
+  {
+   "mode": "describe",
+   "target": "domains/README.md",
+   "description": "WorldgenDriver domains index: links to the entities and glossary documents, each with the subjects it covers, from WorldgenDriverMod, Driver, the seven patches and the launcher to coordinates, game modes, sessions and the watchdog"
+  }
+ ]
+}

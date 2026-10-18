@@ -1,4 +1,5 @@
 ---
+tags: in-game-testing
 description: "What TestRunner is: the harness mod and Invoke-OniTests.ps1 launcher that run [OniTest] tests unattended in the real game, then a file map of Session.cs, TestBehaviour.cs, Patches.cs, Kit/, fixtures/, Watch-OniGame.ps1 and the other sources"
 ---
 
@@ -29,5 +30,6 @@ Top-level folders and key files:
 - `TestRunner.csproj`: imports `oni-mod.props` and `oni-mod.targets` from the root of common; `mod.yaml` and `mod_info.yaml` beside it.
 - `README.md`: running the launcher and its options, writing tests, the output and how it works.
 - `runs/`: one folder per run (`<label>-<stamp>`) with the results, `Player.log`, the fixture copy and the checked DLLs; ignored by git.
+- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.
 
 The `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`.

@@ -1,10 +1,10 @@
 node	docs tagged	sections own-tag	effective (all)	effective (with prose)
 .	0/1	0/2	0%	0%
 tools	0/1	0/2	0%	0%
-tools/ModCheck	7/8	29/43	95%	98%
-tools/SaveRunner	5/8	38/53	91%	94%
-tools/TestRunner	4/8	47/68	87%	89%
+tools/ModCheck	8/8	28/43	100%	100%
+tools/SaveRunner	5/8	36/53	89%	92%
+tools/TestRunner	8/8	46/68	100%	100%
 tools/Translations/StringsTemplate	8/8	32/60	100%	100%
-tools/WorkshopUpload	8/8	38/58	100%	100%
-tools/WorldgenDriver	6/8	40/61	93%	94%
-TOTAL	38/50	224/347	93% (323/347)	94% (297/315)
+tools/WorkshopUpload	8/8	36/58	100%	100%
+tools/WorldgenDriver	8/8	38/61	100%	100%
+TOTAL	45/50	216/347	97% (337/347)	97% (307/315)

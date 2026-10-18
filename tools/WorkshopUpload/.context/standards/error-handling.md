@@ -1,5 +1,5 @@
 ---
-tags: exception-handling, exit-codes
+tags: exception-handling
 doc_id: doc-42a5e5cee89e
 description: "WorkshopUpload's error handling: principles, the exit code table (0, 1, 2), stdout and stderr routing, Steam init and call-result checks, Await timeouts, the Check and UploadToCloud throws, the legacy-API rule and anti-patterns"
 applies_to:
@@ -13,7 +13,7 @@ WorkshopUpload is a console tool run by a person or by `tools/Release/release.py
 
 ## Principles
 **Id:** blk-57f9d76b2323  
-**Tags:** steamworks-api, console-output, command-line
+**Tags:** steamworks-api, console-output, command-line, exit-codes
 
 1. **Check every Steam result.** Each call-result is awaited and its `EResult` compared with `k_EResultOK`; anything else prints the result and returns 1.
 2. **Return 2 for a usage error.** No arguments prints the usage and returns 2 before `SteamAPI.Init`. Any other usage error (an unknown command, `update` or `publish` with too few arguments, a missing `--title`) returns 2 inside the `try`, after Steam is initialised, so the `finally` shuts Steam down.
@@ -22,7 +22,7 @@ WorkshopUpload is a console tool run by a person or by `tools/Release/release.py
 
 ## Exit codes
 **Id:** blk-f5665fc1a217  
-**Tags:** console-output, item-download, legacy-workshop-item
+**Tags:** console-output, item-download, legacy-workshop-item, exit-codes
 
 | Code | Meaning | Where |
 |------|---------|-------|
@@ -67,7 +67,6 @@ if (!SteamAPI.Init())
 
 ### Exceptions
 **Id:** blk-07c96f923cc0  
-**Tags:** command-line
 
 There is no `catch` in the tool. A thrown exception ends the process with the .NET unhandled-exception output and a non-zero code, after `finally` has shut Steam down. `info`, `description` and `download` read `args[1]` without a length check, so a missing id ends that way rather than with a usage line. TODO(owner): add argument checks to those three commands so they return 2 with a usage line.
 

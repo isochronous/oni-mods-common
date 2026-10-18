@@ -1,7 +1,7 @@
 ---
 tags: steam-workshop
 doc_id: doc-1aced73ea09f
-description: "Index of WorkshopUpload's domain documents: a link to the entities document and one to the glossary, each with a line listing the commands, files, rules or terms it covers"
+description: "WorkshopUpload domains index: links to the entities and glossary documents, each with the subjects it covers, from Program.Main and the seven commands to legacy items, the uploader and consumer apps, Steam Cloud staging and visibility"
 ---
 
 # Domains

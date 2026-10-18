@@ -1,0 +1,13 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review nits 1.2 and 1.3: the .gitignore and .gitattributes lines of the common overview leave out rules the files carry",
+ "node": ".",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "Where things are",
+   "body": "Top-level folders and key files:\n\n- `oni-mod.props`: imported at the top of a mod csproj. net48, C# 9, the game folder (`GameFolder`, `GameLibsFolder`, the `ONI_GAME_FOLDER` environment variable, then the known Steam folders) and `ModDeployFolder`.\n- `oni-mod.targets`: imported at the bottom of a mod csproj. The game assembly references, the opt-in `ReferenceUnityUI`, `ReferenceImageConversion`, `UsePLib` and `UseTranslations` extras, the `EnsureGameLibs` check and the `DeployToLocalMods` step.\n- `ilrepack-plib.targets`: the `MergePLib` target that merges PLib into the mod DLL when `UsePLib` is set, wired in by `oni-mod.targets` as `ILRepackTargetsFile`.\n- `src/Translations.cs`: `Isochronous.Translations`, which registers a mod's `ModStrings` tree and applies its `translations/<locale>.po` files; compiled into mods that set `UseTranslations`.\n- `tools/`: the shared tools (Kanim, MakePreview, ModCheck, ModTest, Release, SaveRunner, TestRunner, Translations, WorkshopUpload, WorldgenDriver) and `requirements.txt` for the Python ones. It is this node's one child node.\n- `README.md`: using common in a mod, the build knobs, what to do after a game update, translations, releases, Workshop publishing, previews, kanims, testing a mod in isolation and reproducing a report in a save.\n- `.gitignore`: build and editor output (`bin/`, `obj/`, `.vs/`, `*.user`, `__pycache__/`), the `runs/` folders of WorldgenDriver, SaveRunner and TestRunner, and the Graystroke font.\n- `.gitattributes`: LF line endings for the `.context/` files and for ICON's agent instructions, commands, skills, hooks and plugin files, union merges for the retrospective, ledger and friction logs, and binary image, document, archive and font types.\n\nThe `.context/` documents of this node: `decisions/`, `retrospectives/`, and `projects.md`, which lists the child node `tools`."
+  }
+ ]
+}

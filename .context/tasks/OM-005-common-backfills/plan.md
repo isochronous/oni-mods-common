@@ -13,6 +13,9 @@
 - Phase A covers 8 overviews (common, tools, six tool leaves) and the 12 domains/standards README indexes of the six leaves. Units draft change-sets; the manager plans and applies them with `--at common`.
 - META.md placeholders stay, as in OM-002.
 - Tags: one dictionary per node. common/ and tools/ hold one document each (overview), so they cannot meet the two-document floor and stay untagged, like mods/ in OM-002.
+- Whole-tool terms (review 3.1): one rule for all six nodes. The term naming a tool's whole subject sits at document level on overview, domains/README, entities and glossary: in-game-testing (TestRunner, root gloss), steam-workshop, translations, generated-worlds, game-update-compatibility. SaveRunner has no such term. This reverses unit 05's drop of in-game-testing as a place: the root gloss names TestRunner, and a graph-wide `--tag in-game-testing` should reach it.
+- mod-strings keeps its ONI-Mods gloss in StringsTemplate (review 3.2): changing it means changing 11 ONI-Mods mod dictionaries, and in StringsTemplate it and translations gather different records.
+- Left as they are: two-carrier terms (review 4.2: crash-dialog, worldgen-progress, player-log, mod-build in WorldgenDriver; each fits both records); token-family terms (3.3; reused root spellings stay identical); code-style on naming-conventions documents (4.11; the OM-002 precedent in all 17 mods).
 - The tools without a node (Kanim, MakePreview, ModTest, Release, translations.py) are named in the tools/ overview's folder list; giving them nodes is not part of this task.
 
 ## Key Files
@@ -23,7 +26,9 @@
 - [x] Phase B: 50 descriptions authored by units 03-04, merged into work/desc-answers.json, applied (status complete, 0 declined); 50 distinct; strict check 0 block; committed f9771e2
 - [x] Phase C: coverage surveys at all 8 nodes exit 0, nothing owed: 0 proposed, 18 no candidate (README indexes and glossaries: no resolved token; OM-004 documents already declare applies_to); nothing written (work/cov/)
 - [x] Phase D vocabulary: unit 05 proposed 98 terms over six nodes (11/16/26/12/16/17), 24 reusing ONI-Mods spellings; checked against the floor, the 85% bar, location and shape bars; kept TestRunner's 26 (76 records, each term meets the floor); code-style and exception-handling glossed "the tool's" in the three non-mod tools. Minted, committed
-- [ ] Phase D tagging: 10 chunks dispatched (passes opened as .partial)
+- [x] Phase D tagging: 10 chunks tagged, all validated, no ancestor duplicates; 47 gaps triaged to no new term (whole-tool = the node itself, a place; shapes: glossary, index, links, file layout; formatting/comments/imports/naming subsections sit in one document per node; single-record concepts); converged without a gap round. Written in 10-17 rounds per node, all complete. player-log carried by nothing in SaveRunner, removed (rmterm-SaveRunner). Strict check 0 block, 1 advise. Coverage 93% of all sections (323/347), 94% with prose (297/315), 38/50 documents (work/tags/coverage.txt). Committed f1cb73e
+- [x] Review unit 06: 0 block, 10 fix, 16 nit (units/06-review-report.md)
+- [ ] Fixes: unit 07 drafts fix07-* for every fix finding but 3.2, and nits 1.2-1.8, 2.2-2.4, 4.8-4.10
 - [ ] Review, fixes, retrospective, commit, push, pointer bump
 
 ## Open Questions / Blockers

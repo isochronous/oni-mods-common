@@ -1,4 +1,5 @@
 ---
+tags: in-game-testing
 doc_id: doc-78306051e4cf
 description: "TestRunner's entities: TestRunnerMod, Session members, TestCase and TestResult, TestBehaviour, each patch, Harness, FixtureArea, Worldgen, Reflect, the Kit/ types, Invoke-OniTests.ps1 options, Watch-OniGame.ps1, files, rules, code paths and session states"
 applies_to:
@@ -52,7 +53,7 @@ TestRunner runs a mod's in-game tests in the real game with nobody at the keyboa
 
 ### TestBehaviour
 **Id:** blk-49587b759cd2  
-**Tags:** watchdog, test-cleanup, logging  
+**Tags:** watchdog, test-cleanup, test-assertions  
 **Description**: a `MonoBehaviour` on the Game object (or on a driver object for a no-colony run). Waits for the HUD, throws the harness switches, finds and clears the fixture area, then runs each test as a hand-stepped coroutine with a real-time deadline, captures logged errors, runs cleanups and writes the result.  
 **Location**: `TestBehaviour.cs` (`LogCapture` in the same file)
 

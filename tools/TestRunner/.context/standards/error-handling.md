@@ -14,7 +14,7 @@ applies_to:
 
 ## Principles
 **Id:** blk-23a64c67c430  
-**Tags:** run-result, logging, mod-loadout, game-update-compatibility
+**Tags:** run-result, logging, mod-loadout, game-update-compatibility, save-files
 
 1. **A session always ends with a status.** `Session.Finish` writes `results.jsonl.status` whatever happened, so the launcher never waits on a game that has silently given up.
 2. **A test never takes the run down.** Each test's exception, timeout or logged error becomes that test's result and the next test runs.
@@ -56,7 +56,7 @@ A failed world generation is not a session failure: its tests are written off as
 
 ## Launcher Exit Codes
 **Id:** blk-8aed4db67098  
-**Tags:** run-result, game-launch, mod-build, player-log
+**Tags:** run-result, game-launch, mod-build
 
 `Invoke-OniTests.ps1` ends with:
 
@@ -92,7 +92,7 @@ Writing a result, the status file or the session state is wrapped in try/catch t
 
 ### Crash dialog
 **Id:** blk-ed7fda19418a  
-**Tags:** crash-dialog
+**Tags:** crash-dialog, mod-entry-point
 
 `OnLoad` sets `KCrashReporter.ignoreAll = true` and `terminateOnError = false`. The game's crash dialog quits the process when the scene change destroys it, which ended runs without a word; exceptions still reach the log.
 

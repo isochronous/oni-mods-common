@@ -1,5 +1,5 @@
 ---
-description: "What SaveRunner is: the dev mod and launcher that replay a player's save unattended with saving blocked, with and without a mod, then a file map of Mod.cs, Runner.cs, Patches.cs, RunBehaviour.cs, Invoke-SaveRun.ps1 and SaveRunner.csproj"
+description: "What SaveRunner is: the dev mod and launcher that load and run a player's save unattended with saving blocked, with and without a mod, then a file map of Mod.cs, Runner.cs, Patches.cs, RunBehaviour.cs, Invoke-SaveRun.ps1 and SaveRunner.csproj"
 ---
 
 # SaveRunner
@@ -12,7 +12,6 @@ SaveRunner is a development mod plus a launcher script that load a save in the r
 
 ## Where things are
 **Id:** blk-3dee2f4998e2  
-**Tags:** mod-build, mod-entry-point, harmony-patching, game-launch
 
 Files:
 

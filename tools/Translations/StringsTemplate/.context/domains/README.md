@@ -1,7 +1,7 @@
 ---
 tags: translations, translation-template, mod-strings
 doc_id: doc-4d04fbea7620
-description: "Index of StringsTemplate's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers"
+description: "StringsTemplate domains index: links to the entities and glossary documents, each with the subjects it covers, from Program.Main, Collect, WritePot and the po checks to ModStrings, keys, pot and po and the terms to avoid"
 ---
 
 # Domains

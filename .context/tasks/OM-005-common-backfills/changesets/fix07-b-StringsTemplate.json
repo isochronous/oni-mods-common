@@ -1,0 +1,23 @@
+{
+ "task": "OM-005",
+ "why": "unit 06 review 1.7 and 2.3: the .gitattributes line in the overview file map, and index descriptions naming the node's own topics; a change-set of its own because each of these replaces a region (the frontmatter, the file map) that a tag write in fix07-StringsTemplate.json also replaces",
+ "node": "tools/Translations/StringsTemplate",
+ "ops": [
+  {
+   "mode": "section",
+   "target": "overview.md",
+   "section": "Where things are",
+   "body": "Top-level folders and key files:\n\n- `Program.cs`: the whole tool: `Main`, the `ModStrings` walk (`Collect`), `WritePot`, `CheckOptionKeys`, and the po checks (`CheckPo`, `ReadPo` and the parameter and link comparisons).\n- `StringsTemplate.csproj`: the .NET 8 console project, C# 9, nullable off, no package references. A Release build lands at `bin/Release/net8.0/StringsTemplate.dll`, where `translations.py` runs it; `bin/` and `obj/` are ignored by git.\n- `tools/Translations/translations.py`, one folder up and outside this node: finds the game's `Managed` folder (`ONI_GAME_FOLDER` or the Steam library), builds this tool and runs it per mod.\n- The user-facing guide is the Translations section of `common/README.md`.\n- `.gitattributes`: line-ending and merge rules for this node's `.context/` files.\n\nThe `.context/` documents of this node: [domains](domains/README.md) (entities, glossary), [standards](standards/README.md) (code style, error handling, naming conventions), `decisions/` and `retrospectives/`."
+  },
+  {
+   "mode": "describe",
+   "target": "standards/README.md",
+   "description": "StringsTemplate standards index: links to the code-style, error-handling and naming-conventions documents, each with the list of topics it covers, from formatting and the single Program.cs to the report keywords, translation keys and command line"
+  },
+  {
+   "mode": "describe",
+   "target": "domains/README.md",
+   "description": "StringsTemplate domains index: links to the entities and glossary documents, each with the subjects it covers, from Program.Main, Collect, WritePot and the po checks to ModStrings, keys, pot and po and the terms to avoid"
+  }
+ ]
+}

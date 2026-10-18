@@ -1,6 +1,7 @@
 ---
+tags: game-update-compatibility
 doc_id: doc-c4dec2d4a3f7
-description: "ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it appears in ModCheck's output or code"
+description: "ModCheck glossary: the abbreviations ONI, JIT, CLR, ECall and DIM with the context of each, and definitions of VTable setup failure, missing member, managed directory and warning, each with where it is used"
 ---
 
 # ModCheck glossary
@@ -24,14 +25,14 @@ Terms a newcomer to ModCheck needs. Entity detail is in [entities](entities.md).
 
 ### VTable setup failure
 **Id:** blk-7d3bfdfef868  
-**Tags:** type-load-check, game-update-compatibility
+**Tags:** type-load-check
 
 **Definition**: the runtime error `VTable setup of type X failed` raised when a type's virtual or interface methods cannot be laid out, which a game update causes by changing an interface or base class that the mod's type implements or derives from. `GetInterfaceMap` is how the check provokes it.  
 **Used in**: ModCheck output (`FAIL type ...`).
 
 ### Missing member
 **Id:** blk-cdaff890db76  
-**Tags:** jit-check, game-update-compatibility  
+**Tags:** jit-check  
 **Definition**: a `MissingMethodException` or `MissingFieldException`, raised when compiled code names a method or field that the game no longer has. Compiling every method body with `PrepareMethod` brings these out without calling the code.  
 **Used in**: ModCheck output (`FAIL jit ...`).
 

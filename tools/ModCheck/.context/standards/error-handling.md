@@ -20,7 +20,7 @@ applies_to:
 
 ## Exit Codes
 **Id:** blk-615b71d8cae1  
-**Tags:** exit-codes, command-line
+**Tags:** exit-codes
 
 | Code | Meaning | Set in |
 |------|---------|--------|

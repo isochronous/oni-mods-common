@@ -20,7 +20,7 @@ Top-level folders and key files:
 - `src/Translations.cs`: `Isochronous.Translations`, which registers a mod's `ModStrings` tree and applies its `translations/<locale>.po` files; compiled into mods that set `UseTranslations`.
 - `tools/`: the shared tools (Kanim, MakePreview, ModCheck, ModTest, Release, SaveRunner, TestRunner, Translations, WorkshopUpload, WorldgenDriver) and `requirements.txt` for the Python ones. It is this node's one child node.
 - `README.md`: using common in a mod, the build knobs, what to do after a game update, translations, releases, Workshop publishing, previews, kanims, testing a mod in isolation and reproducing a report in a save.
-- `.gitignore`: build output (`bin/`, `obj/`), the `runs/` folders of WorldgenDriver, SaveRunner and TestRunner, and the Graystroke font.
-- `.gitattributes`: line-ending and merge rules for the `.context/` files.
+- `.gitignore`: build and editor output (`bin/`, `obj/`, `.vs/`, `*.user`, `__pycache__/`), the `runs/` folders of WorldgenDriver, SaveRunner and TestRunner, and the Graystroke font.
+- `.gitattributes`: LF line endings for the `.context/` files and for ICON's agent instructions, commands, skills, hooks and plugin files, union merges for the retrospective, ledger and friction logs, and binary image, document, archive and font types.
 
 The `.context/` documents of this node: `decisions/`, `retrospectives/`, and `projects.md`, which lists the child node `tools`.

@@ -1,4 +1,5 @@
 ---
+tags: generated-worlds
 doc_id: doc-22b3d4e48b4f
 description: "WorldgenDriver glossary: abbreviations (ONI, DLC, JSONL, cluster prefixes), terms to avoid with their replacements, and definitions of coordinate, applied coordinate, game modes, session, driver, launcher, watchdog, stage and percent, stories and mixing, Klei folder"
 ---
@@ -20,7 +21,7 @@ Terms a newcomer to WorldgenDriver needs. The tool's own things are in [entities
 
 ## Terms to Avoid
 **Id:** blk-42c5bf5087eb  
-**Tags:** world-coordinate, game-launch, generated-worlds
+**Tags:** world-coordinate, game-launch
 
 | Avoid | Use Instead | Reason |
 |-------|-------------|--------|

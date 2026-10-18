@@ -26,7 +26,7 @@ applies_to:
 
 ## Code Naming
 **Id:** blk-81d3dab6af5e  
-**Tags:** harmony-patching, reflection, test-discovery, test-assertions
+**Tags:** harmony-patching, reflection, test-discovery, test-assertions, mod-entry-point
 
 - Namespaces `Isochronous.TestRunner` (harness) and `Isochronous.TestKit` (kit).
 - Types PascalCase, locals and parameters camelCase, private fields camelCase with no prefix. The harness's state lives in public static fields of static classes named for the concern (`Session`, `Harness`, `FixtureArea`, `Worldgen`, `Reflect`).
@@ -50,7 +50,7 @@ applies_to:
 
 ## Results
 **Id:** blk-982a2140c0af  
-**Tags:** run-result, screenshots
+**Tags:** run-result
 
 `results.jsonl` fields are lower camel case: `id`, `assembly`, `class`, `method`, `name`, `layer`, `status`, `message`, `stack`, `durationSeconds`, `gameSeconds`, `logErrors`, `notes`. Statuses are lower case words: `pass`, `fail`, `error`, `timeout`, `skipped`. Screenshots are `artifacts/<Assembly>.<Class>.<Method>-<name>.png`.
 

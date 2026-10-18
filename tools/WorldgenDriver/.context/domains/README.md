@@ -1,6 +1,7 @@
 ---
+tags: generated-worlds
 doc_id: doc-651756a16319
-description: "Index of WorldgenDriver's domain documents: a link to the entities document and one to the glossary, each with a line listing the entities, files, rules or terms it covers"
+description: "WorldgenDriver domains index: links to the entities and glossary documents, each with the subjects it covers, from WorldgenDriverMod, Driver, the seven patches and the launcher to coordinates, game modes, sessions and the watchdog"
 ---
 
 # Domains

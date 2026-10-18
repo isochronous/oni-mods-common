@@ -1,4 +1,5 @@
 ---
+tags: in-game-testing
 doc_id: doc-4d8a297d3589
 description: "TestRunner glossary: the abbreviations ONI, SO, HUD and DLL, and definitions of harness, kit, fixture, fixture area, layer, run and live session, warden, wait, box, loadout, generated world and self-check"
 ---
@@ -9,7 +10,6 @@ Terms a newcomer to TestRunner needs. Entity detail is in [entities](entities.md
 
 ## Abbreviations and Acronyms
 **Id:** blk-f88dca2a1b27  
-**Tags:** game-mode
 
 | Abbreviation | Full Term | Context |
 |--------------|-----------|---------|

@@ -73,11 +73,6 @@ A record earns this term when it is about the game's crash dialog and keeping it
 
 A record earns this term when it is about which mods the game has enabled and putting the player's own mod list back afterwards.
 
-## player-log
-**Id:** blk-5d8154be30b6
-
-A record earns this term when it is about reading the game's Player.log to find out what went wrong in a run.
-
 ## save-files
 **Id:** blk-c678ff01cd47
 
@@ -97,11 +92,6 @@ A record earns this term when it is about keeping mods and their tests working a
 **Id:** blk-d3d668a0774b
 
 A record earns this term when it is about running the game's world generation from a coordinate to produce a fresh world.
-
-## screenshots
-**Id:** blk-ae0f965d4f31
-
-A record earns this term when it is about photographing the game from a test run to produce images to look at.
 
 ## test-pacing
 **Id:** blk-6601540e02e1
@@ -132,3 +122,8 @@ A record earns this term when it is about a game that stays up after a run and t
 **Id:** blk-02aeab615370
 
 A record earns this term when it is about how the harness finds the [OniTest] methods in the test assemblies and selects which of them run.
+
+## in-game-testing
+**Id:** blk-c8f03677af3d
+
+A record earns this term when it is about testing a mod inside the running game with TestRunner and its [OniTest] coroutines.

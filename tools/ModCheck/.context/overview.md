@@ -13,7 +13,6 @@ ModCheck is a .NET 8 console tool that loads one mod DLL against the real game a
 
 ## Where things are
 **Id:** blk-1d0e91d4e985  
-**Tags:** tool-build
 
 Files:
 

@@ -8,11 +8,6 @@ description: "The WorldgenDriver node tag dictionary: each term that records her
 
 A record earns this term when it is about the house style in which a mod's C# source code is written.
 
-## mod-build
-**Id:** blk-f8bb8f697572
-
-A record earns this term when it is about compiling the mods with dotnet against the game's assemblies and deploying them into the game's mods folder.
-
 ## harmony-patching
 **Id:** blk-41d966540561
 

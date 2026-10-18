@@ -41,7 +41,7 @@ ModCheck is one file, `Program.cs`, and one project file, `ModCheck.csproj`.
 
 ## Comments
 **Id:** blk-9bbfb0a9ecda  
-**Tags:** runtime-mismatch, console-output
+**Tags:** runtime-mismatch
 
 - A block comment at the top of `Program.cs` says what the tool verifies, why it needs .NET 8, and the usage line. Update it with any behaviour change.
 - Comments inside the code give the reason for a rule, which is the runtime difference between the check host (CoreCLR) and the game's Mono: why `BeginInvoke` and `EndInvoke` are skipped on delegates, why the `ECall` message is a warning. No comments that restate the code.

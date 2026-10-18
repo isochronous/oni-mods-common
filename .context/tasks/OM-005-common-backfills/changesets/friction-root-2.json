@@ -1,0 +1,14 @@
+{
+  "task": "OM-005",
+  "why": "record friction the OM-005 review met counting term carriers",
+  "node": ".",
+  "ops": [
+    {
+      "mode": "section",
+      "target": "domains/tooling-friction.md",
+      "section": "2026-10-17 tags and sweep: term counts include records matched through a shared word",
+      "create_section": true,
+      "body": "OM-005 (in common), review unit 06. `ks tags --store C:/dev/ONI-Mods/common --node tools/WorkshopUpload` printed 17 for `item-description`, which 3 records carry; the count includes records carrying any term that shares a word with it (`item-visibility`, `item-download`). `ks sweep --store C:/dev/ONI-Mods/common` flagged `screenshots` and `player-log` in TestRunner as single-carrier terms but not `mod-entry-point`, which one record carries, apparently because other terms share the word `mod`. tag-discipline reads the count to check the 3-record floor, so a shared word hides a term under it. Expected: the count of records that declare the term. Done instead: parsed the `**Tags:**` lines with a script and grep."
+    }
+  ]
+}
