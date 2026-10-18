@@ -16,9 +16,9 @@
 - Units draft one change-set per node and prove it with `write plan --at common`; the manager applies them one at a time.
 
 ## Progress
-- [ ] Units 01-02 implement: change-sets for three tools each ← IN PROGRESS
-- [ ] Apply sequentially; `ks check --store common`
-- [ ] Review unit
+- [x] Units 01-02: six change-sets, 30 documents
+- [x] Applied sequentially; `ks check --store common` 0 block, 13 advise
+- [ ] Review unit ← IN PROGRESS
 - [ ] Retrospective, commit, push, pointer bump in ONI-Mods
 
 ## Open Questions / Blockers
