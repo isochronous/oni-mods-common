@@ -67,6 +67,15 @@ namespace Isochronous.TestRunner
 
 		public static string ResultsPath => Path.Combine(Dir, "results.jsonl");
 
+		/// <summary>True for a path inside the run folder, the one place a run may write a save or an image.</summary>
+		public static bool InRunFolder(string path)
+		{
+			if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(Dir))
+				return false;
+			string dir = Path.GetFullPath(Dir).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+			return Path.GetFullPath(path).StartsWith(dir, StringComparison.OrdinalIgnoreCase);
+		}
+
 		public static void ReadCommandLine()
 		{
 			foreach (string arg in Environment.GetCommandLineArgs())

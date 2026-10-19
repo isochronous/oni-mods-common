@@ -44,6 +44,15 @@ it ends, so a test may write a mod's settings (`ModConfig.cs`). The backup is ke
 `%LOCALAPPDATA%\IsochronousOniTests\config-backup`; one left there by a game that died mid-run is put
 back by the warden when the game exits, or else by the next launcher before it starts.
 
+**Nothing is left in the player's folders.** A run writes no save outside its run folder (a
+generated colony's first save included), no colony summary and no timelapse image: the game writes
+both to `Documents\Klei\OxygenNotIncluded\RetiredColonies\<colony>` on its own, and a generated
+colony's random name can be one of the player's colonies, whose summary it would overwrite. The
+harness skips those writes rather than deleting them afterwards, so a game that dies mid-run leaves
+nothing behind either. The launcher lists `save_files`, `cloud_save_files` and `RetiredColonies`
+before and after the run, and the summary says "Player's folders: nothing new" or names each new
+entry (it never deletes one).
+
 **One run at a time.** Runs started side by side (several agents at once) queue on a machine-wide
 lock and say "waiting for it to finish"; `-BuildOnly` builds and checks without a game session and
 takes the lock too, as builds share the harness's output.
@@ -225,7 +234,8 @@ checked DLLs.
 `Patches.cs`: `MainMenu.OnSpawn` notes the time and `App.LateUpdate` calls `LoadScreen.DoLoad`
 four seconds later (SaveRunner's lesson: loading straight from OnSpawn tore the menu down under a
 popup still laying out); `Game.OnSpawn` adds `TestBehaviour` to the Game object; `SaveLoader.Save`
-is blocked outside the run folder; `KInputManager.OnApplicationFocus` and
+is blocked outside the run folder, and `RetireColonyUtility.SaveColonySummaryData` and
+`Timelapser.WriteToPng` (but for a save's preview in the run folder) are skipped; `KInputManager.OnApplicationFocus` and
 `InterfaceTool.OnApplicationFocus` re-force the focus flags. `TestBehaviour` waits for the HUD,
 throws the switches (`Harness.cs`), finds and clears the area (`FixtureArea.cs`), then steps each
 test's enumerator by hand: an exception inside a Unity-driven coroutine cannot be caught by its

@@ -9,7 +9,9 @@
   copies it into a run folder. Then rewrites mods.json so that only TestRunner, the mods under test
   and -With are enabled, launches the game through Steam with the --onitest arguments, waits for it
   to quit on its own, restores mods.json and prints the results. The harness blocks every save to
-  disk outside the run folder, so the fixture and the player's colonies are untouched. The shared
+  disk outside the run folder, and the colony summaries and timelapse images the game writes to
+  RetiredColonies, so the fixture and the player's colonies are untouched; the summary has a line
+  saying whether anything new appeared in save_files, cloud_save_files or RetiredColonies. The shared
   config folder of each mod in -Mods and -With (mods\config\<name>) is backed up by the game when
   the run starts and put back when it ends, so a test may write it (ModConfig.cs, ModConfig.ps1).
 
@@ -343,6 +345,20 @@ function Stop-LiveSession([string]$why) {
     if (Test-Path -LiteralPath $liveDir) { Remove-Item -LiteralPath $liveDir -Recurse -Force }
 }
 
+# The harness blocks saves, colony summaries and timelapse images outside the run folder
+# (Patches.cs). A listing of the player's save and colony folders before and after the run shows
+# anything new all the same, in the summary; nothing in them is ever deleted.
+$playerFolders = @('save_files', 'cloud_save_files', 'RetiredColonies') | ForEach-Object { Join-Path $klei $_ }
+function Get-PlayerEntries {
+    $set = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($root in $playerFolders) {
+        if (-not (Test-Path -LiteralPath $root)) { continue }
+        foreach ($e in Get-ChildItem -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue) { [void]$set.Add($e.FullName) }
+    }
+    return , $set
+}
+$playerBefore = Get-PlayerEntries
+
 $t0 = Get-Date
 $launcherStatus = 'not-started'
 $loadoutKey = Get-LoadoutKey
@@ -481,6 +497,14 @@ if ($status) {
     $lines += "Session $($status.status)$(if ($status.detail) { ': ' + $status.detail }); $($status.passed) passed, $($status.failed) failed, $($status.errors) errors, $($status.timeouts) timeouts, $($status.skipped) skipped of $($status.total); $($status.realSeconds) s real time$(if ($status.reloads) { "; fixture loaded again $($status.reloads) time(s)" })"
 } else {
     $lines += 'No status file: the session never finished (launch, load or crash). See Player.log in the run folder.'
+}
+$playerAfter = Get-PlayerEntries
+$playerNew = @($playerAfter | Where-Object { -not $playerBefore.Contains($_) } | Sort-Object)
+if ($playerNew.Count -eq 0) {
+    $lines += "Player's folders: nothing new in $(($playerFolders | ForEach-Object { Split-Path $_ -Leaf }) -join ', ')"
+} else {
+    $lines += "Player's folders: $($playerNew.Count) new entr$(if ($playerNew.Count -eq 1) { 'y' } else { 'ies' }) since the run started (not deleted; check whether this run wrote them):"
+    $lines += @($playerNew | ForEach-Object { "         $($_.Substring($klei.Length + 1))" })
 }
 $lines += "Game $launcherStatus after $([int]((Get-Date) - $t0).TotalSeconds) s; results in $runDir"
 $lines | ForEach-Object { Write-Host $_ }
