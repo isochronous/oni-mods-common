@@ -147,7 +147,7 @@ namespace Isochronous.TestRunner
 				// tests left behind (liquid in the area, heat, a changed setting) reaches the next mod's;
 				// and a test in a generated world needs that world, one on the fixture the fixture.
 				bool nextMod = Session.LastAssembly != null && test.AssemblyName != Session.LastAssembly;
-				bool otherWorld = test.Worldgen != (generated ? Worldgen.Current.Coordinate : null);
+				bool otherWorld = test.WorldKey != (generated ? Worldgen.Current.Key : null);
 				if (otherWorld || ((test.FreshSave || nextMod) && !Session.SaveIsFresh))
 				{
 					// The scene change destroys this driver; Game_OnSpawn_Patch attaches a new one,

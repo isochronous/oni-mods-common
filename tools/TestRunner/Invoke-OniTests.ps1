@@ -9,7 +9,9 @@
   copies it into a run folder. Then rewrites mods.json so that only TestRunner, the mods under test
   and -With are enabled, launches the game through Steam with the --onitest arguments, waits for it
   to quit on its own, restores mods.json and prints the results. The harness blocks every save to
-  disk outside the run folder, so the fixture and the player's colonies are untouched.
+  disk outside the run folder, so the fixture and the player's colonies are untouched. The shared
+  config folder of each mod in -Mods and -With (mods\config\<name>) is backed up by the game when
+  the run starts and put back when it ends, so a test may write it (ModConfig.cs, ModConfig.ps1).
 
 .PARAMETER Mods
   Mod project names (the folder under src/), e.g. DirectAutomationBridges.
@@ -73,7 +75,11 @@ $klei = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Klei\OxygenNotI
 $modsJson = Join-Path $klei 'mods\mods.json'
 $prefs = Join-Path $klei 'kplayerprefs.yaml'
 $playerLog = Join-Path $env:USERPROFILE 'AppData\LocalLow\Klei\Oxygen Not Included\Player.log'
+$configRoot = Join-Path $klei 'mods\config'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
+. (Join-Path $PSScriptRoot 'ModConfig.ps1')
+# PLib names a mod's shared config folder after its assembly, which is the local folder name here.
+$configNames = @($Mods + $With | Select-Object -Unique)
 
 function Get-GameFolder {
     if ($env:ONI_GAME_FOLDER -and (Test-Path $env:ONI_GAME_FOLDER)) { return $env:ONI_GAME_FOLDER }
@@ -140,6 +146,14 @@ if (-not (Get-LiveGame) -and (Test-Path -LiteralPath $liveDir)) {
     Write-Warning "Stale live-session folder $liveDir (its game is gone); removing it."
     Remove-Item -LiteralPath $liveDir -Recurse -Force
 }
+# A config backup with no game to put it back: a run that died before its end. It holds the
+# player's settings, so it goes back before anything reads or hashes the config.
+function Restore-LeftoverConfig {
+    foreach ($name in @(Restore-ModConfigBackup $configRoot)) {
+        Write-Warning "Leftover config backup of $name from an unfinished run; restored it."
+    }
+}
+if (-not (Get-LiveGame)) { Restore-LeftoverConfig }
 
 # --- what to run -------------------------------------------------------------------------------
 $running = Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue
@@ -277,13 +291,7 @@ function Set-Mods {
 function Get-LoadoutKey {
     $parts = @("dlc=$dlc", "trace=$([bool]$Trace)", "mods=$((@($Mods) | Sort-Object) -join ',')", "with=$((@($With) | Sort-Object) -join ',')", "steam=$((@($Steam) | Sort-Object) -join ',')")
     foreach ($m in (@('TestRunner') + $Mods + $With | Sort-Object -Unique)) {
-        $folder = Join-Path $klei "mods\local\$m"
-        $roots = @($folder)
-        $yaml = Join-Path $folder 'mod.yaml'
-        if (Test-Path -LiteralPath $yaml) {
-            $staticID = Get-YamlScalar (Get-Content -LiteralPath $yaml -Raw) 'staticID'
-            if ($staticID) { $roots += Join-Path $klei "mods\config\$staticID" }
-        }
+        $roots = @((Join-Path $klei "mods\local\$m"), (Join-Path $configRoot $m))
         foreach ($root in $roots) {
             if (-not (Test-Path -LiteralPath $root)) { continue }
             foreach ($f in Get-ChildItem -LiteralPath $root -Recurse -File | Sort-Object FullName) {
@@ -323,7 +331,7 @@ $launcherStatus = 'not-started'
 $loadoutKey = Get-LoadoutKey
 $submitted = $false
 $wardenStarted = $false
-$requestLines = @("dir=$runDir", "save=$fixtureCopy", "filter=$Filter", "timeout=$TimeoutSec", "test-timeout=$TestTimeoutSec", "trace=$(if ($Trace) { '1' } else { '0' })")
+$requestLines = @("dir=$runDir", "save=$fixtureCopy", "filter=$Filter", "timeout=$TimeoutSec", "test-timeout=$TestTimeoutSec", "trace=$(if ($Trace) { '1' } else { '0' })", "config=$($configNames -join ';')")
 
 # --- a live game with this loadout takes the run -----------------------------------------------
 if (Get-LiveGame) {
@@ -375,10 +383,15 @@ if ($submitted) {
     [IO.File]::WriteAllText($backup, ($backupText -replace '("mod_load_in_progress"\s*:\s*)true', '${1}false'), $utf8)
     # The real loadout, kept with the run, so a list lost later can be told apart from one this run lost.
     Copy-Item $backup (Join-Path $runDir 'mods.json.real') -Force
+    # A live game ended above may have left a config backup (its warden normally puts it back); the
+    # key the new game is given must hash the player's config.
+    Restore-LeftoverConfig
+    $loadoutKey = Get-LoadoutKey
     try {
         Set-Mods
         $gameArgs = @('-applaunch', "$AppId", "--onitest-dir=$runDir", "--onitest-save=$fixtureCopy", "--onitest-timeout=$TimeoutSec", "--onitest-test-timeout=$TestTimeoutSec")
         if ($Filter) { $gameArgs += "--onitest-filter=$Filter" }
+        if ($configNames) { $gameArgs += "--onitest-config=$($configNames -join ';')" }
         if ($KeepGame) { $gameArgs += '--onitest-keep=1' }
         if ($Trace) { $gameArgs += '--onitest-trace=1' }
         if (-not $KeepGame) {
@@ -397,7 +410,7 @@ if ($submitted) {
             [IO.File]::WriteAllText($livePidFile, "$($proc.Id)", $utf8)
             # From here the warden owns the restore: the game outlives this script.
             Start-Process -FilePath 'pwsh' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
-                '-GamePid', "$($proc.Id)", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir) | Out-Null
+                '-GamePid', "$($proc.Id)", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot) | Out-Null
             $wardenStarted = $true
             $launcherStatus = 'live'
             while (-not (Test-Path -LiteralPath $statusFile) -and -not $proc.HasExited -and ((Get-Date) - $t0).TotalSeconds -lt ($TimeoutSec + 180)) { Start-Sleep -Milliseconds 250; $proc.Refresh() }
@@ -420,6 +433,8 @@ if ($submitted) {
                 Write-Host 'Restored mods.json.'
             }
             if (Test-Path -LiteralPath $liveDir) { Remove-Item -LiteralPath $liveDir -Recurse -Force -ErrorAction SilentlyContinue }
+            # The game puts the config back at the end of its run; one that died did not.
+            if (-not (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue)) { Restore-LeftoverConfig }
         } else {
             Write-Host "The game stays up $([int]15) s for another run with this loadout; its warden puts mods.json back when it exits."
         }

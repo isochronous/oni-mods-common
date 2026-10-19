@@ -8,6 +8,9 @@ each: one game start per session, the driver mod returning to the main menu betw
 A hang or crash ends a session; the launcher starts another for what is left. Before each session
 the script sets the mode in kplayerprefs.yaml and rewrites mods.json so that only the WorldgenDriver
 mod plus the mods named in -Mods are enabled. Both files are backed up first and restored at the end.
+With -ModConfig 'Name=path\to\config.json' (repeatable) the given file is written as the mod's shared
+config (mods\config\<Name>\config.json, Name the mod's assembly name) before each session; that
+folder is backed up first and put back at the end, so a sweep never leaves a player's settings changed.
 Results go to -OutDir\<Label>-<stamp>.jsonl (one JSON object per coordinate) with a Player.log copy
 per session, and a summary is printed.
 
@@ -15,12 +18,15 @@ per session, and a summary is printed.
 .\Invoke-Worldgen.ps1 CERS-A-100-0-0-0 -Mods NaturalBackwalls
 .EXAMPLE
 .\Invoke-Worldgen.ps1 -ListFile seeds.txt -Mods NaturalBackwalls013 -Label nb013
+.EXAMPLE
+.\Invoke-Worldgen.ps1 SNDST-C-100-0-0-0 -Mods SmoothBorders -ModConfig 'SmoothBorders=C:\temp\max.json' -Label sb-max
 #>
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)][string[]]$Coordinate = @(),
     [string]$ListFile,
     [string[]]$Mods = @(),            # local mod folder names and/or Workshop item ids to enable besides the driver
+    [string[]]$ModConfig = @(),       # 'Name=path\to\config.json': written as mods\config\<Name>\config.json for the run
     [int]$TimeoutSec = 300,           # no progress for this long = hang (inside the game)
     [int]$PerSession = 25,            # coordinates per game start
     [switch]$NoGraphics,
@@ -40,7 +46,20 @@ $prefs = Join-Path $klei 'kplayerprefs.yaml'
 $playerLog = Join-Path $env:USERPROFILE 'AppData\LocalLow\Klei\Oxygen Not Included\Player.log'
 $resultFile = Join-Path $klei 'worldgen-driver\results.jsonl'
 $listPath = Join-Path $klei 'worldgen-driver\list.txt'
+$configRoot = Join-Path $klei 'mods\config'
+$configBackup = Join-Path $klei 'worldgen-driver\config-backup'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
+
+# -ModConfig entries: the mod's config folder name and the file to write there, checked before anything is touched.
+$configs = @()
+foreach ($entry in @($ModConfig | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+    if ($entry -notmatch '^([^=\\/]+)=(.+)$') { throw "-ModConfig '$entry' is not Name=path\to\config.json" }
+    $name = $Matches[1].Trim(); $file = $Matches[2].Trim()
+    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "-ModConfig ${name}: file not found: $file" }
+    $file = (Resolve-Path -LiteralPath $file).Path
+    try { [void]([IO.File]::ReadAllText($file, $utf8) | ConvertFrom-Json) } catch { throw "-ModConfig ${name}: $file is not JSON: $_" }
+    $configs += [pscustomobject]@{ Name = $name; File = $file }
+}
 
 $all = @($Coordinate)
 if ($ListFile) { $all += Get-Content $ListFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') } }
@@ -96,6 +115,44 @@ function Set-Mods([bool]$spacedOut, [string[]]$wanted) {
     [IO.File]::WriteAllText($modsJson, ($json | ConvertTo-Json -Depth 10), $utf8)
 }
 
+# A mod's config folder as it was goes to config-backup\<Name>\files, or config-backup\<Name>\absent
+# when there was none; written to <Name>.tmp and renamed once whole. Restore-Configs puts every
+# backup there back and removes it.
+function Backup-Configs {
+    foreach ($c in $configs) {
+        $kept = Join-Path $configBackup $c.Name
+        $live = Join-Path $configRoot $c.Name
+        $tmp = "$kept.tmp"
+        if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force }
+        New-Item -ItemType Directory -Force $tmp | Out-Null
+        if (Test-Path -LiteralPath $live) { Copy-Item -LiteralPath $live -Destination (Join-Path $tmp 'files') -Recurse -Force }
+        else { New-Item -ItemType File (Join-Path $tmp 'absent') | Out-Null }
+        Move-Item -LiteralPath $tmp -Destination $kept
+    }
+}
+
+function Restore-Configs {
+    if (-not (Test-Path -LiteralPath $configBackup)) { return }
+    foreach ($kept in @(Get-ChildItem -LiteralPath $configBackup -Directory)) {
+        if ($kept.Name.EndsWith('.tmp')) { Remove-Item -LiteralPath $kept.FullName -Recurse -Force; continue }
+        $live = Join-Path $configRoot $kept.Name
+        if (Test-Path -LiteralPath $live) { Remove-Item -LiteralPath $live -Recurse -Force }
+        $files = Join-Path $kept.FullName 'files'
+        if (Test-Path -LiteralPath $files) { Copy-Item -LiteralPath $files -Destination $live -Recurse -Force }
+        Remove-Item -LiteralPath $kept.FullName -Recurse -Force
+        Write-Host "Restored the config of $($kept.Name)."
+    }
+}
+
+# The -ModConfig files in place, before each session.
+function Set-Configs {
+    foreach ($c in $configs) {
+        $live = Join-Path $configRoot $c.Name
+        New-Item -ItemType Directory -Force $live | Out-Null
+        Copy-Item -LiteralPath $c.File -Destination (Join-Path $live 'config.json') -Force
+    }
+}
+
 function Read-Results {
     # The game appends lines while we poll: only complete lines count, and a bad one is skipped.
     if (-not (Test-Path $resultFile)) { return }
@@ -116,9 +173,14 @@ foreach ($pair in @(@($modsJson, "$modsJson.worldgen-backup"), @($prefs, "$prefs
         Copy-Item $pair[0] $pair[1]
     }
 }
+if (Test-Path -LiteralPath $configBackup) {
+    Write-Warning "Leftover config backup $configBackup from an unfinished run; restoring it before starting."
+    Restore-Configs
+}
 $results = @()
 $session = 0
 try {
+    Backup-Configs
     $groups = @{ $false = [System.Collections.Generic.List[string]]::new(); $true = [System.Collections.Generic.List[string]]::new() }
     foreach ($c in $all) {
         $so = switch ($Mode) { 'base' { $false } 'spacedout' { $true } default { [bool]($c -match '^(.+)-C-\d+-') } }
@@ -134,6 +196,7 @@ try {
             $chunk = @($pending | Select-Object -First $PerSession)
             Set-Mode $so
             Set-Mods $so $wanted
+            Set-Configs
             [IO.File]::WriteAllLines($listPath, $chunk, $utf8)
             Remove-Item $resultFile -ErrorAction SilentlyContinue
             $gameArgs = @('-applaunch', "$AppId")
@@ -142,7 +205,7 @@ try {
             if ($Load) { $gameArgs += '--worldgen-load=1' }
             if ($Stories) { $gameArgs += "--worldgen-stories=$Stories" }
             if ($Mixing) { $gameArgs += "--worldgen-mixing=$Mixing" }
-            Write-Host ("== session {0}: {1} coordinate(s), {2}, mods: {3}" -f $session, $chunk.Count, $(if ($so) { 'Spaced Out' } else { 'base game' }), ($wanted -join ', '))
+            Write-Host ("== session {0}: {1} coordinate(s), {2}, mods: {3}{4}" -f $session, $chunk.Count, $(if ($so) { 'Spaced Out' } else { 'base game' }), ($wanted -join ', '), $(if ($configs) { '; config: ' + (($configs | ForEach-Object { "$($_.Name)=$($_.File)" }) -join ', ') }))
             $t0 = Get-Date
             Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
             $proc = $null
@@ -180,6 +243,7 @@ finally {
     Copy-Item "$prefs.worldgen-backup" $prefs -Force
     Remove-Item "$modsJson.worldgen-backup", "$prefs.worldgen-backup" -Force
     Write-Host 'Restored mods.json and kplayerprefs.yaml.'
+    Restore-Configs
 }
 Write-Host "Results: $master"
 $results | Group-Object status | ForEach-Object { Write-Host ("  {0,-12} {1}" -f $_.Name, $_.Count) }

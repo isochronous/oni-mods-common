@@ -22,6 +22,9 @@ namespace Isochronous.TestRunner
 	///   --onitest-keep=1               leave the colony open when the tests are done instead of quitting
 	///   --onitest-server=DIR           stay up after the run and take further runs from DIR/queue
 	///                                  (see Server below); quit after IdleSeconds with none
+	///   --onitest-config=NAME[;NAME]   mods whose shared config folder (mods/config/NAME, NAME the
+	///                                  assembly name) is backed up when the run starts and put back
+	///                                  when it ends (ModConfig.cs), so a test may write it
 	/// </summary>
 	public static class Session
 	{
@@ -87,6 +90,7 @@ namespace Isochronous.TestRunner
 					case "--onitest-keep": Keep = value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase); break;
 					case "--onitest-trace": Trace = value == "1"; break;
 					case "--onitest-server": ServerDir = value; break;
+					case "--onitest-config": ModConfig.SetNames(value); break;
 				}
 			}
 			Active = !string.IsNullOrEmpty(Dir) && !string.IsNullOrEmpty(SavePath);
@@ -194,6 +198,11 @@ namespace Isochronous.TestRunner
 			if (Finished)
 				return;
 			Finished = true;
+			// Before the status line: a launcher that sees it may compute the next loadout at once.
+			RunUndo();
+			string restoreProblem = ModConfig.Restore();
+			if (restoreProblem != null)
+				detail = (string.IsNullOrEmpty(detail) ? "" : detail + "; ") + restoreProblem;
 			string line = "{\"status\":" + Json.Str(status) + ",\"detail\":" + Json.Str(detail ?? "")
 				+ ",\"save\":" + Json.Str(SavePath)
 				+ ",\"total\":" + Tests.Count + ",\"passed\":" + Passed + ",\"failed\":" + Failed + ",\"errors\":" + Errors
@@ -322,6 +331,8 @@ namespace Isochronous.TestRunner
 			if (fields.TryGetValue("test-timeout", out string testTimeout) && double.TryParse(testTimeout, NumberStyles.Float, CultureInfo.InvariantCulture, out double tt) && tt > 0)
 				TestTimeoutSeconds = tt;
 			Trace = fields.TryGetValue("trace", out string trace) && trace == "1";
+			fields.TryGetValue("config", out string config);
+			ModConfig.SetNames(config);
 			Tests.Clear();
 			NextIndex = 0;
 			Passed = Failed = Errors = Timeouts = Skipped = 0;
@@ -346,6 +357,7 @@ namespace Isochronous.TestRunner
 			Started = true;
 			try
 			{
+				ModConfig.Snapshot();
 				Discover();
 			}
 			catch (Exception e)
@@ -388,6 +400,8 @@ namespace Isochronous.TestRunner
 			TestCase next = Tests[NextIndex];
 			if (next.Worldgen != null)
 			{
+				// Worldgen.Begin runs the previous world's undo and this test's Prepare at the main menu.
+				Worldgen.PendingTest = next;
 				Worldgen.Pending = next.Worldgen;
 				Debug.Log(Tag + next.Id + " needs a world generated from " + next.Worldgen);
 				// At the main menu the per-frame watchdog opens the worldgen screen once the menu has settled.
@@ -395,6 +409,7 @@ namespace Isochronous.TestRunner
 					Worldgen.LeaveColony();
 				return;
 			}
+			RunUndo();
 			if (!File.Exists(SavePath))
 			{
 				Finish("no-save", "file not found: " + SavePath);
@@ -404,15 +419,51 @@ namespace Isochronous.TestRunner
 			LoadScreen.DoLoad(SavePath);
 		}
 
-		/// <summary>Records the run of tests at NextIndex that share its coordinate as not run, with the reason, and moves past them.</summary>
+		/// <summary>Records the run of tests at NextIndex that share its world (coordinate and Prepare) as not run, with the reason, and moves past them.</summary>
 		public static void WriteOff(string status, string message)
 		{
-			string coordinate = Tests[NextIndex].Worldgen;
-			while (NextIndex < Tests.Count && Tests[NextIndex].Worldgen == coordinate)
+			string key = Tests[NextIndex].WorldKey;
+			while (NextIndex < Tests.Count && Tests[NextIndex].WorldKey == key)
 			{
 				var result = new TestResult(Tests[NextIndex]) { Status = status, Message = message };
 				Write(result);
 				NextIndex++;
+			}
+		}
+
+		/// <summary>What the Prepare of the world generated last returned, and that world's key, until it is undone.</summary>
+		private static System.Action undo;
+		private static string undoKey;
+
+		/// <summary>Keeps the undo a test's Prepare returned (Worldgen.Begin), to run before the next world or the fixture, or at the end.</summary>
+		public static void SetUndo(string key, System.Action action)
+		{
+			RunUndo();
+			undo = action;
+			undoKey = key;
+		}
+
+		/// <summary>
+		/// Undoes the last Prepare, if it left an undo: before another world is generated, before the
+		/// fixture is loaded, and when the run ends. An undo that throws is logged; the tests it
+		/// prepared for have already run.
+		/// </summary>
+		public static void RunUndo()
+		{
+			if (undo == null)
+				return;
+			System.Action action = undo;
+			string key = undoKey;
+			undo = null;
+			undoKey = null;
+			try
+			{
+				action();
+				Debug.Log(Tag + "undid the Prepare of " + key);
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning(Tag + "the undo of the Prepare of " + key + " threw: " + e);
 			}
 		}
 
@@ -456,10 +507,28 @@ namespace Isochronous.TestRunner
 		public readonly bool NoColony;
 		/// <summary>The coordinate of the generated world the test runs in, or null for the fixture.</summary>
 		public readonly string Worldgen;
+		/// <summary>The [OniTest(Prepare = ...)] method run before the world is generated, or null.</summary>
+		public readonly MethodInfo Prepare;
+		/// <summary>
+		/// What makes two generated worlds the same: the coordinate and the Prepare method's id; null
+		/// for the fixture. Consecutive tests with one key share a world.
+		/// </summary>
+		public readonly string WorldKey;
 
 		public TestCase(string assemblyName, Type type, MethodInfo method, OniTestAttribute attr)
 		{
 			Worldgen = string.IsNullOrWhiteSpace(attr.Worldgen) ? null : attr.Worldgen.Trim();
+			if (!string.IsNullOrWhiteSpace(attr.Prepare))
+			{
+				string where = type.FullName + "." + method.Name;
+				if (Worldgen == null)
+					throw new InvalidOperationException(where + " has a Prepare but no Worldgen: Prepare runs before a world is generated");
+				Prepare = type.GetMethod(attr.Prepare.Trim(), BindingFlags.Public | BindingFlags.Static, null, Type.EmptyTypes, null);
+				if (Prepare == null || (Prepare.ReturnType != typeof(void) && Prepare.ReturnType != typeof(System.Action)))
+					throw new InvalidOperationException(where + ": Prepare = \"" + attr.Prepare + "\" names no 'public static void " + attr.Prepare
+						+ "()' or 'public static System.Action " + attr.Prepare + "()' in " + type.FullName);
+			}
+			WorldKey = Worldgen == null ? null : Worldgen + "|" + (Prepare != null ? assemblyName + "/" + type.FullName + "." + Prepare.Name : "");
 			AssemblyName = assemblyName;
 			Type = type;
 			Method = method;
@@ -479,6 +548,20 @@ namespace Isochronous.TestRunner
 		public System.Collections.IEnumerator Invoke(TestContext t)
 		{
 			return (System.Collections.IEnumerator)Method.Invoke(null, new object[] { t });
+		}
+
+		/// <summary>Runs the Prepare method; returns its undo (null for a void one). Throws what the method threw.</summary>
+		public System.Action RunPrepare()
+		{
+			try
+			{
+				return Prepare.Invoke(null, null) as System.Action;
+			}
+			catch (TargetInvocationException e) when (e.InnerException != null)
+			{
+				System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+				throw;
+			}
 		}
 	}
 

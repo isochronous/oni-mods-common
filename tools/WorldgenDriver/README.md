@@ -30,6 +30,8 @@ Output: `runs/<Label>-<stamp>.jsonl` with one JSON object per coordinate, a `Pla
 
 Options: `-TimeoutSec` (default 300) is how long the driver waits without any progress report before calling it a hang; `-Load` also loads each generated colony before moving on; `-NoGraphics` adds Unity's `-batchmode -nographics` (untested with this game).
 
+`-ModConfig 'Name=path\to\config.json'` (repeatable, or comma-separated) runs the sweep with a mod's settings: the file is checked as JSON, then written as `mods\config\<Name>\config.json` before each session (`Name` is the mod's assembly name, the folder PLib reads its shared config from). That folder is backed up to `Documents\Klei\OxygenNotIncluded\worldgen-driver\config-backup\<Name>` before the first session and put back at the end, even on failure (deleted again if the mod had none); a backup left by a killed run is put back when the script next starts. Example: `-Mods SmoothBorders -ModConfig 'SmoothBorders=C:\temp\max.json'`.
+
 To test an older build of a mod against the current one, build it from a scratch copy of the repo into a second local folder (`-p:ModDeployFolder=<mods>/local/NaturalBackwalls013`) and name that folder in `-Mods`.
 
 ## How it works

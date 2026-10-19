@@ -37,6 +37,13 @@ and launches a new one. With no run for 15 s the game quits by itself, and a det
 and removes the session folder, `%LOCALAPPDATA%\IsochronousOniTests\live` (the warden's log is next
 to it). `-KeepGame` launches a game of its own and keeps the old behaviour.
 
+**Mod settings are put back.** The shared config folder of each mod in `-Mods` and `-With`
+(`Documents\Klei\OxygenNotIncluded\mods\config\<name>`, PLib's folder named after the mod's assembly,
+which is its local folder name here) is backed up by the game when a run starts and put back when
+it ends, so a test may write a mod's settings (`ModConfig.cs`). The backup is kept in
+`%LOCALAPPDATA%\IsochronousOniTests\config-backup`; one left there by a game that died mid-run is put
+back by the warden when the game exits, or else by the next launcher before it starts.
+
 **One run at a time.** Runs started side by side (several agents at once) queue on a machine-wide
 lock and say "waiting for it to finish"; `-BuildOnly` builds and checks without a game session and
 takes the lock too, as builds share the harness's output.
@@ -124,6 +131,15 @@ public static class WireDrags
   applied coordinate, the cluster, worldgen errors, seconds). A coordinate of the other mode skips
   the test; a failed generation fails its tests and the run goes on; a worldgen thread silent for
   300 s ends the session. Generation is real game time: raise `-TimeoutSec` for runs with several worlds.
+- `[OniTest(Worldgen = "...", Prepare = nameof(Setup))]`: `Setup` is a `public static` method of the
+  test's class, taking nothing and returning `void` or `System.Action`. It runs once, at the main
+  menu, just before the coordinate is applied: write the mod's config for this world, or unpatch
+  something for a vanilla baseline. The action it returns undoes that; the harness calls it before
+  the next world is generated or the fixture loaded, and when the run ends. Tests with different
+  `Prepare` methods never share a world, the coordinate the same or not. A `Prepare` that throws
+  fails its world's tests ("Prepare threw: ...") and the run goes on; a missing or ill-shaped method,
+  or a `Prepare` without `Worldgen`, stops the run before any test with a message naming the test.
+  A config a `Prepare` writes is put back at the end of the run anyway (see "Mod settings are put back").
 - `t.LookAt(cell, size)` points the camera at a cell (orthographic size: 14 shows the fixture area,
   8 a close-up), for a `t.Screenshot` of something particular. In a generated world, lift the fog of
   war first (`Grid.Reveal`) or the picture is black. Natural Backwalls' `Generated.Overview`

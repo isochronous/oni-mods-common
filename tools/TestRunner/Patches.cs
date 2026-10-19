@@ -117,7 +117,8 @@ namespace Isochronous.TestRunner
 					string why = Worldgen.Failure;
 					Worldgen.Failure = null;
 					Worldgen.Pending = null;
-					Session.WriteOff("fail", "the world could not be generated: " + why);
+					Worldgen.PendingTest = null;
+					Session.WriteOff("fail", why);
 					Session.Continue();
 					return;
 				}

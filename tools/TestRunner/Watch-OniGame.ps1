@@ -1,8 +1,9 @@
 <#
 .SYNOPSIS
   The warden of a live test session: started detached by Invoke-OniTests.ps1 next to the game it
-  launched, it waits for that game to exit, puts the player's mods.json back from the backup and
-  removes the live-session folder, so a later launcher knows the session is over.
+  launched, it waits for that game to exit, puts the player's mods.json back from the backup, puts
+  back any mod config folder the game backed up and did not restore (a game that died mid-run;
+  ModConfig.ps1) and removes the live-session folder, so a later launcher knows the session is over.
 
   The game ends a live session itself (no run for 15 s, or a quit request). If it stops answering,
   the warden ends it: idle in its state file for over a minute, or busy past its own deadline plus
@@ -12,9 +13,11 @@ param(
     [Parameter(Mandatory)][int]$GamePid,
     [Parameter(Mandatory)][string]$ModsJson,
     [Parameter(Mandatory)][string]$Backup,
-    [Parameter(Mandatory)][string]$LiveDir
+    [Parameter(Mandatory)][string]$LiveDir,
+    [string]$ConfigRoot = ''
 )
 $ErrorActionPreference = 'Continue'
+. (Join-Path $PSScriptRoot 'ModConfig.ps1')
 $log = Join-Path (Split-Path $LiveDir -Parent) 'warden.log'
 function Write-Log([string]$line) { Add-Content -LiteralPath $log -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$GamePid] $line" }
 
@@ -48,6 +51,13 @@ if (Test-Path -LiteralPath $Backup) {
     }
 } else {
     Write-Log "no backup at $Backup to restore"
+}
+if ($ConfigRoot) {
+    try {
+        foreach ($name in @(Restore-ModConfigBackup $ConfigRoot)) { Write-Log "restored the config of $name (the game did not)" }
+    } catch {
+        Write-Log "cannot restore the config backups in $ModConfigBackupRoot`: $_"
+    }
 }
 Remove-Item -LiteralPath $LiveDir -Recurse -Force -ErrorAction SilentlyContinue
 Write-Log 'live session closed'

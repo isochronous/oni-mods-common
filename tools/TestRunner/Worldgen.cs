@@ -21,9 +21,11 @@ namespace Isochronous.TestRunner
 
 		/// <summary>The coordinate to generate next, set when a test needs it; generated once the main menu is up.</summary>
 		public static string Pending;
+		/// <summary>The test whose world Pending is: its Prepare runs, and its world key is kept, when generation begins.</summary>
+		public static TestCase PendingTest;
 		/// <summary>True from the worldgen screen's opening until the colony spawns or generation fails.</summary>
 		public static bool Generating;
-		/// <summary>Why the last generation failed, until its tests are written off at the main menu.</summary>
+		/// <summary>Why the last generation (or its Prepare) failed, as its tests' message, until they are written off at the main menu.</summary>
 		public static string Failure;
 		/// <summary>The colony now loaded, when it was generated rather than loaded from the fixture.</summary>
 		public static GeneratedWorld Current;
@@ -47,11 +49,31 @@ namespace Isochronous.TestRunner
 			return coordinate + " is a " + (wanted ? "Spaced Out" : "base game") + " cluster and the game is in " + (wanted ? "base game" : "Spaced Out") + " mode";
 		}
 
-		/// <summary>Called at the settled main menu: applies the coordinate and opens the worldgen screen.</summary>
+		/// <summary>
+		/// Called at the settled main menu: undoes the last world's Prepare, runs this world's, applies
+		/// the coordinate and opens the worldgen screen. A Prepare that throws fails the world's tests
+		/// as a failed generation does, without leaving the menu.
+		/// </summary>
 		public static void Begin(MainMenu menu)
 		{
 			string coordinate = Pending;
-			underway = new GeneratedWorld(coordinate);
+			TestCase test = PendingTest;
+			Session.RunUndo();
+			if (test?.Prepare != null)
+			{
+				try
+				{
+					Debug.Log(Session.Tag + "preparing " + test.WorldKey);
+					Session.SetUndo(test.WorldKey, test.RunPrepare());
+				}
+				catch (Exception e)
+				{
+					Debug.LogWarning(Session.Tag + "the Prepare of " + test.WorldKey + " threw: " + e);
+					Failure = "Prepare threw: " + e.GetType().Name + ": " + e.Message;
+					return;
+				}
+			}
+			underway = new GeneratedWorld(coordinate, test?.WorldKey);
 			Generating = true;
 			lastProgress = Time.realtimeSinceStartup;
 			try
@@ -101,6 +123,7 @@ namespace Isochronous.TestRunner
 				Current = null;
 			Generating = false;
 			Pending = null;
+			PendingTest = null;
 			underway = null;
 		}
 
@@ -108,7 +131,7 @@ namespace Isochronous.TestRunner
 		public static void Fail(string why)
 		{
 			Debug.LogWarning(Session.Tag + "generation of " + Pending + " failed: " + why);
-			Failure = why + (underway != null && underway.Errors.Count > 0 ? " (" + string.Join(" | ", underway.Errors) + ")" : "");
+			Failure = "the world could not be generated: " + why + (underway != null && underway.Errors.Count > 0 ? " (" + string.Join(" | ", underway.Errors) + ")" : "");
 			Generating = false;
 			underway = null;
 			App.LoadScene("frontend");
@@ -216,6 +239,8 @@ namespace Isochronous.TestRunner
 	{
 		/// <summary>The coordinate the test asked for, and the one the game reports after applying it.</summary>
 		public readonly string Coordinate;
+		/// <summary>The coordinate and the Prepare method of the tests it was generated for (TestCase.WorldKey).</summary>
+		public readonly string Key;
 		public string Applied;
 		public string Cluster;
 		/// <summary>Errors the worldgen reported (OfflineWorldGen.OnError), in order.</summary>
@@ -224,9 +249,10 @@ namespace Isochronous.TestRunner
 		public float Seconds;
 		internal readonly float StartedAt = Time.realtimeSinceStartup;
 
-		public GeneratedWorld(string coordinate)
+		public GeneratedWorld(string coordinate, string key)
 		{
 			Coordinate = coordinate;
+			Key = key ?? coordinate + "|";
 		}
 	}
 
