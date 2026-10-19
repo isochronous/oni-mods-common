@@ -35,6 +35,10 @@
   Leave the colony open when the tests are done; the script waits until the game is closed by hand.
 .PARAMETER TimeoutSec
   Real seconds the whole session may take before the harness, and failing that this script, ends it.
+.PARAMETER Mode
+  auto (default: the mode the player left the game in), base or spacedout. Another mode than the
+  player's is set in kplayerprefs.yaml for the run and put back when the game exits (GameMode.ps1).
+  A mode with no fixture save runs Worldgen and NoColony tests only.
 
 .EXAMPLE
   pwsh common/tools/TestRunner/Invoke-OniTests.ps1 -Mods DirectAutomationBridges
@@ -55,6 +59,7 @@ param(
     [int]$TimeoutSec = 600,
     [int]$TestTimeoutSec = 60,
     [string]$Label = 'run',
+    [ValidateSet('auto', 'base', 'spacedout')][string]$Mode = 'auto',
     [string]$OutDir = (Join-Path $PSScriptRoot 'runs'),
     [string]$SteamExe = 'C:\Program Files (x86)\Steam\steam.exe',
     [int]$AppId = 457140
@@ -78,6 +83,7 @@ $playerLog = Join-Path $env:USERPROFILE 'AppData\LocalLow\Klei\Oxygen Not Includ
 $configRoot = Join-Path $klei 'mods\config'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 . (Join-Path $PSScriptRoot 'ModConfig.ps1')
+. (Join-Path $PSScriptRoot 'GameMode.ps1')
 # PLib names a mod's shared config folder after its assembly, which is the local folder name here.
 $configNames = @($Mods + $With | Select-Object -Unique)
 
@@ -153,7 +159,12 @@ function Restore-LeftoverConfig {
         Write-Warning "Leftover config backup of $name from an unfinished run; restored it."
     }
 }
-if (-not (Get-LiveGame)) { Restore-LeftoverConfig }
+if (-not (Get-LiveGame)) {
+    Restore-LeftoverConfig
+    # A mode switched by a run that died before its restore.
+    $restoredMode = Restore-GameMode $prefs
+    if ($restoredMode) { Write-Warning "The game's mode was left switched by an unfinished run; put back EXPANSION1_ID.ENABLED $restoredMode." }
+}
 
 # --- what to run -------------------------------------------------------------------------------
 $running = Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue
@@ -162,8 +173,9 @@ if (-not $BuildOnly -and $running -and -not ($live -and @($running).Count -eq 1 
 if (-not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
 $managed = Join-Path (Get-GameFolder) 'OxygenNotIncluded_Data\Managed'
 
-$spacedOut = ([IO.File]::ReadAllText($prefs, $utf8) -match '(?m)^\s*EXPANSION1_ID\.ENABLED:\s*1')
+$spacedOut = switch ($Mode) { 'base' { $false } 'spacedout' { $true } default { Get-PlayerSpacedOut $prefs } }
 $dlc = if ($spacedOut) { 'EXPANSION1_ID' } else { '' }
+$noFixture = $false
 if (-not $Fixture) {
     # Fixture saves are not committed, so a submodule checkout of this repo has none: fall back to
     # the workspace's own oni-mods-common checkout.
@@ -172,13 +184,18 @@ if (-not $Fixture) {
         $candidate = Join-Path $dir $name
         if (Test-Path -LiteralPath $candidate) { $Fixture = $candidate; break }
     }
-    if (-not $Fixture) { $Fixture = Join-Path $PSScriptRoot $name }
-}
-if (-not (Test-Path -LiteralPath $Fixture)) { throw "Fixture save not found: $Fixture (see fixtures/README.md)" }
-$header = [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($Fixture)[0..8191])
-$fixtureSpacedOut = $header -match '"dlcIds":\[[^\]]*EXPANSION1_ID'
-if ($fixtureSpacedOut -ne $spacedOut) {
-    throw "The fixture is a $(if ($fixtureSpacedOut) { 'Spaced Out' } else { 'base game' }) save but the game is in $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }) mode; switch modes in the game or pass another -Fixture."
+    if (-not $Fixture) {
+        # Worldgen and NoColony tests need no save; a test that does ends the run as no-save.
+        $noFixture = $true
+        Write-Warning "No fixture save for $(if ($spacedOut) { 'Spaced Out' } else { 'the base game' }) ($name, see fixtures/README.md): only Worldgen and NoColony tests can run."
+    }
+} elseif (-not (Test-Path -LiteralPath $Fixture)) { throw "Fixture save not found: $Fixture (see fixtures/README.md)" }
+if (-not $noFixture) {
+    $header = [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($Fixture)[0..8191])
+    $fixtureSpacedOut = $header -match '"dlcIds":\[[^\]]*EXPANSION1_ID'
+    if ($fixtureSpacedOut -ne $spacedOut) {
+        throw "The fixture is a $(if ($fixtureSpacedOut) { 'Spaced Out' } else { 'base game' }) save but the run is in $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }) mode; pass -Mode or another -Fixture."
+    }
 }
 
 $projects = @()
@@ -226,7 +243,7 @@ foreach ($mod in $Mods + 'TestRunner') {
 }
 # A copy under a name without spaces: the path travels through Steam's command line.
 $fixtureCopy = Join-Path $runDir 'fixture.sav'
-Copy-Item -LiteralPath $Fixture -Destination $fixtureCopy
+if (-not $noFixture) { Copy-Item -LiteralPath $Fixture -Destination $fixtureCopy }
 $resultsFile = Join-Path $runDir 'results.jsonl'
 $statusFile = "$resultsFile.status"
 
@@ -388,6 +405,10 @@ if ($submitted) {
     Restore-LeftoverConfig
     $loadoutKey = Get-LoadoutKey
     try {
+        # The mode left by a live game ended above is the player's again (its warden put it back);
+        # one still switched is put back first, so the value kept below is the player's.
+        [void](Restore-GameMode $prefs)
+        if (Switch-GameMode $prefs $spacedOut) { Write-Host "Switched the game to $(if ($spacedOut) { 'Spaced Out' } else { 'the base game' }) for this run; the player's mode goes back when it exits." }
         Set-Mods
         $gameArgs = @('-applaunch', "$AppId", "--onitest-dir=$runDir", "--onitest-save=$fixtureCopy", "--onitest-timeout=$TimeoutSec", "--onitest-test-timeout=$TestTimeoutSec")
         if ($Filter) { $gameArgs += "--onitest-filter=$Filter" }
@@ -399,7 +420,7 @@ if ($submitted) {
             [IO.File]::WriteAllText((Join-Path $liveDir 'key.txt'), $loadoutKey, $utf8)
             $gameArgs += "--onitest-server=$liveDir"
         }
-        Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Steam) { ' + Workshop ' + ($Steam -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $Fixture"
+        Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Steam) { ' + Workshop ' + ($Steam -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $(if ($noFixture) { 'none' } else { $Fixture })"
         Write-Host "Launching: $($gameArgs -join ' ')"
         Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
         $proc = $null
@@ -410,7 +431,7 @@ if ($submitted) {
             [IO.File]::WriteAllText($livePidFile, "$($proc.Id)", $utf8)
             # From here the warden owns the restore: the game outlives this script.
             Start-Process -FilePath 'pwsh' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
-                '-GamePid', "$($proc.Id)", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot) | Out-Null
+                '-GamePid', "$($proc.Id)", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs) | Out-Null
             $wardenStarted = $true
             $launcherStatus = 'live'
             while (-not (Test-Path -LiteralPath $statusFile) -and -not $proc.HasExited -and ((Get-Date) - $t0).TotalSeconds -lt ($TimeoutSec + 180)) { Start-Sleep -Milliseconds 250; $proc.Refresh() }
@@ -434,7 +455,11 @@ if ($submitted) {
             }
             if (Test-Path -LiteralPath $liveDir) { Remove-Item -LiteralPath $liveDir -Recurse -Force -ErrorAction SilentlyContinue }
             # The game puts the config back at the end of its run; one that died did not.
-            if (-not (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue)) { Restore-LeftoverConfig }
+            if (-not (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue)) {
+                Restore-LeftoverConfig
+                $restoredMode = Restore-GameMode $prefs
+                if ($restoredMode) { Write-Host "Put the game's mode back (EXPANSION1_ID.ENABLED $restoredMode)." }
+            }
         } else {
             Write-Host "The game stays up $([int]15) s for another run with this loadout; its warden puts mods.json back when it exits."
         }

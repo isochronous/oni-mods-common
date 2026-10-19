@@ -48,8 +48,16 @@ back by the warden when the game exits, or else by the next launcher before it s
 lock and say "waiting for it to finish"; `-BuildOnly` builds and checks without a game session and
 takes the lock too, as builds share the harness's output.
 
-The fixture is `fixtures/testbed-so.sav` or `fixtures/testbed-base.sav` by the game's current mode
-(`-Fixture` overrides); see `fixtures/README.md`. The harness picks a 40x10 test area in the fixture
+The fixture is `fixtures/testbed-so.sav` or `fixtures/testbed-base.sav` by the run's mode
+(`-Fixture` overrides); see `fixtures/README.md`. With no fixture for the mode the launcher warns and
+the run goes on: Worldgen and NoColony tests need none, and a test that does ends the run as `no-save`.
+
+**The mode.** A run is in the mode the player left the game in unless `-Mode base` or `-Mode spacedout`
+says otherwise. Another mode is set in `kplayerprefs.yaml` (`EXPANSION1_ID.ENABLED`) before the game
+starts, with the player's value kept in `kplayerprefs.yaml.onitest-mode`, and put back once the game
+exits: by the warden, by the launcher when there is no warden, or by the next launcher after a run
+that died (`GameMode.ps1`). The mode is part of the loadout, so a run in the other mode ends a live
+game and launches a new one. Base-game coordinates (`SNDST-A-100-0-0-0`) need `-Mode base`. The harness picks a 40x10 test area in the fixture
 world itself and clears it (objects, loose items and solid cells; Duplicants are a test's to remove) before
 the first test and after every test.
 
@@ -66,6 +74,7 @@ Launcher options:
 | `-KeepGame` | Leave the colony open after the tests; the launcher waits until the game is closed. |
 | `-BuildOnly` | Build the test project and check it against the game assemblies, then stop. |
 | `-Label name` | The run folder's prefix (`runs/<label>-<stamp>`). |
+| `-Mode auto\|base\|spacedout` | The game's mode for the run (default: the player's); see "The mode" above. |
 | `-Trace` | Log the grid marks the game makes during tests (`Diagnostics.cs`). |
 | `-NoBuild`, `-NoCheck`, `-BuildArgs` | Skip the build or the ModCheck pass, or pass extra arguments to `dotnet build`. |
 
@@ -129,7 +138,7 @@ public static class WireDrags
   coordinate share the world; a later fixture test loads the fixture again. Nothing in a generated
   world is cleared, and `t.Area` is not for such a test. `t.Generated` tells what was generated (the
   applied coordinate, the cluster, worldgen errors, seconds). A coordinate of the other mode skips
-  the test; a failed generation fails its tests and the run goes on; a worldgen thread silent for
+  the test (`-Mode` picks the run's mode); a failed generation fails its tests and the run goes on; a worldgen thread silent for
   300 s ends the session. Generation is real game time: raise `-TimeoutSec` for runs with several worlds.
 - `[OniTest(Worldgen = "...", Prepare = nameof(Setup))]`: `Setup` is a `public static` method of the
   test's class, taking nothing and returning `void` or `System.Action`. It runs once, at the main
