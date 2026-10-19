@@ -77,7 +77,7 @@ Launcher options:
 | `-Filter "glob[;glob]"` | Only tests whose `Assembly/Class.Method` id or display name matches. One word, no spaces (it travels through Steam's command line); `*` and `?` wildcards. Also the only way to run an `Explicit` test. |
 | `-Fixture path.sav` | Load this save instead of the testbed, e.g. a player's colony for a bug only seen there. The save is copied into the run folder and never written back. |
 | `-With Mod1,Mod2` | Enable more local mods (folder names under `mods/local`). |
-| `-Steam id1,id2` | Enable installed Workshop mods by item id, to test alongside another author's mod. |
+| `-Steam id1,id2` | Enable installed Workshop mods by item id, to test alongside another author's mod. An item downloaded to `mods\Steam\<id>` that the game has not registered yet (no start since the subscription) is registered for the run, with Steam's time-updated as its version. |
 | `-TimeoutSec n` | Real seconds the whole session may take (default 600). |
 | `-TestTimeoutSec n` | Default real seconds per test (default 60); `[OniTest(Timeout = n)]` overrides it. |
 | `-KeepGame` | Leave the colony open after the tests; the launcher waits until the game is closed. |
@@ -141,13 +141,17 @@ public static class WireDrags
   such a test.
 - `[OniTest(Worldgen = "SNDST-C-100-0-0-0")]`: the test runs in a world freshly generated from that
   coordinate (as the destination screen takes it) with every mod of the run active, instead of the
-  fixture. The harness goes to the main menu, applies the coordinate, runs the game's own worldgen
+  fixture. The harness goes to the main menu, opens the game's destination screen with the cluster's
+  category chosen (as a player's New Game does, so a mod that sets its clusters up there, such as
+  MiniBase, does so), applies the coordinate, checks the game took it, runs the game's own worldgen
   screen (about 20 s for a Spaced Out cluster), lets the colony load, embarks with the Duplicants
   offered and presses Begin on the opening message, then runs the test. Consecutive tests with one
   coordinate share the world; a later fixture test loads the fixture again. Nothing in a generated
   world is cleared, and `t.Area` is not for such a test. `t.Generated` tells what was generated (the
   applied coordinate, the cluster, worldgen errors, seconds). A coordinate of the other mode skips
-  the test (`-Mode` picks the run's mode); a failed generation fails its tests and the run goes on; a worldgen thread silent for
+  the test (`-Mode` picks the run's mode). The game's prefixes end in `A` or `C` for the mode; a
+  Workshop cluster's prefix (`MINI-B`, `BTOR-L`) is looked up in the clusters the game loaded, and a
+  prefix the mode has no cluster for skips the test; a failed generation fails its tests and the run goes on; a worldgen thread silent for
   300 s ends the session. Generation is real game time: raise `-TimeoutSec` for runs with several worlds.
 - `[OniTest(Worldgen = "...", Prepare = nameof(Setup))]`: `Setup` is a `public static` method of the
   test's class, taking nothing and returning `void` or `System.Action`. It runs once, at the main
@@ -160,14 +164,15 @@ public static class WireDrags
   A config a `Prepare` writes is put back at the end of the run anyway (see "Mod settings are put back").
 - `t.LookAt(cell, size)` points the camera at a cell (orthographic size: 14 shows the fixture area,
   8 a close-up), for a `t.Screenshot` of something particular. In a generated world, lift the fog of
-  war first (`Grid.Reveal`) or the picture is black. Natural Backwalls' `Generated.Overview`
+  war first (`t.World.RevealAsteroid(world)` or `RevealActiveAsteroid()`) or the picture is black. Natural Backwalls' `Generated.Overview`
   (explicit) photographs the start area and one spot per biome; its `StartingAsteroid` photographs
   each hole it finds before it fails.
 - Yield `t.Frames(n)`, `t.WaitGameSeconds(s)` (scaled sim time), `t.WaitRealSeconds(s)`,
   `t.WaitUntil(cond, timeout, what)` (a timeout fails the test with `what`), or a kit coroutine
   such as `wire.Path(...)`. Plain `yield return null` is one frame.
 - `t.World`: `Build(id, cell, orientation, element)`, `At(cell, layer)`, `Destroy(go)`,
-  `LogicNetwork(cell)`, `LogicConnections(cell)`.
+  `LogicNetwork(cell)`, `LogicConnections(cell)`, `RevealAsteroid(world)` and `RevealActiveAsteroid()`
+  (every cell of the asteroid out of the fog of war, as the game's debug reveal does; test-only).
 - `UtilityDragSession.PrimeBuildMenu(t)`: wakes the build menu's product screen once, as the menu
   would have, before a test drives a build tool directly (the BuildTool, say).
 - `t.Tools.UtilityTool(id, element)`: the real utility build tool; `Path(cells...)` visits each

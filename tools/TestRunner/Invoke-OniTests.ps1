@@ -250,6 +250,29 @@ $resultsFile = Join-Path $runDir 'results.jsonl'
 $statusFile = "$resultsFile.status"
 
 # --- loadout -----------------------------------------------------------------------------------
+# A mods.json entry for a downloaded Workshop item the game has not registered yet, or $null: its
+# folder under mods\Steam, its title and staticID from mod.yaml, and as label.version the item's
+# "timeupdated" from Steam's download record (appworkshop_457140.acf), which is what the game stores.
+function New-WorkshopEntry([string]$id) {
+    $folder = Join-Path $klei "mods\Steam\$id"
+    if (-not (Test-Path -LiteralPath $folder)) { return $null }
+    $acf = Join-Path (Split-Path (Split-Path (Get-GameFolder) -Parent) -Parent) 'workshop\appworkshop_457140.acf'
+    if (-not (Test-Path -LiteralPath $acf)) { return $null }
+    $m = [regex]::Match((Get-Content -LiteralPath $acf -Raw), '"' + $id + '"\s*\{[^}]*?"timeupdated"\s*"(\d+)"')
+    if (-not $m.Success) { return $null }
+    $title = $id; $staticID = $id
+    $yaml = Join-Path $folder 'mod.yaml'
+    if (Test-Path -LiteralPath $yaml) {
+        $text = Get-Content -LiteralPath $yaml -Raw
+        $v = Get-YamlScalar $text 'title';    if ($v) { $title = $v }
+        $v = Get-YamlScalar $text 'staticID'; if ($v) { $staticID = $v }
+    }
+    return [pscustomobject]([ordered]@{
+        label = [ordered]@{ distribution_platform = 1; id = $id; title = $title; version = [int64]$m.Groups[1].Value }
+        status = 1; enabled = $true; enabledForDlc = @($dlc); crash_count = 0; reinstall_path = $null; staticID = $staticID
+    })
+}
+
 function Set-Mods {
     $json = [IO.File]::ReadAllText($modsJson, $utf8) | ConvertFrom-Json
     $enable = @('TestRunner') + $Mods + $With
@@ -275,11 +298,17 @@ function Set-Mods {
             $m.enabledForDlc = @()
         }
     }
-    foreach ($id in $Steam) {
-        if (-not $seen["steam:$id"]) { throw "Workshop mod $id is not installed (not in mods.json)." }
-    }
     $list = New-Object System.Collections.ArrayList
     foreach ($m in $json.mods) { [void]$list.Add($m) }
+    foreach ($id in $Steam) {
+        if ($seen["steam:$id"]) { continue }
+        # Subscribed and downloaded, but the game has not been started since: mods.json has no
+        # entry yet. Registered as the game would register it, with Steam's time-updated as its version.
+        $entry = New-WorkshopEntry $id
+        if ($null -eq $entry) { throw "Workshop mod $id is not installed (not in mods.json, and no mods\Steam\$id folder with a Steam download record)." }
+        [void]$list.Add($entry)
+        Write-Host "Registered Workshop mod $id ($($entry.label.title)), not yet in mods.json"
+    }
     foreach ($id in $enable) {
         if ($seen[$id]) { continue }
         $folder = Join-Path $klei "mods\local\$id"
