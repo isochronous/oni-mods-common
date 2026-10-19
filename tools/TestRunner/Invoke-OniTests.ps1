@@ -161,11 +161,29 @@ function Restore-LeftoverConfig {
         Write-Warning "Leftover config backup of $name from an unfinished run; restored it."
     }
 }
+# Starts the warden outside this script's process tree. A run stopped from outside (this pwsh killed
+# with its tree) must not take the warden with it: it is the one that puts mods.json, the config, the
+# mode and the save pointer back once the game exits. A child made with Start-Process is in the tree;
+# a process made through WMI's Win32_Process.Create has WmiPrvSE as its parent, so it is not.
+function Start-Warden([string[]]$Arguments) {
+    $pwsh = (Get-Command pwsh).Source
+    $quoted = ($Arguments | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ } }) -join ' '
+    try {
+        $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+        $made = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "`"$pwsh`" $quoted"; ProcessStartupInformation = $startup }
+        if ($made.ReturnValue -eq 0) { return }
+        Write-Warning "WMI could not start the warden (code $($made.ReturnValue)); starting it as a child of this script."
+    } catch {
+        Write-Warning "WMI could not start the warden ($_); starting it as a child of this script."
+    }
+    Start-Process -FilePath $pwsh -WindowStyle Hidden -ArgumentList $Arguments | Out-Null
+}
 if (-not (Get-LiveGame)) {
     Restore-LeftoverConfig
     # A mode switched by a run that died before its restore.
     $restoredMode = Restore-GameMode $prefs
     if ($restoredMode) { Write-Warning "The game's mode was left switched by an unfinished run; put back EXPANSION1_ID.ENABLED $restoredMode." }
+    if (Restore-SaveKey $prefs) { Write-Warning "The last-save pointer (SaveFilenameKey/) was left on a test save by an unfinished run; put the player's back." }
 }
 
 # --- what to run -------------------------------------------------------------------------------
@@ -453,6 +471,8 @@ if ($submitted) {
         # The mode left by a live game ended above is the player's again (its warden put it back);
         # one still switched is put back first, so the value kept below is the player's.
         [void](Restore-GameMode $prefs)
+        [void](Restore-SaveKey $prefs)
+        Save-SaveKey $prefs
         if (Switch-GameMode $prefs $spacedOut) { Write-Host "Switched the game to $(if ($spacedOut) { 'Spaced Out' } else { 'the base game' }) for this run; the player's mode goes back when it exits." }
         Set-Mods
         $gameArgs = @('-applaunch', "$AppId", "--onitest-dir=$runDir", "--onitest-save=$fixtureCopy", "--onitest-timeout=$TimeoutSec", "--onitest-test-timeout=$TestTimeoutSec")
@@ -475,8 +495,8 @@ if ($submitted) {
         if (-not $KeepGame) {
             [IO.File]::WriteAllText($livePidFile, "$($proc.Id)", $utf8)
             # From here the warden owns the restore: the game outlives this script.
-            Start-Process -FilePath 'pwsh' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
-                '-GamePid', "$($proc.Id)", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs) | Out-Null
+            Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
+                '-GamePid', "$($proc.Id)", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs)
             $wardenStarted = $true
             $launcherStatus = 'live'
             while (-not (Test-Path -LiteralPath $statusFile) -and -not $proc.HasExited -and ((Get-Date) - $t0).TotalSeconds -lt ($TimeoutSec + 180)) { Start-Sleep -Milliseconds 250; $proc.Refresh() }
@@ -504,6 +524,7 @@ if ($submitted) {
                 Restore-LeftoverConfig
                 $restoredMode = Restore-GameMode $prefs
                 if ($restoredMode) { Write-Host "Put the game's mode back (EXPANSION1_ID.ENABLED $restoredMode)." }
+                if (Restore-SaveKey $prefs) { Write-Host "Put the player's last-save pointer back (SaveFilenameKey/)." }
             }
         } else {
             Write-Host "The game stays up $([int]15) s for another run with this loadout; its warden puts mods.json back when it exits."

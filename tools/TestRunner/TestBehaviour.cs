@@ -93,12 +93,19 @@ namespace Isochronous.TestRunner
 		{
 			yield return null;
 			Harness.ForceFocus();
-			for (int i = Session.NextIndex; i < Session.Tests.Count; i++)
+			for (int i = Session.NextIndex; i < Session.Tests.Count && Session.Tests[i].NoColony; i++)
 			{
 				if (Session.Finished)
 					break;
 				Session.NextIndex = i + 1;
 				yield return RunOne(Session.Tests[i]);
+			}
+			if (!Session.Finished && Session.NextIndex < Session.Tests.Count)
+			{
+				// The rest of a mixed run: the next world to generate, or the fixture to load.
+				Session.Continue();
+				Destroy(gameObject);
+				yield break;
 			}
 			if (!Session.Finished)
 				Session.Finish("done", Session.Passed + " passed, " + Session.Failed + " failed, " + Session.Errors + " errors, " + Session.Timeouts + " timeouts, " + Session.Skipped + " skipped");

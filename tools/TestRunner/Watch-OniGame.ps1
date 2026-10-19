@@ -68,6 +68,11 @@ if ($Prefs) {
     } catch {
         Write-Log "cannot put the game's mode back: $_"
     }
+    try {
+        if (Restore-SaveKey $Prefs) { Write-Log "put the player's last-save pointer back (SaveFilenameKey/)" }
+    } catch {
+        Write-Log "cannot put the last-save pointer back: $_"
+    }
 }
 Remove-Item -LiteralPath $LiveDir -Recurse -Force -ErrorAction SilentlyContinue
 Write-Log 'live session closed'

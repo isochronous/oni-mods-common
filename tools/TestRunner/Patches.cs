@@ -155,6 +155,11 @@ namespace Isochronous.TestRunner
 			}
 			if (Session.Started && menuSettled)
 			{
+				if (Session.PendingNoColony)
+				{
+					Session.StartNoColonyDriver();
+					return;
+				}
 				// Back at the menu for a world: write off the tests of one that failed, or start the next.
 				if (Worldgen.Failure != null)
 				{

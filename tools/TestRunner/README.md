@@ -33,7 +33,8 @@ of each deployed local mod, the harness and their shared configs) is handed to i
 fixture fresh and runs the tests, loading the test DLLs from their bytes, so changed tests need no
 restart (about 10 s instead of 40). Any other loadout, a rebuilt mod included, ends the running game
 and launches a new one. With no run for 15 s the game quits by itself, and a detached warden
-(`Watch-OniGame.ps1`, started with the game) puts the player's `mods.json` back once it has exited
+(`Watch-OniGame.ps1`, started with the game, through WMI so it is outside the launcher's process
+tree and survives the launcher being killed) puts the player's `mods.json` back once it has exited
 and removes the session folder, `%LOCALAPPDATA%\IsochronousOniTests\live` (the warden's log is next
 to it). `-KeepGame` launches a game of its own and keeps the old behaviour.
 
@@ -65,7 +66,9 @@ the run goes on: Worldgen and NoColony tests need none, and a test that does end
 says otherwise. Another mode is set in `kplayerprefs.yaml` (`EXPANSION1_ID.ENABLED`) before the game
 starts, with the player's value kept in `kplayerprefs.yaml.onitest-mode`, and put back once the game
 exits: by the warden, by the launcher when there is no warden, or by the next launcher after a run
-that died (`GameMode.ps1`). The mode is part of the loadout, so a run in the other mode ends a live
+that died (`GameMode.ps1`). The last-save pointer `SaveFilenameKey/` in the same file, which the game
+points at a run's last test save, is kept in `kplayerprefs.yaml.onitest-savekey` and put back at the
+same places. The mode is part of the loadout, so a run in the other mode ends a live
 game and launches a new one. Base-game coordinates (`SNDST-A-100-0-0-0`) need `-Mode base`. The harness picks a 40x10 test area in the fixture
 world itself and clears it (objects, loose items and solid cells; Duplicants are a test's to remove) before
 the first test and after every test.
@@ -137,7 +140,9 @@ public static class WireDrags
   it. For long tests kept for when they are needed.
 - `[OniTest(NoColony = true)]`: the test needs no colony (an options dialog, strings,
   registrations). A run whose tests are all marked so loads no save: after a launch they run at the
-  main menu, in a live game wherever it is. `t.Area`, `t.World`, `t.Tools` and `t.Dupes` are not for
+  main menu, in a live game wherever it is. In a run with other tests too, the NoColony tests run first,
+  at the main menu (a game in a colony goes back to the menu for them), before any world is generated
+  or the fixture loaded. `t.Area`, `t.World`, `t.Tools` and `t.Dupes` are not for
   such a test.
 - `[OniTest(Worldgen = "SNDST-C-100-0-0-0")]`: the test runs in a world freshly generated from that
   coordinate (as the destination screen takes it) with every mod of the run active, instead of the

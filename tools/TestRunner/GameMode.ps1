@@ -59,3 +59,53 @@ function Restore-GameMode([string]$Prefs) {
     Remove-Item -LiteralPath $kept -Force
     return $value
 }
+
+# --- the last-save pointer ---------------------------------------------------------------------
+# The game writes "SaveFilenameKey/: <path>" under strings: in kplayerprefs.yaml every time it saves or
+# loads a game, so a run leaves it pointing at the run's last test save. The value the player had is
+# kept in kplayerprefs.yaml.onitest-savekey ('absent', or 'present:' and the text after the colon,
+# exactly) and put back at the same places as the game's mode.
+$SaveKeyLine = '(?m)^([ \t]*SaveFilenameKey/:)([^\r\n]*)'
+
+function Get-SaveKeyRaw([string]$Prefs) {
+    # 'absent' when the line is missing, else 'present:' and the text after the colon.
+    $m = [regex]::Match([IO.File]::ReadAllText($Prefs), $SaveKeyLine)
+    if ($m.Success) { return 'present:' + $m.Groups[2].Value }
+    return 'absent'
+}
+
+function Set-SaveKeyRaw([string]$Prefs, [string]$Raw) {
+    $text = [IO.File]::ReadAllText($Prefs)
+    $newline = if ($text.Contains("`r`n")) { "`r`n" } else { "`n" }
+    if ($Raw -eq 'absent') {
+        $text = [regex]::Replace($text, '(?m)^[ \t]*SaveFilenameKey/:[^\r\n]*(\r?\n)?', '')
+    } else {
+        $rest = $Raw.Substring('present:'.Length)
+        if ([regex]::IsMatch($text, $SaveKeyLine)) {
+            $text = [regex]::Replace($text, $SaveKeyLine, [Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value + $rest })
+        } else {
+            $m = [regex]::Match($text, '(?m)^strings:[ \t]*\r?\n')
+            if (-not $m.Success) { throw "$Prefs has no strings: section to hold SaveFilenameKey/" }
+            $text = $text.Insert($m.Index + $m.Length, "  SaveFilenameKey/:$rest$newline")
+        }
+    }
+    [IO.File]::WriteAllText($Prefs, $text, (New-Object System.Text.UTF8Encoding($false)))
+}
+
+# Keeps the player's pointer before a game starts, unless one is kept already (an earlier run's).
+function Save-SaveKey([string]$Prefs) {
+    $kept = "$Prefs.onitest-savekey"
+    if (Test-Path -LiteralPath $kept) { return }
+    [IO.File]::WriteAllText($kept, (Get-SaveKeyRaw $Prefs))
+}
+
+# Puts the player's pointer back if a run kept it. Returns true when it did.
+function Restore-SaveKey([string]$Prefs) {
+    $kept = "$Prefs.onitest-savekey"
+    if (-not (Test-Path -LiteralPath $kept)) { return $false }
+    $raw = [IO.File]::ReadAllText($kept)
+    Set-SaveKeyRaw $Prefs $raw
+    if ((Get-SaveKeyRaw $Prefs) -ne $raw) { throw "kplayerprefs.yaml does not hold the player's SaveFilenameKey/ after the restore; the kept value is left at $kept" }
+    Remove-Item -LiteralPath $kept -Force
+    return $true
+}

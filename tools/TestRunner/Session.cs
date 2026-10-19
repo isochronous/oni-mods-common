@@ -173,6 +173,12 @@ namespace Isochronous.TestRunner
 					Debug.Log(Tag + "  " + test.Id + ": left out (runs only when a filter selects it)");
 			}
 			Debug.Log(Tag + Tests.Count + " of " + found.Count + " test(s) selected from " + dlls.Length + " assembly(ies)");
+			// NoColony tests first (the order within each group is kept): they run at the main menu,
+			// before any world is generated or the fixture loaded.
+			var ordered = new List<TestCase>(Tests.FindAll(test => test.NoColony));
+			ordered.AddRange(Tests.FindAll(test => !test.NoColony));
+			Tests.Clear();
+			Tests.AddRange(ordered);
 			foreach (TestCase test in Tests)
 				Debug.Log(Tag + "  " + test.Id + ": " + test.Name);
 		}
@@ -346,6 +352,7 @@ namespace Isochronous.TestRunner
 			NextIndex = 0;
 			Passed = Failed = Errors = Timeouts = Skipped = 0;
 			Reloads = 0;
+			PendingNoColony = false;
 			LastAssembly = null;
 			SaveIsFresh = false;
 			IdleSince = -1f;
@@ -375,16 +382,41 @@ namespace Isochronous.TestRunner
 				Finish("runner-error", e.ToString());
 				return;
 			}
+			NextIndex = 0;
 			if (AllNoColony)
 			{
 				Debug.Log(Tag + "every selected test needs no colony: running them without loading a save");
-				var driver = new GameObject("OniTestNoColonyDriver");
-				UnityEngine.Object.DontDestroyOnLoad(driver);
-				driver.AddComponent<TestBehaviour>().NoColony = true;
+				StartNoColonyDriver();
 				return;
 			}
-			NextIndex = 0;
+			if (Tests.Count > 0 && Tests[0].NoColony)
+			{
+				// A mixed run: the NoColony tests (sorted first by Discover) run at the main menu before
+				// any world is generated or the fixture loaded; the driver then goes on with Continue.
+				if (MainMenu.Instance == null)
+				{
+					Debug.Log(Tag + "the NoColony tests run at the main menu first; leaving the colony");
+					PendingNoColony = true;
+					Worldgen.LeaveColony();
+					return;
+				}
+				Debug.Log(Tag + "running the NoColony tests at the main menu before the rest");
+				StartNoColonyDriver();
+				return;
+			}
 			Continue();
+		}
+
+		/// <summary>Set when a mixed run left a colony for the main menu: the watchdog starts the NoColony driver once the menu has settled.</summary>
+		public static bool PendingNoColony;
+
+		/// <summary>Attaches the driver that runs the leading NoColony tests where the game is, then goes on with the rest of the run.</summary>
+		public static void StartNoColonyDriver()
+		{
+			PendingNoColony = false;
+			var driver = new GameObject("OniTestNoColonyDriver");
+			UnityEngine.Object.DontDestroyOnLoad(driver);
+			driver.AddComponent<TestBehaviour>().NoColony = true;
 		}
 
 		/// <summary>
