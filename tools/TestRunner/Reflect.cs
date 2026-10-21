@@ -26,6 +26,12 @@ namespace Isochronous.TestRunner
 		public static readonly FieldInfo PathNodeValid = PathNodeType == null ? null : AccessTools.Field(PathNodeType, "valid");
 		/// <summary>DragTool.downPos: where the current drag started.</summary>
 		public static readonly FieldInfo DragToolDownPos = AccessTools.Field(typeof(DragTool), "downPos");
+		/// <summary>Timelapser.previewScreenshot: true while the image being written is a save's preview, not a timelapse frame.</summary>
+		public static readonly FieldInfo TimelapserPreviewScreenshot = AccessTools.Field(typeof(Timelapser), "previewScreenshot");
+		/// <summary>Timelapser.previewSaveGamePath: the save whose preview image is being written, next to it.</summary>
+		public static readonly FieldInfo TimelapserPreviewSaveGamePath = AccessTools.Field(typeof(Timelapser), "previewSaveGamePath");
+		/// <summary>ColonyDestinationSelectScreen.QualitySettingChanged: the handler its OnCleanUp leaves on CustomGameSettings.OnMixingSettingChanged.</summary>
+		public static readonly MethodInfo DestinationQualitySettingChanged = AccessTools.Method(typeof(ColonyDestinationSelectScreen), "QualitySettingChanged");
 
 		/// <summary>The names that did not resolve; empty when the game still has every member.</summary>
 		public static List<string> SelfCheck()
@@ -39,6 +45,9 @@ namespace Isochronous.TestRunner
 			if (PathNodeVisualizer == null) missing.Add("BaseUtilityBuildTool.PathNode.visualizer");
 			if (PathNodeValid == null) missing.Add("BaseUtilityBuildTool.PathNode.valid");
 			if (DragToolDownPos == null) missing.Add("DragTool.downPos");
+			if (TimelapserPreviewScreenshot == null) missing.Add("Timelapser.previewScreenshot");
+			if (TimelapserPreviewSaveGamePath == null) missing.Add("Timelapser.previewSaveGamePath");
+			if (DestinationQualitySettingChanged == null) missing.Add("ColonyDestinationSelectScreen.QualitySettingChanged");
 			return missing;
 		}
 

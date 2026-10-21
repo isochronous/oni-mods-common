@@ -21,9 +21,11 @@ namespace Isochronous.TestRunner
 
 		/// <summary>The coordinate to generate next, set when a test needs it; generated once the main menu is up.</summary>
 		public static string Pending;
+		/// <summary>The test whose world Pending is: its Prepare runs, and its world key is kept, when generation begins.</summary>
+		public static TestCase PendingTest;
 		/// <summary>True from the worldgen screen's opening until the colony spawns or generation fails.</summary>
 		public static bool Generating;
-		/// <summary>Why the last generation failed, until its tests are written off at the main menu.</summary>
+		/// <summary>Why the last generation (or its Prepare) failed, as its tests' message, until they are written off at the main menu.</summary>
 		public static string Failure;
 		/// <summary>The colony now loaded, when it was generated rather than loaded from the fixture.</summary>
 		public static GeneratedWorld Current;
@@ -38,28 +40,72 @@ namespace Isochronous.TestRunner
 			return parts.Length >= 5 && parts[parts.Length - 5] == "C";
 		}
 
-		/// <summary>Null when the game's mode can generate the coordinate, else why not.</summary>
+		/// <summary>The game's own prefixes end in A (base game) or C (Spaced Out); a modded cluster's need not ("MINI-B", "BTOR-L").</summary>
+		private static bool HasModeLetter(string coordinate)
+		{
+			string[] parts = coordinate.Split('-');
+			return parts.Length >= 5 && (parts[parts.Length - 5] == "A" || parts[parts.Length - 5] == "C");
+		}
+
+		/// <summary>
+		/// Null when the game's mode can generate the coordinate, else why not. A prefix without the
+		/// mode letter is looked up in the clusters the game loaded for its mode (a Workshop mod's
+		/// cluster); with none loaded yet, the generation itself says so.
+		/// </summary>
 		public static string ModeMismatch(string coordinate)
 		{
+			string mode = DlcManager.IsExpansion1Active() ? "Spaced Out" : "base game";
+			if (!HasModeLetter(coordinate))
+			{
+				string[] parts = CustomGameSettings.ParseSettingCoordinate(coordinate);
+				if (parts.Length < 2)
+					return null;
+				ProcGenGame.WorldGen.WaitForPendingLoadSettings();
+				List<string> names = SettingsCache.GetClusterNames();
+				if (names.Count == 0)
+					return null;
+				foreach (string name in names)
+					if (SettingsCache.clusterLayouts.GetClusterData(name)?.coordinatePrefix == parts[1])
+						return null;
+				return coordinate + ": no cluster with the coordinate prefix " + parts[1] + " in " + mode + " mode";
+			}
 			bool wanted = IsSpacedOut(coordinate);
 			if (DlcManager.IsExpansion1Active() == wanted)
 				return null;
-			return coordinate + " is a " + (wanted ? "Spaced Out" : "base game") + " cluster and the game is in " + (wanted ? "base game" : "Spaced Out") + " mode";
+			return coordinate + " is a " + (wanted ? "Spaced Out" : "base game") + " cluster and the game is in " + mode + " mode";
 		}
 
-		/// <summary>Called at the settled main menu: applies the coordinate and opens the worldgen screen.</summary>
+		/// <summary>
+		/// Called at the settled main menu: undoes the last world's Prepare, runs this world's, applies
+		/// the coordinate and opens the worldgen screen. A Prepare that throws fails the world's tests
+		/// as a failed generation does, without leaving the menu.
+		/// </summary>
 		public static void Begin(MainMenu menu)
 		{
 			string coordinate = Pending;
-			underway = new GeneratedWorld(coordinate);
+			TestCase test = PendingTest;
+			Session.RunUndo();
+			if (test?.Prepare != null)
+			{
+				try
+				{
+					Debug.Log(Session.Tag + "preparing " + test.WorldKey);
+					Session.SetUndo(test.WorldKey, test.RunPrepare());
+				}
+				catch (Exception e)
+				{
+					Debug.LogWarning(Session.Tag + "the Prepare of " + test.WorldKey + " threw: " + e);
+					Failure = "Prepare threw: " + e.GetType().Name + ": " + e.Message;
+					return;
+				}
+			}
+			underway = new GeneratedWorld(coordinate, test?.WorldKey);
 			Generating = true;
 			lastProgress = Time.realtimeSinceStartup;
+			KScreen destination = null;
 			try
 			{
 				ProcGenGame.WorldGen.WaitForPendingLoadSettings();
-				CustomGameSettings settings = CustomGameSettings.Instance;
-				settings.SetSurvivalDefaults();
-				settings.LoadClusters();
 				string[] parts = CustomGameSettings.ParseSettingCoordinate(coordinate);
 				if (parts.Length < 4 || !int.TryParse(parts[2], out _))
 					throw new ArgumentException("cannot parse the coordinate " + coordinate);
@@ -72,6 +118,13 @@ namespace Isochronous.TestRunner
 				}
 				if (layout == null)
 					throw new ArgumentException("no cluster with the coordinate prefix " + parts[1] + " in this mode");
+				// The cluster's category, as a player picks it on the screen before (ClusterCategorySelectionScreen):
+				// the destination screen lists and keeps only clusters of the chosen category.
+				DestinationSelectPanel.ChosenClusterCategorySetting = (int)layout.clusterCategory;
+				destination = OpenDestinationScreen(menu);
+				CustomGameSettings settings = CustomGameSettings.Instance;
+				settings.SetSurvivalDefaults();
+				settings.LoadClusters();
 				settings.SetQualitySetting(CustomGameSettingConfigs.ClusterLayout, layout.filePath);
 				settings.SetQualitySetting(CustomGameSettingConfigs.WorldgenSeed, parts[2]);
 				settings.ParseAndApplySettingsCode(parts[3]);
@@ -80,12 +133,66 @@ namespace Isochronous.TestRunner
 				underway.Cluster = layout.filePath;
 				underway.Applied = settings.GetSettingsCoordinate();
 				Debug.Log(Session.Tag + "generating " + underway.Applied + " (" + layout.filePath + ")");
+				CloseDestinationScreen(ref destination);
+				string[] applied = CustomGameSettings.ParseSettingCoordinate(underway.Applied);
+				if (applied.Length < 3 || applied[1] != parts[1] || applied[2] != parts[2])
+					throw new InvalidOperationException("the game took the coordinate as " + underway.Applied + ", not " + coordinate);
 				Util.KInstantiateUI(ScreenPrefabs.Instance.WorldGenScreen.gameObject, menu.gameObject, force_active: true);
 			}
 			catch (Exception e)
 			{
+				CloseDestinationScreen(ref destination);
 				Fail(e.Message);
 			}
+		}
+
+		/// <summary>
+		/// The game's destination screen, opened and spawned at once, as a player's New Game reaches it
+		/// before the coordinate is applied: a worldgen mod that sets its clusters up there (MiniBase
+		/// sizes its asteroids and picks its moonlets) does so for the harness's world too.
+		/// </summary>
+		private static KScreen OpenDestinationScreen(MainMenu menu)
+		{
+			// The main menu's New Game flow holds the screen prefabs in order (ScreenPrefabs has none for it).
+			NewGameFlow flow = menu.GetComponent<NewGameFlow>();
+			NewGameFlowScreen prefab = flow?.newGameFlowScreens?.Find(s => s != null && s.GetComponent<ColonyDestinationSelectScreen>() != null);
+			if (prefab == null)
+			{
+				Debug.LogWarning(Session.Tag + "no destination screen in the main menu's New Game flow; the coordinate is applied without it");
+				return null;
+			}
+			GameObject parent = flow.transform.parent != null ? flow.transform.parent.gameObject : menu.gameObject;
+			ColonyDestinationSelectScreen screen = Util.KInstantiateUI<NewGameFlowScreen>(prefab.gameObject, parent, force_active: true).GetComponent<ColonyDestinationSelectScreen>();
+			screen.Spawn();
+			return screen;
+		}
+
+		/// <summary>
+		/// Closes the screen. Its handlers on CustomGameSettings come off now, not when Unity destroys
+		/// it at the end of the frame; the mixing one its OnCleanUp never takes off (the game's own
+		/// leak) would otherwise be called by the next coordinate's mixing code.
+		/// </summary>
+		private static void CloseDestinationScreen(ref KScreen screen)
+		{
+			if (screen == null)
+				return;
+			KScreen closing = screen;
+			screen = null;
+			try
+			{
+				if (Reflect.DestinationQualitySettingChanged != null)
+				{
+					var handler = (Action<SettingConfig, SettingLevel>)Delegate.CreateDelegate(typeof(Action<SettingConfig, SettingLevel>), closing, Reflect.DestinationQualitySettingChanged);
+					CustomGameSettings.Instance.OnQualitySettingChanged -= handler;
+					CustomGameSettings.Instance.OnStorySettingChanged -= handler;
+					CustomGameSettings.Instance.OnMixingSettingChanged -= handler;
+				}
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning(Session.Tag + "could not take the destination screen's handlers off: " + e.Message);
+			}
+			closing.Deactivate();
 		}
 
 		/// <summary>The colony that just spawned: the generated one when a generation was under way, else the fixture.</summary>
@@ -101,6 +208,7 @@ namespace Isochronous.TestRunner
 				Current = null;
 			Generating = false;
 			Pending = null;
+			PendingTest = null;
 			underway = null;
 		}
 
@@ -108,7 +216,7 @@ namespace Isochronous.TestRunner
 		public static void Fail(string why)
 		{
 			Debug.LogWarning(Session.Tag + "generation of " + Pending + " failed: " + why);
-			Failure = why + (underway != null && underway.Errors.Count > 0 ? " (" + string.Join(" | ", underway.Errors) + ")" : "");
+			Failure = "the world could not be generated: " + why + (underway != null && underway.Errors.Count > 0 ? " (" + string.Join(" | ", underway.Errors) + ")" : "");
 			Generating = false;
 			underway = null;
 			App.LoadScene("frontend");
@@ -216,6 +324,8 @@ namespace Isochronous.TestRunner
 	{
 		/// <summary>The coordinate the test asked for, and the one the game reports after applying it.</summary>
 		public readonly string Coordinate;
+		/// <summary>The coordinate and the Prepare method of the tests it was generated for (TestCase.WorldKey).</summary>
+		public readonly string Key;
 		public string Applied;
 		public string Cluster;
 		/// <summary>Errors the worldgen reported (OfflineWorldGen.OnError), in order.</summary>
@@ -224,9 +334,10 @@ namespace Isochronous.TestRunner
 		public float Seconds;
 		internal readonly float StartedAt = Time.realtimeSinceStartup;
 
-		public GeneratedWorld(string coordinate)
+		public GeneratedWorld(string coordinate, string key)
 		{
 			Coordinate = coordinate;
+			Key = key ?? coordinate + "|";
 		}
 	}
 

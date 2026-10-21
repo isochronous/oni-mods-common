@@ -93,12 +93,19 @@ namespace Isochronous.TestRunner
 		{
 			yield return null;
 			Harness.ForceFocus();
-			for (int i = Session.NextIndex; i < Session.Tests.Count; i++)
+			for (int i = Session.NextIndex; i < Session.Tests.Count && Session.Tests[i].NoColony; i++)
 			{
 				if (Session.Finished)
 					break;
 				Session.NextIndex = i + 1;
 				yield return RunOne(Session.Tests[i]);
+			}
+			if (!Session.Finished && Session.NextIndex < Session.Tests.Count)
+			{
+				// The rest of a mixed run: the next world to generate, or the fixture to load.
+				Session.Continue();
+				Destroy(gameObject);
+				yield break;
 			}
 			if (!Session.Finished)
 				Session.Finish("done", Session.Passed + " passed, " + Session.Failed + " failed, " + Session.Errors + " errors, " + Session.Timeouts + " timeouts, " + Session.Skipped + " skipped");
@@ -147,7 +154,7 @@ namespace Isochronous.TestRunner
 				// tests left behind (liquid in the area, heat, a changed setting) reaches the next mod's;
 				// and a test in a generated world needs that world, one on the fixture the fixture.
 				bool nextMod = Session.LastAssembly != null && test.AssemblyName != Session.LastAssembly;
-				bool otherWorld = test.Worldgen != (generated ? Worldgen.Current.Coordinate : null);
+				bool otherWorld = test.WorldKey != (generated ? Worldgen.Current.Key : null);
 				if (otherWorld || ((test.FreshSave || nextMod) && !Session.SaveIsFresh))
 				{
 					// The scene change destroys this driver; Game_OnSpawn_Patch attaches a new one,

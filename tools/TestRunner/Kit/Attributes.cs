@@ -56,6 +56,17 @@ namespace Isochronous.TestKit
 		/// </summary>
 		public string Worldgen { get; set; }
 
+		/// <summary>
+		/// With Worldgen: the name of a <c>public static</c> method of the test's own class, taking no
+		/// arguments and returning void or <c>System.Action</c>. It runs once, at the main menu, just
+		/// before the coordinate is applied (write a mod's config, unpatch something for a baseline);
+		/// the action it returns undoes that, and the harness calls it before the next world is
+		/// generated or the fixture loaded, and at the end of the run. Tests with different Prepare
+		/// methods never share a world, the coordinate the same or not. A Prepare that throws fails
+		/// the tests of its world and the run goes on.
+		/// </summary>
+		public string Prepare { get; set; }
+
 		public OniTestAttribute(string name = null)
 		{
 			Name = name;

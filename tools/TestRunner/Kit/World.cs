@@ -38,6 +38,35 @@ namespace Isochronous.TestKit
 			return go;
 		}
 
+		/// <summary>
+		/// Lifts the fog of war on every cell of the asteroid, as the game's own debug reveal does
+		/// (Grid.Reveal on each cell), so that the camera and a screenshot show the map instead of
+		/// black. For tests only: a player's colony keeps its fog. Returns the cells revealed.
+		/// </summary>
+		public int RevealAsteroid(WorldContainer world)
+		{
+			if (world == null)
+				throw new OniAssertException("no asteroid to reveal");
+			int revealed = 0;
+			for (int y = 0; y < world.WorldSize.y; y++)
+				for (int x = 0; x < world.WorldSize.x; x++)
+				{
+					int cell = Grid.XYToCell(world.WorldOffset.x + x, world.WorldOffset.y + y);
+					if (!Grid.IsValidCell(cell))
+						continue;
+					Grid.Reveal(cell);
+					revealed++;
+				}
+			t.Log("revealed asteroid " + world.id + " (" + world.worldName + "), " + revealed + " cells");
+			return revealed;
+		}
+
+		/// <summary>RevealAsteroid on the asteroid the camera is on.</summary>
+		public int RevealActiveAsteroid()
+		{
+			return RevealAsteroid(ClusterManager.Instance.activeWorld);
+		}
+
 		/// <summary>The object on the layer at the cell, or null.</summary>
 		public GameObject At(int cell, ObjectLayer layer)
 		{

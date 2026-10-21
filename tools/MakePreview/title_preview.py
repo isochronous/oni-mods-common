@@ -6,7 +6,7 @@ Backwalls previews.
     python title_preview.py <background> <out.png> --title "Detect Any Element"
                             [--style serif|sans] [--font lora|liberation|graystroke|file]
                             [--position top|center|bottom|split|0.0-1.0] [--lines "Detect Any|Element"]
-                            [--no-border] [--tone r,g,b] [--fill r,g,b] [--fill2 r,g,b]
+                            [--no-border] [--tone r,g,b] [--halo r,g,b] [--fill r,g,b] [--fill2 r,g,b]
 
 The background is cropped to a square from its centre (--focus x,y in 0-1 moves the crop)
 and scaled to 512. Colours that are not given come from the background: its average,
@@ -197,6 +197,7 @@ def main():
     ap.add_argument("--focus", default="0.5,0.5", help="the crop's centre in the background, as fractions (default 0.5,0.5)")
     ap.add_argument("--no-border", action="store_true", help="no frame round the edge")
     ap.add_argument("--tone", help="the dark tone r,g,b for the frame and outline (default: from the background)")
+    ap.add_argument("--halo", help="sans only: the halo colour r,g,b (default: a lighter shade of the background)")
     ap.add_argument("--fill", help="the text colour r,g,b (default: the style's)")
     ap.add_argument("--fill2", help="the second line's colour r,g,b (default: as the first)")
     ap.add_argument("--font", help="lora, liberation, graystroke, or a font file, instead of the style's font (the look and case stay)")
@@ -212,7 +213,7 @@ def main():
     canvas = canvas.resize((full, full), Image.LANCZOS)
     mean = tuple(int(v) for v in ImageStat.Stat(canvas).mean)
     tone = rgb(a.tone) if a.tone else scaled(mean, 0.5)
-    light = scaled(mean, 1.6)  # the halo: a lighter shade of the picture
+    light = rgb(a.halo) if a.halo else scaled(mean, 1.6)  # the halo: a lighter shade of the picture
     fill = rgb(a.fill) if a.fill else style["fill"]
     fill2 = rgb(a.fill2) if a.fill2 else fill
 

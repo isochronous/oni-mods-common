@@ -1,4 +1,3 @@
-using System.IO;
 using HarmonyLib;
 using UnityEngine;
 
@@ -46,8 +45,8 @@ namespace Isochronous.TestRunner
 	}
 
 	/// <summary>
-	/// Nothing written to disk while a run is on (no autosave, no save on quit, no colony summary)
-	/// except under the run directory, where a round-trip test may save.
+	/// No save written while a run is on (a new colony's first save, autosave, save on quit) except
+	/// under the run directory, where a round-trip test may save.
 	/// </summary>
 	[HarmonyPatch(typeof(SaveLoader), nameof(SaveLoader.Save), typeof(string), typeof(bool), typeof(bool))]
 	public static class SaveLoader_Save_Patch
@@ -56,10 +55,55 @@ namespace Isochronous.TestRunner
 		{
 			if (!Session.Active)
 				return true;
-			if (filename != null && Path.GetFullPath(filename).StartsWith(Path.GetFullPath(Session.Dir), System.StringComparison.OrdinalIgnoreCase))
+			if (Session.InRunFolder(filename))
 				return true;
 			Debug.Log(Session.Tag + "blocked a save to " + filename);
 			__result = filename;
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// No colony summary while a run is on. The game writes RetiredColonies\NAME\NAME.json in the
+	/// player's folder from every save, from its achievement checks and from the retire and victory
+	/// screens. Worldgen runs left one folder per generated colony, and a generated colony takes a
+	/// random name that one of the player's colonies may have, whose summary it would overwrite.
+	/// </summary>
+	[HarmonyPatch(typeof(RetireColonyUtility), nameof(RetireColonyUtility.SaveColonySummaryData))]
+	public static class RetireColonyUtility_SaveColonySummaryData_Patch
+	{
+		private static string lastName;
+
+		public static bool Prefix(ref bool __result)
+		{
+			if (!Session.Active)
+				return true;
+			string name = SaveGame.Instance != null ? SaveGame.Instance.BaseName : null;
+			if (name != lastName)
+				Debug.Log(Session.Tag + "skipped the colony summary of " + name);
+			lastName = name;
+			__result = false;
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// No timelapse image while a run is on. On a colony's first cycle, and every few cycles after,
+	/// the game renders each discovered asteroid to RetiredColonies\NAME\WORLD\ASTEROID_cycle_N.png in
+	/// the player's folder. The preview image the game writes next to a save goes through here too,
+	/// and is kept when that save is in the run folder.
+	/// </summary>
+	[HarmonyPatch(typeof(Timelapser), nameof(Timelapser.WriteToPng))]
+	public static class Timelapser_WriteToPng_Patch
+	{
+		public static bool Prefix(Timelapser __instance)
+		{
+			if (!Session.Active)
+				return true;
+			if (Reflect.TimelapserPreviewScreenshot?.GetValue(__instance) is bool preview && preview
+				&& Session.InRunFolder(Reflect.TimelapserPreviewSaveGamePath?.GetValue(__instance) as string))
+				return true;
+			Debug.Log(Session.Tag + "skipped a timelapse image");
 			return false;
 		}
 	}
@@ -111,13 +155,19 @@ namespace Isochronous.TestRunner
 			}
 			if (Session.Started && menuSettled)
 			{
+				if (Session.PendingNoColony)
+				{
+					Session.StartNoColonyDriver();
+					return;
+				}
 				// Back at the menu for a world: write off the tests of one that failed, or start the next.
 				if (Worldgen.Failure != null)
 				{
 					string why = Worldgen.Failure;
 					Worldgen.Failure = null;
 					Worldgen.Pending = null;
-					Session.WriteOff("fail", "the world could not be generated: " + why);
+					Worldgen.PendingTest = null;
+					Session.WriteOff("fail", why);
 					Session.Continue();
 					return;
 				}
