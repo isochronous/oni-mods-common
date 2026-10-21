@@ -33,17 +33,22 @@ of each deployed local mod, the harness and their shared configs) is handed to i
 fixture fresh and runs the tests, loading the test DLLs from their bytes, so changed tests need no
 restart (about 10 s instead of 40). Any other loadout, a rebuilt mod included, ends the running game
 and launches a new one. With no run for 15 s the game quits by itself, and a detached warden
-(`Watch-OniGame.ps1`, started with the game, through WMI so it is outside the launcher's process
-tree and survives the launcher being killed) puts the player's `mods.json` back once it has exited
-and removes the session folder, `%LOCALAPPDATA%\IsochronousOniTests\live` (the warden's log is next
-to it). `-KeepGame` launches a game of its own and keeps the old behaviour.
+(`Watch-OniGame.ps1`, started just before the game, through WMI so it is outside the launcher's
+process tree and survives the launcher being killed) puts the player's `mods.json` back once it has
+exited and removes the session folder, `%LOCALAPPDATA%\IsochronousOniTests\live` (the warden's log
+is next to it). The warden finds the game by the pid the launcher writes there, or, if the launcher
+was killed while the game was starting, as the game process that started after it; with no game
+after 150 s it restores at once. A launcher that gives up on the game itself ends its warden and
+restores on its own. `-KeepGame` launches a game of its own and keeps the old behaviour.
 
 **Mod settings are put back.** The shared config folder of each mod in `-Mods` and `-With`
 (`Documents\Klei\OxygenNotIncluded\mods\config\<name>`, PLib's folder named after the mod's assembly,
 which is its local folder name here) is backed up by the game when a run starts and put back when
 it ends, so a test may write a mod's settings (`ModConfig.cs`). The backup is kept in
-`%LOCALAPPDATA%\IsochronousOniTests\config-backup`; one left there by a game that died mid-run is put
-back by the warden when the game exits, or else by the next launcher before it starts.
+`%LOCALAPPDATA%\IsochronousOniTests\config-backup` (removed again once empty); one left there by a
+game that died mid-run is put back by the warden when the game exits, or else by the next launcher
+before it starts, and only while no game is running at all (a game whose launcher was killed may
+still be running its tests on that config).
 
 **Nothing is left in the player's folders.** A run writes no save outside its run folder (a
 generated colony's first save included), no colony summary and no timelapse image: the game writes
@@ -66,9 +71,14 @@ the run goes on: Worldgen and NoColony tests need none, and a test that does end
 says otherwise. Another mode is set in `kplayerprefs.yaml` (`EXPANSION1_ID.ENABLED`) before the game
 starts, with the player's value kept in `kplayerprefs.yaml.onitest-mode`, and put back once the game
 exits: by the warden, by the launcher when there is no warden, or by the next launcher after a run
-that died (`GameMode.ps1`). The last-save pointer `SaveFilenameKey/` in the same file, which the game
+that died, while no game is running (a running game writes the file back from memory)
+(`GameMode.ps1`). The last-save pointer `SaveFilenameKey/` in the same file, which the game
 points at a run's last test save, is kept in `kplayerprefs.yaml.onitest-savekey` and put back at the
-same places. The mode is part of the loadout, so a run in the other mode ends a live
+same places. A kept value goes back only over the run's own: the mode while the file still holds
+the mode the run set, the pointer while it still points at a test save (a file in a `runs\<run>`
+folder, or `fixture.sav`). A kept file that outlived its run (a restart mid-run) while the player
+chose another mode or saved their own colony is removed with a warning, and the player's value
+stays. The mode is part of the loadout, so a run in the other mode ends a live
 game and launches a new one. Base-game coordinates (`SNDST-A-100-0-0-0`) need `-Mode base`. The harness picks a 40x10 test area in the fixture
 world itself and clears it (objects, loose items and solid cells; Duplicants are a test's to remove) before
 the first test and after every test.
@@ -79,7 +89,7 @@ Launcher options:
 |---|---|
 | `-Filter "glob[;glob]"` | Only tests whose `Assembly/Class.Method` id or display name matches. One word, no spaces (it travels through Steam's command line); `*` and `?` wildcards. Also the only way to run an `Explicit` test. |
 | `-Fixture path.sav` | Load this save instead of the testbed, e.g. a player's colony for a bug only seen there. The save is copied into the run folder and never written back. |
-| `-With Mod1,Mod2` | Enable more local mods (folder names under `mods/local`). |
+| `-With Mod1,Mod2` | Enable more local mods (folder names under `mods/local`: letters, digits, `_` and `-`, with dots only between them, as for `-Mods`). |
 | `-Steam id1,id2` | Enable installed Workshop mods by item id, to test alongside another author's mod. An item downloaded to `mods\Steam\<id>` that the game has not registered yet (no start since the subscription) is registered for the run, with Steam's time-updated as its version. |
 | `-TimeoutSec n` | Real seconds the whole session may take (default 600). |
 | `-TestTimeoutSec n` | Default real seconds per test (default 60); `[OniTest(Timeout = n)]` overrides it. |
@@ -92,7 +102,9 @@ Launcher options:
 
 The game must not be running, other than the live session's own (the launcher refuses), and Steam
 must be. If a run or its warden is killed before the end, `mods.json.onitest-backup` holds the
-player's mod list: the next run restores it first, or copy it over `mods.json` by hand.
+player's mod list: the next run restores it first, or copy it over `mods.json` by hand. A launcher
+that finds a warden still running with no game (one whose launcher was killed while the game was
+starting) waits for it to finish before it looks for leftovers.
 
 ## Writing tests
 

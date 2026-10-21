@@ -8,7 +8,7 @@
   that died mid-run leaves the backup in %LOCALAPPDATA%\IsochronousOniTests\config-backup\NAME
   (NAME\files the folder as it was, NAME\absent when there was none). Restore-ModConfigBackup puts
   every such backup back and removes it; NAME.tmp, a backup the game did not finish, is only removed
-  (the player's folder was not yet touched).
+  (the player's folder was not yet touched). The config-backup folder goes too once it is empty.
 #>
 
 $ModConfigBackupRoot = Join-Path $env:LOCALAPPDATA 'IsochronousOniTests\config-backup'
@@ -27,6 +27,10 @@ function Restore-ModConfigBackup([string]$ConfigRoot) {
         }
         Remove-Item -LiteralPath $kept.FullName -Recurse -Force
         $restored += $kept.Name
+    }
+    # An empty backup folder is left by every run the game finished; nothing is kept in it then.
+    if (-not (Get-ChildItem -LiteralPath $ModConfigBackupRoot -Force | Select-Object -First 1)) {
+        Remove-Item -LiteralPath $ModConfigBackupRoot -Force -ErrorAction SilentlyContinue
     }
     return $restored
 }

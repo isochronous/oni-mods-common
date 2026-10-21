@@ -24,15 +24,33 @@ namespace Isochronous.TestRunner
 
 		public static string ConfigRoot => Path.Combine(KMod.Manager.GetDirectory(), "config");
 
-		/// <summary>The mod names from "A;B;C" (empty or null: none).</summary>
+		/// <summary>
+		/// The mod names from "A;B;C" (empty or null: none). A name that is not a plain folder name
+		/// (letters, digits, '_', '-', dots only between them) is left out with a warning: "..", "."
+		/// or a path would make the backup and the restore act on another folder than the mod's.
+		/// </summary>
 		public static void SetNames(string list)
 		{
 			Names.Clear();
 			if (string.IsNullOrEmpty(list))
 				return;
-			foreach (string name in list.Split(';'))
-				if (name.Trim().Length > 0 && !Names.Contains(name.Trim()))
-					Names.Add(name.Trim());
+			foreach (string raw in list.Split(';'))
+			{
+				string name = raw.Trim();
+				if (name.Length == 0 || Names.Contains(name))
+					continue;
+				if (!IsFolderName(name))
+				{
+					Debug.LogWarning(Session.Tag + "config name '" + name + "' is not a mod folder name; its config is not backed up");
+					continue;
+				}
+				Names.Add(name);
+			}
+		}
+
+		internal static bool IsFolderName(string name)
+		{
+			return System.Text.RegularExpressions.Regex.IsMatch(name, @"^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$");
 		}
 
 		/// <summary>
@@ -84,7 +102,22 @@ namespace Isochronous.TestRunner
 					problems.Add("config of " + name + " not restored (backup left at " + Path.Combine(BackupRoot, name) + "): " + e.Message);
 				}
 			}
+			RemoveEmptyRoot();
 			return problems.Count == 0 ? null : string.Join("; ", problems);
+		}
+
+		/// <summary>The backup folder goes once nothing is kept in it.</summary>
+		private static void RemoveEmptyRoot()
+		{
+			try
+			{
+				if (Directory.Exists(BackupRoot) && Directory.GetFileSystemEntries(BackupRoot).Length == 0)
+					Directory.Delete(BackupRoot, false);
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning(Session.Tag + "cannot remove the empty config backup folder " + BackupRoot + ": " + e.Message);
+			}
 		}
 
 		private static void RestoreOne(string name)

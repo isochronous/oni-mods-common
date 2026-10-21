@@ -53,8 +53,11 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 # -ModConfig entries: the mod's config folder name and the file to write there, checked before anything is touched.
 $configs = @()
 foreach ($entry in @($ModConfig | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
-    if ($entry -notmatch '^([^=\\/]+)=(.+)$') { throw "-ModConfig '$entry' is not Name=path\to\config.json" }
+    if ($entry -notmatch '^([^=]+)=(.+)$') { throw "-ModConfig '$entry' is not Name=path\to\config.json" }
     $name = $Matches[1].Trim(); $file = $Matches[2].Trim()
+    # The name is a folder under mods\config that is backed up, deleted and copied back: ".", ".." or
+    # a path would make that mods\config itself or the mods folder.
+    if ($name -notmatch '^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$') { throw "-ModConfig '$name' is not a mod folder name (letters, digits, '_' and '-', with dots only between them)" }
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "-ModConfig ${name}: file not found: $file" }
     $file = (Resolve-Path -LiteralPath $file).Path
     try { [void]([IO.File]::ReadAllText($file, $utf8) | ConvertFrom-Json) } catch { throw "-ModConfig ${name}: $file is not JSON: $_" }
@@ -142,6 +145,8 @@ function Restore-Configs {
         Remove-Item -LiteralPath $kept.FullName -Recurse -Force
         Write-Host "Restored the config of $($kept.Name)."
     }
+    # Left empty, the folder would read as a leftover backup at the next start.
+    if (-not (Get-ChildItem -LiteralPath $configBackup -Force | Select-Object -First 1)) { Remove-Item -LiteralPath $configBackup -Force }
 }
 
 # The -ModConfig files in place, before each session.

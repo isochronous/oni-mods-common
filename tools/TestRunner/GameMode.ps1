@@ -2,7 +2,8 @@
 # line at all (base game). A run that needs the other mode (Invoke-OniTests.ps1 -Mode) writes the
 # player's value to kplayerprefs.yaml.onitest-mode first, switches the line, and the player's value
 # goes back once the game has exited: by the warden (Watch-OniGame.ps1), by the launcher when it has
-# no warden, or by the next launcher when a run died before either could.
+# no warden, or by the next launcher when a run died before either could and no game is running. A
+# kept value is put back only over the run's own value, never over one the player has set since.
 
 # The file has CRLF line ends, and .NET's multiline $ stops only before \n.
 $GameModeLine = '(?m)^([ \t]*EXPANSION1_ID\.ENABLED:[ \t]*)(\d+)(?=[ \t]*\r?$)'
@@ -49,15 +50,30 @@ function Switch-GameMode([string]$Prefs, [bool]$SpacedOut) {
     return $true
 }
 
-# Puts the player's mode back if a run switched it. Returns the value restored, or nothing.
+# Puts the player's mode back if a run switched it, and only while the file still holds the mode the
+# run set: a kept value that outlived its run (a restart mid-run) must not undo a mode the player has
+# chosen since. A run switches only to the other mode, so the run's value follows from the kept one.
+# Returns nothing when no value was kept, else what happened: Action 'restored' (Value put back),
+# 'unchanged' (the file already holds it) or 'dropped' (the file holds Current, neither the kept
+# value nor the run's; the kept file is removed and the file left as it is).
 function Restore-GameMode([string]$Prefs) {
     $kept = "$Prefs.onitest-mode"
     if (-not (Test-Path -LiteralPath $kept)) { return }
     $value = (Get-Content -LiteralPath $kept -Raw).Trim()
+    $runValue = if ($value -eq '1') { '0' } else { '1' }
+    $current = Get-GameModeValue $Prefs
+    if ($current -eq $value) {
+        Remove-Item -LiteralPath $kept -Force
+        return [pscustomobject]@{ Action = 'unchanged'; Value = $value; Current = $current }
+    }
+    if ($current -ne $runValue) {
+        Remove-Item -LiteralPath $kept -Force
+        return [pscustomobject]@{ Action = 'dropped'; Value = $value; Current = $current }
+    }
     Set-GameModeValue $Prefs $value
     if ((Get-GameModeValue $Prefs) -ne $value) { throw "kplayerprefs.yaml does not hold EXPANSION1_ID.ENABLED $value after the restore; the kept value is left at $kept" }
     Remove-Item -LiteralPath $kept -Force
-    return $value
+    return [pscustomobject]@{ Action = 'restored'; Value = $value; Current = $current }
 }
 
 # --- the last-save pointer ---------------------------------------------------------------------
@@ -99,13 +115,35 @@ function Save-SaveKey([string]$Prefs) {
     [IO.File]::WriteAllText($kept, (Get-SaveKeyRaw $Prefs))
 }
 
-# Puts the player's pointer back if a run kept it. Returns true when it did.
+# Whether a SaveFilenameKey/ value points at a test save: a file in a folder of a TestRunner runs
+# folder (runs\<label>-<stamp>\...) or a run's fixture copy (fixture.sav). Harness saves never leave
+# the run folder (Patches.cs).
+function Test-TestSaveKey([string]$Raw) {
+    if (-not $Raw.StartsWith('present:')) { return $false }
+    $path = $Raw.Substring('present:'.Length).Trim()
+    return ($path -match '(?i)[\\/]runs[\\/][^\\/]+[\\/]') -or ((Split-Path $path -Leaf) -ieq 'fixture.sav')
+}
+
+# Puts the player's pointer back if a run kept it, and only while the file still holds the kept value
+# or a test save's path: a kept value that outlived its run (a restart mid-run) must not undo a
+# pointer the player's own game has written since. Returns nothing when no value was kept, else
+# Action 'restored', 'unchanged' or 'dropped' (the file holds Current, the player's; the kept file
+# is removed).
 function Restore-SaveKey([string]$Prefs) {
     $kept = "$Prefs.onitest-savekey"
-    if (-not (Test-Path -LiteralPath $kept)) { return $false }
+    if (-not (Test-Path -LiteralPath $kept)) { return }
     $raw = [IO.File]::ReadAllText($kept)
+    $current = Get-SaveKeyRaw $Prefs
+    if ($current -eq $raw) {
+        Remove-Item -LiteralPath $kept -Force
+        return [pscustomobject]@{ Action = 'unchanged'; Value = $raw; Current = $current }
+    }
+    if (-not (Test-TestSaveKey $current)) {
+        Remove-Item -LiteralPath $kept -Force
+        return [pscustomobject]@{ Action = 'dropped'; Value = $raw; Current = $current }
+    }
     Set-SaveKeyRaw $Prefs $raw
     if ((Get-SaveKeyRaw $Prefs) -ne $raw) { throw "kplayerprefs.yaml does not hold the player's SaveFilenameKey/ after the restore; the kept value is left at $kept" }
     Remove-Item -LiteralPath $kept -Force
-    return $true
+    return [pscustomobject]@{ Action = 'restored'; Value = $raw; Current = $current }
 }

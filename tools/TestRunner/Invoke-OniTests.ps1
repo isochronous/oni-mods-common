@@ -71,6 +71,11 @@ $ErrorActionPreference = 'Stop'
 $Mods = @($Mods | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $With = @($With | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $Steam = @($Steam | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+# Each name is also a folder under mods\local and mods\config that the run backs up and puts back:
+# "..", "." or a path would make that another folder.
+foreach ($name in @($Mods) + @($With)) {
+    if ($name -notmatch '^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$') { throw "'$name' is not a mod folder name (letters, digits, '_' and '-', with dots only between them)." }
+}
 
 $commonRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 # The workspace holds every mod repo and the oni-mods-common checkout; this script may be running
@@ -148,12 +153,6 @@ function Get-LiveGame {
     if (-not [int]::TryParse((Get-Content -LiteralPath $livePidFile -Raw).Trim(), [ref]$id)) { return $null }
     return Get-Process -Id $id -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -eq 'OxygenNotIncluded' }
 }
-if (-not (Get-LiveGame) -and (Test-Path -LiteralPath $liveDir)) {
-    # A live session whose game is gone and whose warden did not clear up: the leftover-backup
-    # check below restores the player's loadout.
-    Write-Warning "Stale live-session folder $liveDir (its game is gone); removing it."
-    Remove-Item -LiteralPath $liveDir -Recurse -Force
-}
 # A config backup with no game to put it back: a run that died before its end. It holds the
 # player's settings, so it goes back before anything reads or hashes the config.
 function Restore-LeftoverConfig {
@@ -165,25 +164,68 @@ function Restore-LeftoverConfig {
 # with its tree) must not take the warden with it: it is the one that puts mods.json, the config, the
 # mode and the save pointer back once the game exits. A child made with Start-Process is in the tree;
 # a process made through WMI's Win32_Process.Create has WmiPrvSE as its parent, so it is not.
+# Returns the warden's process id.
 function Start-Warden([string[]]$Arguments) {
     $pwsh = (Get-Command pwsh).Source
-    $quoted = ($Arguments | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ } }) -join ' '
+    $quoted = ($Arguments | ForEach-Object { ConvertTo-CommandLineArgument $_ }) -join ' '
     try {
         $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
-        $made = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "`"$pwsh`" $quoted"; ProcessStartupInformation = $startup }
-        if ($made.ReturnValue -eq 0) { return }
+        $made = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = "$(ConvertTo-CommandLineArgument $pwsh) $quoted"; ProcessStartupInformation = $startup }
+        if ($made.ReturnValue -eq 0) { return [int]$made.ProcessId }
         Write-Warning "WMI could not start the warden (code $($made.ReturnValue)); starting it as a child of this script."
     } catch {
         Write-Warning "WMI could not start the warden ($_); starting it as a child of this script."
     }
-    Start-Process -FilePath $pwsh -WindowStyle Hidden -ArgumentList $Arguments | Out-Null
+    return (Start-Process -FilePath $pwsh -WindowStyle Hidden -ArgumentList $quoted -PassThru).Id
 }
-if (-not (Get-LiveGame)) {
+
+# One argument as the Windows command-line parser reads it back: quoted when it holds a space, a tab
+# or a quote, or is empty; inside quotes a quote is escaped, and backslashes are doubled where they
+# come before a quote, the closing one included ("C:\dir\" would otherwise swallow it).
+function ConvertTo-CommandLineArgument([string]$Value) {
+    if ($Value -ne '' -and $Value -notmatch '[\s"]') { return $Value }
+    $escaped = [regex]::Replace($Value, '(\\*)"', [Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value * 2 + '\"' })
+    $escaped = [regex]::Replace($escaped, '(\\+)$', [Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value * 2 })
+    return '"' + $escaped + '"'
+}
+
+# The wardens running now (pwsh processes running Watch-OniGame.ps1), from any checkout of common.
+function Get-Warden {
+    return @(Get-CimInstance -ClassName Win32_Process -Filter "Name = 'pwsh.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -like '*Watch-OniGame.ps1*' })
+}
+# What Restore-GameMode and Restore-SaveKey did, said as a warning (a leftover) or a line.
+function Write-PrefsRestore($Mode, $Key, [switch]$Leftover) {
+    $say = if ($Leftover) { { param($text) Write-Warning $text } } else { { param($text) Write-Host $text } }
+    $from = if ($Leftover) { ' left by an unfinished run' } else { '' }
+    if ($Mode.Action -eq 'restored') { & $say "Put the game's mode$from back (EXPANSION1_ID.ENABLED $($Mode.Value))." }
+    elseif ($Mode.Action -eq 'dropped') { Write-Warning "A kept game mode ($($Mode.Value))$from was not put back: kplayerprefs.yaml holds $($Mode.Current), not the mode the run set, so it was chosen since." }
+    if ($Key.Action -eq 'restored') { & $say "Put the player's last-save pointer (SaveFilenameKey/)$from back." }
+    elseif ($Key.Action -eq 'dropped') {
+        $now = if ($Key.Current.StartsWith('present:')) { 'points at' + $Key.Current.Substring('present:'.Length) } else { 'has no SaveFilenameKey/ line' }
+        Write-Warning "A kept last-save pointer$from was not put back: kplayerprefs.yaml $now, not a test save, so it was changed since."
+    }
+}
+
+# --- leftovers of a run that died ----------------------------------------------------------------
+# Put back only while no game runs at all. A running game holds kplayerprefs.yaml in memory and
+# writes it back over a restore, and a game whose launcher was killed may still be running its tests
+# on the config it backed up. A warden with no game is one whose launcher was killed while the game
+# was starting, or one finishing its restore: it owns the player's files until it exits.
+if (@(Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue).Count -eq 0 -and (Get-Warden).Count -gt 0) {
+    Write-Host "$(Get-Date -Format HH:mm:ss) A test session's warden is still running with no game; waiting for it to finish."
+    $deadline = (Get-Date).AddSeconds(200)
+    while ((Get-Warden).Count -gt 0 -and @(Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue).Count -eq 0 -and (Get-Date) -lt $deadline) { Start-Sleep 1 }
+}
+if (@(Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue).Count -eq 0) {
+    if (Test-Path -LiteralPath $liveDir) {
+        # A live session whose game is gone and whose warden did not clear up: the leftover-backup
+        # checks restore the player's loadout.
+        Write-Warning "Stale live-session folder $liveDir (its game is gone); removing it."
+        Remove-Item -LiteralPath $liveDir -Recurse -Force
+    }
     Restore-LeftoverConfig
-    # A mode switched by a run that died before its restore.
-    $restoredMode = Restore-GameMode $prefs
-    if ($restoredMode) { Write-Warning "The game's mode was left switched by an unfinished run; put back EXPANSION1_ID.ENABLED $restoredMode." }
-    if (Restore-SaveKey $prefs) { Write-Warning "The last-save pointer (SaveFilenameKey/) was left on a test save by an unfinished run; put the player's back." }
+    Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs) -Leftover
 }
 
 # --- what to run -------------------------------------------------------------------------------
@@ -411,6 +453,8 @@ $launcherStatus = 'not-started'
 $loadoutKey = Get-LoadoutKey
 $submitted = $false
 $wardenStarted = $false
+$wardenPid = 0
+$proc = $null
 $requestLines = @("dir=$runDir", "save=$fixtureCopy", "filter=$Filter", "timeout=$TimeoutSec", "test-timeout=$TestTimeoutSec", "trace=$(if ($Trace) { '1' } else { '0' })", "config=$($configNames -join ';')")
 
 # --- a live game with this loadout takes the run -----------------------------------------------
@@ -470,8 +514,7 @@ if ($submitted) {
     try {
         # The mode left by a live game ended above is the player's again (its warden put it back);
         # one still switched is put back first, so the value kept below is the player's.
-        [void](Restore-GameMode $prefs)
-        [void](Restore-SaveKey $prefs)
+        Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs) -Leftover
         Save-SaveKey $prefs
         if (Switch-GameMode $prefs $spacedOut) { Write-Host "Switched the game to $(if ($spacedOut) { 'Spaced Out' } else { 'the base game' }) for this run; the player's mode goes back when it exits." }
         Set-Mods
@@ -486,18 +529,22 @@ if ($submitted) {
             $gameArgs += "--onitest-server=$liveDir"
         }
         Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Steam) { ' + Workshop ' + ($Steam -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $(if ($noFixture) { 'none' } else { $Fixture })"
+        if (-not $KeepGame) {
+            # The warden starts before the game, so a launcher killed while the game is starting
+            # still leaves one: it finds the game by the pid file or as the newest game process, and
+            # restores once the game exits (or at once if no game comes up).
+            $wardenPid = Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
+                '-PidFile', $livePidFile, '-StartTimeoutSec', '150', '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs)
+            $wardenStarted = $true
+        }
         Write-Host "Launching: $($gameArgs -join ' ')"
         Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
-        $proc = $null
         while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue | Select-Object -First 1 }
         if (-not $proc) { throw 'The game did not start within 120 s.' }
         $launcherStatus = 'exited'
         if (-not $KeepGame) {
-            [IO.File]::WriteAllText($livePidFile, "$($proc.Id)", $utf8)
             # From here the warden owns the restore: the game outlives this script.
-            Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
-                '-GamePid', "$($proc.Id)", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs)
-            $wardenStarted = $true
+            [IO.File]::WriteAllText($livePidFile, "$($proc.Id)", $utf8)
             $launcherStatus = 'live'
             while (-not (Test-Path -LiteralPath $statusFile) -and -not $proc.HasExited -and ((Get-Date) - $t0).TotalSeconds -lt ($TimeoutSec + 180)) { Start-Sleep -Milliseconds 250; $proc.Refresh() }
             if ($proc.HasExited) { $launcherStatus = 'exited' }
@@ -508,6 +555,12 @@ if ($submitted) {
         if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force }
     }
     finally {
+        if ($wardenStarted -and -not $proc) {
+            # No game came up (or this script failed before it saw one): the restore is this script's,
+            # and the warden, still waiting for a game, must not make it a second time.
+            if ($wardenPid -gt 0) { Stop-Process -Id $wardenPid -Force -ErrorAction SilentlyContinue }
+            $wardenStarted = $false
+        }
         if (-not $wardenStarted) {
             Copy-Item $backup $modsJson -Force
             # A copy keeps the backup's old date; dated now, the file shows when the loadout came back.
@@ -522,9 +575,7 @@ if ($submitted) {
             # The game puts the config back at the end of its run; one that died did not.
             if (-not (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue)) {
                 Restore-LeftoverConfig
-                $restoredMode = Restore-GameMode $prefs
-                if ($restoredMode) { Write-Host "Put the game's mode back (EXPANSION1_ID.ENABLED $restoredMode)." }
-                if (Restore-SaveKey $prefs) { Write-Host "Put the player's last-save pointer back (SaveFilenameKey/)." }
+                Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs)
             }
         } else {
             Write-Host "The game stays up $([int]15) s for another run with this loadout; its warden puts mods.json back when it exits."
