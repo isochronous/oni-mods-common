@@ -10,7 +10,9 @@ namespace Isochronous.TestRunner
 	/// of the active world, all of it revealed and buildable, with the most cells that are already
 	/// empty (not solid, no object on any layer), underground cells counting double so a cave beats
 	/// open space when one is big enough. Cleared before the first test and after every test:
-	/// every object and loose item in it destroyed (Duplicants excepted) and every solid cell turned to vacuum.
+	/// every object and loose item in it destroyed (Duplicants excepted), every building whose
+	/// placement cells touch it too (built or under construction, on a layer or not), and every
+	/// solid cell turned to vacuum.
 	/// </summary>
 	public static class FixtureArea
 	{
@@ -27,6 +29,16 @@ namespace Isochronous.TestRunner
 
 		/// <summary>The cells inside the box's walls.</summary>
 		public static CellRect Inside => new CellRect(Current.X + 1, Current.Y + 1, Current.W - 2, Current.H - 2);
+
+		/// <summary>What World.Build made, checked after each clear for anything it left standing.</summary>
+		private static readonly List<GameObject> built = new List<GameObject>();
+
+		/// <summary>Records a building World.Build made, for the check after each clear.</summary>
+		internal static void Track(GameObject go)
+		{
+			if (go != null)
+				built.Add(go);
+		}
 
 		public static CellRect Find(int w, int h)
 		{
@@ -118,6 +130,11 @@ namespace Isochronous.TestRunner
 							objects.Add(go);
 					}
 				}
+				// A building need not sit on any layer: a mod may leave a cell's slot to another owner
+				// (a bridge whose ends both went to other buildings), and then Grid.Objects never names it.
+				foreach (Building building in Object.FindObjectsByType<Building>(FindObjectsSortMode.None))
+					if (building.gameObject != keep && Touches(building, rect))
+						objects.Add(building.gameObject);
 				foreach (GameObject go in objects)
 				{
 					Util.KDestroyGameObject(go);
@@ -179,6 +196,43 @@ namespace Isochronous.TestRunner
 			yield return null;
 			if (destroyed > 0 || replaced > 0)
 				Debug.Log(Session.Tag + "cleared " + rect + ": " + destroyed + " object(s) destroyed, " + replaced + " solid cell(s) replaced");
+			WarnStanding(rect, keep);
+		}
+
+		/// <summary>True when one of the building's placement cells is in the rectangle.</summary>
+		private static bool Touches(Building building, CellRect rect)
+		{
+			int[] cells = building.PlacementCells;
+			if (cells == null)
+				return rect.Contains(Grid.PosToCell(building));
+			foreach (int cell in cells)
+				if (rect.Contains(cell))
+					return true;
+			return false;
+		}
+
+		/// <summary>A warning naming what World.Build made in the rectangle that the clear left standing.</summary>
+		private static void WarnStanding(CellRect rect, GameObject keep)
+		{
+			try
+			{
+				built.RemoveAll(go => go == null);
+				var standing = new List<string>();
+				foreach (GameObject go in built)
+				{
+					if (go == keep)
+						continue;
+					Building building = go.GetComponent<Building>();
+					if (building != null ? Touches(building, rect) : rect.Contains(Grid.PosToCell(go)))
+						standing.Add(go.name + " at " + Cells.Describe(Grid.PosToCell(go)));
+				}
+				if (standing.Count > 0)
+					Debug.LogWarning(Session.Tag + "still standing in " + rect + " after the clear: " + string.Join("; ", standing));
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogWarning(Session.Tag + "checking " + rect + " after the clear threw: " + e);
+			}
 		}
 
 		/// <summary>The solid cells of the rectangle, with their element, mass and what is built there, for the log.</summary>

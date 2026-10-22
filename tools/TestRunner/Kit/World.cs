@@ -34,6 +34,7 @@ namespace Isochronous.TestKit
 				throw new OniAssertException("cannot place " + prefabId + " at " + Cells.Describe(cell) + ": " + reason);
 			float temperature = Mathf.Min(def.Temperature, ElementLoader.GetMinMeltingPointAmongElements(elements) - 10f);
 			GameObject go = def.Build(cell, orientation, null, elements, temperature, playsound: false, timeBuilt: GameClock.Instance.GetTime());
+			Isochronous.TestRunner.FixtureArea.Track(go);
 			t.Log("built " + prefabId + " at " + Cells.Describe(cell) + (orientation != Orientation.Neutral ? " rotated " + orientation : ""));
 			return go;
 		}

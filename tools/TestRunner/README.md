@@ -81,7 +81,9 @@ chose another mode or saved their own colony is removed with a warning, and the 
 stays. The mode is part of the loadout, so a run in the other mode ends a live
 game and launches a new one. Base-game coordinates (`SNDST-A-100-0-0-0`) need `-Mode base`. The harness picks a 40x10 test area in the fixture
 world itself and clears it (objects, loose items and solid cells; Duplicants are a test's to remove) before
-the first test and after every test.
+the first test and after every test. A building whose cells touch the area goes too, built or under
+construction, even when it sits on no object layer. Anything `t.World.Build` made in the area that
+is still standing after a clear is named in a warning in the log.
 
 Launcher options:
 
