@@ -82,8 +82,9 @@ TestRunner runs a mod's in-game tests in the real game with nobody at the keyboa
 
 ### FixtureArea
 **Id:** blk-633dd6387bca  
-**Tags:** test-cleanup  
-**Description**: the 40 by 10 rectangle of the active world that tests build in: fully revealed and buildable, with the most empty cells (cells underground count double). Cleared before the first test and after every test (objects, loose items, solid cells; Duplicants are the test's to remove). `Dupes.Box` walls it for Duplicant tests.  
+**Tags:** test-cleanup
+
+**Description**: the 40 by 10 rectangle of the active world that tests build in: fully revealed and buildable, with the most empty cells (cells underground count double). Cleared before the first test and after every test (objects, loose items, solid cells; Duplicants are the test's to remove). The clear takes what `Grid.Objects` names in the rectangle and also every building, complete or under construction, whose placement cells touch it, since a mod may leave a building on no object layer; build-tool previews and the box's life support are kept. After the clear it logs a warning naming anything `World.Build` built there that is still standing. `Dupes.Box` walls it for Duplicant tests.  
 **Location**: `FixtureArea.cs`
 
 ### Worldgen and GeneratedWorld
