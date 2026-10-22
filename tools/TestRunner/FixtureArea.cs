@@ -132,9 +132,21 @@ namespace Isochronous.TestRunner
 				}
 				// A building need not sit on any layer: a mod may leave a cell's slot to another owner
 				// (a bridge whose ends both went to other buildings), and then Grid.Objects never names it.
+				// Build-tool previews are Buildings too, and belong to the tool.
 				foreach (Building building in Object.FindObjectsByType<Building>(FindObjectsSortMode.None))
-					if (building.gameObject != keep && Touches(building, rect))
-						objects.Add(building.gameObject);
+				{
+					if (building is BuildingPreview || building.gameObject == keep)
+						continue;
+					try
+					{
+						if (Touches(building, rect))
+							objects.Add(building.gameObject);
+					}
+					catch (System.Exception e)
+					{
+						Debug.LogWarning(Session.Tag + "clearing " + rect + ": skipped " + building.name + ", whose cells threw: " + e.Message);
+					}
+				}
 				foreach (GameObject go in objects)
 				{
 					Util.KDestroyGameObject(go);
@@ -202,10 +214,7 @@ namespace Isochronous.TestRunner
 		/// <summary>True when one of the building's placement cells is in the rectangle.</summary>
 		private static bool Touches(Building building, CellRect rect)
 		{
-			int[] cells = building.PlacementCells;
-			if (cells == null)
-				return rect.Contains(Grid.PosToCell(building));
-			foreach (int cell in cells)
+			foreach (int cell in building.PlacementCells)
 				if (rect.Contains(cell))
 					return true;
 			return false;
