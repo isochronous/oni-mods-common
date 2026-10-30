@@ -33,6 +33,11 @@ namespace Isochronous.TestRunner
 		/// <summary>ColonyDestinationSelectScreen.QualitySettingChanged: the handler its OnCleanUp leaves on CustomGameSettings.OnMixingSettingChanged.</summary>
 		public static readonly MethodInfo DestinationQualitySettingChanged = AccessTools.Method(typeof(ColonyDestinationSelectScreen), "QualitySettingChanged");
 
+		/// <summary>SymbolInstanceGpuData.symbolInstancesConverter: the per-symbol visibility, scale and tint; the class has no tint getter.</summary>
+		public static readonly FieldInfo SymbolInstanceGpuDataConverter = AccessTools.Field(typeof(SymbolInstanceGpuData), "symbolInstancesConverter");
+		/// <summary>DetailsScreen.sideScreens: every side screen with the instance the details screen made of it.</summary>
+		public static readonly FieldInfo DetailsScreenSideScreens = AccessTools.Field(typeof(DetailsScreen), "sideScreens");
+
 		/// <summary>The names that did not resolve; empty when the game still has every member.</summary>
 		public static List<string> SelfCheck()
 		{
@@ -48,6 +53,8 @@ namespace Isochronous.TestRunner
 			if (TimelapserPreviewScreenshot == null) missing.Add("Timelapser.previewScreenshot");
 			if (TimelapserPreviewSaveGamePath == null) missing.Add("Timelapser.previewSaveGamePath");
 			if (DestinationQualitySettingChanged == null) missing.Add("ColonyDestinationSelectScreen.QualitySettingChanged");
+			if (SymbolInstanceGpuDataConverter == null) missing.Add("SymbolInstanceGpuData.symbolInstancesConverter");
+			if (DetailsScreenSideScreens == null) missing.Add("DetailsScreen.sideScreens");
 			return missing;
 		}
 
