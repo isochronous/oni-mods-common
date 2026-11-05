@@ -5,10 +5,12 @@
 # started by hand is never taken for the test game. With -Id, that process if it is the game. With
 # -Any, every OniMoono counts: the checks for an open game, before a launch or a restore, use it, so a
 # Moono game the player started blocks a run as an open OxygenNotIncluded does.
+# The other launchers in tools/ dot-source this file too and pass their own arguments' prefix as
+# -Marker (SaveRunner --saverun, WorldgenDriver --worldgen-).
 # The OniMoono pids whose command line could not be read, each warned about once (the wait loops
 # call this every few hundred milliseconds).
 $GameProcessUnread = @{}
-function Get-GameProcess([int]$Id = 0, [switch]$Any) {
+function Get-GameProcess([int]$Id = 0, [switch]$Any, [string]$Marker = '--onitest-') {
     $candidates = if ($Id -gt 0) {
         @(Get-Process -Id $Id -ErrorAction SilentlyContinue)
     } else {
@@ -21,7 +23,7 @@ function Get-GameProcess([int]$Id = 0, [switch]$Any) {
             $p
         } elseif ($p.ProcessName -eq 'OniMoono') {
             $line = (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($p.Id)" -ErrorAction SilentlyContinue).CommandLine
-            if ($line -like '*--onitest-*') { $p }
+            if ($line -like "*$Marker*") { $p }
             elseif (-not $line -and -not $p.HasExited -and -not $GameProcessUnread.ContainsKey($p.Id)) {
                 $GameProcessUnread[$p.Id] = $true
                 Write-Warning "Cannot read the command line of OniMoono process $($p.Id); it is not taken for the test game."

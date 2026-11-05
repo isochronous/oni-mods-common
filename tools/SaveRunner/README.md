@@ -10,7 +10,7 @@ Use it to reproduce an in-game observation from a player's save ("food in the Fr
 dotnet build tools/SaveRunner -c Release
 ```
 
-deploys the mod to `Documents\Klei\OxygenNotIncluded\mods\local\SaveRunner`. Steam must be running and logged in; the launcher starts the game through `steam.exe -applaunch 457140`, which passes the arguments through.
+deploys the mod to `Documents\Klei\OxygenNotIncluded\mods\local\SaveRunner`. Steam must be running and logged in; the launcher starts the game through `steam.exe -applaunch 457140`, which passes the arguments through. With oni-moono's launch options the game runs as `OniMoono` instead of `OxygenNotIncluded`; the launcher follows an `OniMoono` whose command line holds the `--saverun` arguments, and refuses to start while any `OxygenNotIncluded` or `OniMoono` is open (`tools/TestRunner/GameProcess.ps1`).
 
 ## Running
 

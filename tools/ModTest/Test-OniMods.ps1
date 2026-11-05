@@ -71,9 +71,13 @@ if (Test-Path -LiteralPath $includedFile) {
 # --- self-contained helpers -------------------------------------------------------------------
 $OniAppId    = 457140
 $ProfileLink = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Klei\OxygenNotIncluded'
+# Get-GameProcess -Any: OxygenNotIncluded or any OniMoono (oni-moono's launch options). This script
+# launches through steam:// with no arguments of its own, so the game it started is the one that
+# starts after the launch: none may be open before it.
+. (Join-Path $PSScriptRoot '..\TestRunner\GameProcess.ps1')
 
 function Test-OniRunning {
-    return [bool](Get-Process -Name 'OxygenNotIncluded', 'Restarter' -ErrorAction SilentlyContinue)
+    return [bool]((Get-GameProcess -Any) -or (Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue))
 }
 
 function Assert-OniNotRunning {
@@ -254,7 +258,7 @@ try {
     $deadline = (Get-Date).AddSeconds(180)
     while (-not $game -and (Get-Date) -lt $deadline) {
         Start-Sleep 2
-        $game = Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Select-Object -First 1
+        $game = Get-GameProcess -Any | Where-Object { $_.StartTime -ge $started } | Select-Object -First 1
     }
     if (-not $game) { throw 'The game did not start within 3 minutes.' }
     Write-Host 'Game running; waiting for it to exit...'
@@ -272,7 +276,7 @@ try {
         $deadline = (Get-Date).AddSeconds(60)
         while (-not $game -and (Get-Date) -lt $deadline) {
             Start-Sleep 1
-            $game = Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -gt $exited } | Select-Object -First 1
+            $game = Get-GameProcess -Any | Where-Object { $_.StartTime -gt $exited } | Select-Object -First 1
         }
         if (-not $game) { break }
     }
