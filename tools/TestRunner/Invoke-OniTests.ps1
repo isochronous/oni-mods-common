@@ -91,6 +91,7 @@ $configRoot = Join-Path $klei 'mods\config'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 . (Join-Path $PSScriptRoot 'ModConfig.ps1')
 . (Join-Path $PSScriptRoot 'GameMode.ps1')
+. (Join-Path $PSScriptRoot 'GameProcess.ps1')
 # PLib names a mod's shared config folder after its assembly, which is the local folder name here.
 $configNames = @($Mods + $With | Select-Object -Unique)
 
@@ -151,7 +152,7 @@ function Get-LiveGame {
     if (-not (Test-Path -LiteralPath $livePidFile)) { return $null }
     $id = 0
     if (-not [int]::TryParse((Get-Content -LiteralPath $livePidFile -Raw).Trim(), [ref]$id)) { return $null }
-    return Get-Process -Id $id -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -eq 'OxygenNotIncluded' }
+    return Get-GameProcess -Id $id
 }
 # A config backup with no game to put it back: a run that died before its end. It holds the
 # player's settings, so it goes back before anything reads or hashes the config.
@@ -212,12 +213,12 @@ function Write-PrefsRestore($Mode, $Key, [switch]$Leftover) {
 # writes it back over a restore, and a game whose launcher was killed may still be running its tests
 # on the config it backed up. A warden with no game is one whose launcher was killed while the game
 # was starting, or one finishing its restore: it owns the player's files until it exits.
-if (@(Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue).Count -eq 0 -and (Get-Warden).Count -gt 0) {
+if (@(Get-GameProcess).Count -eq 0 -and (Get-Warden).Count -gt 0) {
     Write-Host "$(Get-Date -Format HH:mm:ss) A test session's warden is still running with no game; waiting for it to finish."
     $deadline = (Get-Date).AddSeconds(200)
-    while ((Get-Warden).Count -gt 0 -and @(Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue).Count -eq 0 -and (Get-Date) -lt $deadline) { Start-Sleep 1 }
+    while ((Get-Warden).Count -gt 0 -and @(Get-GameProcess).Count -eq 0 -and (Get-Date) -lt $deadline) { Start-Sleep 1 }
 }
-if (@(Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue).Count -eq 0) {
+if (@(Get-GameProcess).Count -eq 0) {
     if (Test-Path -LiteralPath $liveDir) {
         # A live session whose game is gone and whose warden did not clear up: the leftover-backup
         # checks restore the player's loadout.
@@ -229,7 +230,7 @@ if (@(Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue).Count -eq 0) 
 }
 
 # --- what to run -------------------------------------------------------------------------------
-$running = Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue
+$running = Get-GameProcess
 $live = Get-LiveGame
 if (-not $BuildOnly -and $running -and -not ($live -and @($running).Count -eq 1 -and @($running)[0].Id -eq $live.Id)) { throw 'The game is already running; close it first.' }
 if (-not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
@@ -539,7 +540,7 @@ if ($submitted) {
         }
         Write-Host "Launching: $($gameArgs -join ' ')"
         Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
-        while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue | Select-Object -First 1 }
+        while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess | Select-Object -First 1 }
         if (-not $proc) { throw 'The game did not start within 120 s.' }
         $launcherStatus = 'exited'
         if (-not $KeepGame) {
@@ -573,7 +574,7 @@ if ($submitted) {
             }
             if (Test-Path -LiteralPath $liveDir) { Remove-Item -LiteralPath $liveDir -Recurse -Force -ErrorAction SilentlyContinue }
             # The game puts the config back at the end of its run; one that died did not.
-            if (-not (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue)) {
+            if (-not (Get-GameProcess)) {
                 Restore-LeftoverConfig
                 Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs)
             }

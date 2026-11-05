@@ -8,9 +8,10 @@
 
   The launcher starts it before it starts the game, with no -GamePid: the warden then waits up to
   -StartTimeoutSec for the game, by the pid the launcher writes to -PidFile or, if the launcher was
-  killed before it could, by an OxygenNotIncluded process started after the warden (whose pid it then
-  writes there itself). No game in that time: it restores at once. A launcher that gave up on the
-  game itself ends the warden and restores on its own.
+  killed before it could, by a game process started after the warden (OxygenNotIncluded, or OniMoono
+  with the --onitest- arguments; GameProcess.ps1), whose pid it then writes there itself. No game in
+  that time: it restores at once. A launcher that gave up on the game itself ends the warden and
+  restores on its own.
 
   The game ends a live session itself (no run for 15 s, or a quit request). If it stops answering,
   the warden ends it: idle in its state file for over a minute, or busy past its own deadline plus
@@ -29,20 +30,21 @@ param(
 $ErrorActionPreference = 'Continue'
 . (Join-Path $PSScriptRoot 'ModConfig.ps1')
 . (Join-Path $PSScriptRoot 'GameMode.ps1')
+. (Join-Path $PSScriptRoot 'GameProcess.ps1')
 $log = Join-Path (Split-Path $LiveDir -Parent) 'warden.log'
 function Write-Log([string]$line) { Add-Content -LiteralPath $log -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$GamePid] $line" }
 
-# A game started by the launcher: the pid it wrote, else an OxygenNotIncluded process younger than
-# this warden (the launcher found no game running before it started one).
+# A game started by the launcher: the pid it wrote, else a game process younger than this warden
+# (the launcher found no game running before it started one).
 function Find-Game([datetime]$Since) {
     if ($PidFile -and (Test-Path -LiteralPath $PidFile)) {
         $id = 0
         if ([int]::TryParse(((Get-Content -LiteralPath $PidFile -Raw -ErrorAction SilentlyContinue) + '').Trim(), [ref]$id)) {
-            $p = Get-Process -Id $id -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -eq 'OxygenNotIncluded' }
+            $p = Get-GameProcess -Id $id
             if ($p) { return $p }
         }
     }
-    return Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -ge $Since } | Select-Object -First 1
+    return Get-GameProcess | Where-Object { $_.StartTime -ge $Since } | Select-Object -First 1
 }
 
 if ($GamePid -gt 0) {
