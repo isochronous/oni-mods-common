@@ -193,3 +193,33 @@ after cleanup: 0
 
 A `sed -i` run under Git Bash changed the line ends of Invoke-OniTests.ps1 from CRLF to LF. I put
 CRLF back, and the diff is 10 lines.
+
+## Review fixes
+
+These address minors 1 and 2 of 02-review-report.md. Nothing is committed.
+
+1. **`GameProcess.ps1`: an unreadable command line now gets a warning.** Before, an `OniMoono`
+   process whose command line could not be read was dropped without a word.
+   - Now `Write-Warning` says "Cannot read the command line of OniMoono process <pid>; it is not
+     taken for the test game."
+   - It warns once per pid. A script-scope `$GameProcessUnread` hashtable, set up when the file is
+     dot-sourced, records each pid already warned about, so the polling loops do not repeat it.
+   - It does not warn for a process that has already exited.
+   - Under the warden, which is a hidden pwsh started through WMI, the warning reaches no console.
+     The warden does not route it to `warden.log`; I left that as is.
+   - I did not exercise the warning itself, because I could not make WMI fail to return a command
+     line on demand.
+2. **README.md :41-46: rewrapped to the paragraph's width.** The new sentence now reads "A Moono
+   session started by hand still counts as an open game and blocks a run."
+
+Minor 3 (code-style.md): I did not edit it. The text I would add, for the coordinator to write:
+- Layout table, a new row: `ModConfig.ps1`, `GameMode.ps1`, `GameProcess.ps1` | helpers
+  dot-sourced by `Invoke-OniTests.ps1` and `Watch-OniGame.ps1`: mod config backups, the game mode
+  and save pointer, and finding the game process.
+- Indentation: "Four spaces in every `.ps1` in the tool."
+
+Checks after the fixes:
+- All 3 scripts parse with 0 errors.
+- With no game running, `Get-GameProcess` returns 0 processes and `-Any` returns 0.
+- CRLF line ends are kept.
+- `git diff --stat -- tools`: GameProcess.ps1 7 lines added, README.md 5 lines changed.
