@@ -193,3 +193,47 @@ Line ends stay CRLF in all four `.ps1` files and the READMEs. `git diff --stat` 
 ## Tooling friction
 
 None with ICON.
+
+## Review fixes
+
+These fix findings 1 and 3 of 02-review-report.md, on top of 326871b. Nothing is committed.
+
+1. **The ModTest restart wait now follows the restarted game by id and start time,
+   `tools/ModTest/Test-OniMods.ps1`.**
+   - **:266-269**: at the top of the follow loop, before it waits for the exit, the script records
+     `$oldId = $game.Id; $oldStart = $game.StartTime`. The values are read while the game runs
+     because `StartTime` can throw on a process that has exited. A three-line comment says why.
+   - **:283**: the wait now finds `Get-GameProcess -Any | Where-Object { $_.Id -ne $oldId -and $_.StartTime -ge $oldStart } | Select-Object -First 1`.
+     The old filter was `StartTime -gt $exited`. `$exited` stays in use, but only for the
+     "Game exited at" line.
+2. **The `tools/TestRunner/GameProcess.ps1` comments now say the file is for every tool.**
+   - **:1-3**: the file finds the process of the game a tool launched. It is used by TestRunner's
+     launcher and warden, SaveRunner, WorldgenDriver and ModTest, each telling its game by its
+     `-Marker`. ModTest, which launches with no arguments, uses `-Any` and the start time instead.
+   - **:6-7**: the `-Marker` arguments default to TestRunner's `--onitest-`, and a session started
+     by hand is never taken for "the launched game".
+   - **:8-10**: rewrapped, wording unchanged.
+   - **:31**: the warning now ends "it is not taken for the launched game". It said "test game".
+     This is the only text TestRunner prints differently.
+
+Findings 2 (store records), 4 and 5 are left as the coordinator asked.
+
+**Verification (no game):**
+- **Parse check**: 0 errors in all six scripts, re-run after the final comment edit.
+- **`om013-verify.ps1` cases**: every earlier case gave the same result as before. The script
+  gained two restart-wait cases, run against the code edit (the later edits only changed comments):
+
+  ```
+  restart wait (started before old exit): old HasExited True; found 37704   expect 37704; old -gt exitedSeen filter would find: 0
+  restart wait (started after old exit): found 65544   expect 65544
+  ```
+
+  The first case is a Klei-style restart: the new process starts before the old one exits, and the
+  old `-gt $exited` filter misses it (0 found), which is the review's race. The second is a
+  Moono-style restart, where the new process starts right after the exit.
+- **OM-012's TestRunner stand-in script**: every case passes, unchanged.
+- **Line ends**: CRLF is kept.
+- **`git diff --stat`**: Test-OniMods.ps1 6 lines, GameProcess.ps1 15.
+
+The in-game ModTest check should include one mod-change restart under Moono. It should show
+"following it...", and "Restored the normal loadout" only after the restarted game exits.
