@@ -1,3 +1,11 @@
+### OM-013: SaveRunner, WorldgenDriver and ModTest follow a game started through oni-moono
+**Id:** blk-062fcdde7835
+
+- **Avoid**: Copying a proof command into a test spec without reading the tool's parameters: the SaveRunner check had no -Probe, so its 'probe rows > 0' proof could never pass. Also: SaveRunner on Moono ran game time at about 1/100 speed (first update logs time scale 0), cause unknown; it was left for Jeremy instead of chasing it unattended.
+- **Repeat**: Reusing one helper with a marker parameter instead of a copy per tool, proven by stand-in processes per marker plus the earlier tool's stand-in script run unchanged. An unattended run spec with hard stop rules (one run per tool, hash mods.json before and after, stop on an unnamed failure) ran clean while Jeremy slept.
+- **Updated**: standards/code-style.md in tools/TestRunner (GameProcess.ps1 row: -Marker, shared with the other tools), tools/SaveRunner (Layout: Invoke-SaveRun.ps1 uses Get-GameProcess -Marker '--saverun') and tools/WorldgenDriver (Imports/Includes: Get-GameProcess -Marker '--worldgen-'). In the parent store, testing/integration-testing.md 'Launching with oni-moono' drops the caveat that the other tools need the launch options cleared.
+
+
 ### OM-012: TestRunner follows a game started through oni-moono
 **Id:** blk-aa6fccf8d4a0
 

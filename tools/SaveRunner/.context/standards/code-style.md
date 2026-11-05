@@ -52,7 +52,7 @@ One concern per file, all in the node root:
 | `Runner.cs` | `Runner`: static command-line state, `ReadCommandLine`, `Finish` |
 | `Patches.cs` | the Harmony patch classes |
 | `RunBehaviour.cs` | `RunBehaviour` (the per-frame driver) and `FridgeProbe` (the only probe) |
-| `Invoke-SaveRun.ps1` | the launcher |
+| `Invoke-SaveRun.ps1` | the launcher; dot-sources `../TestRunner/GameProcess.ps1` for `Get-GameProcess -Marker '--saverun'` (the game is `OxygenNotIncluded`, or an oni-moono `OniMoono` started with the `--saverun` arguments; `-Any` for the open-game refusal) |
 
 A new probe is a static class beside `FridgeProbe` with a `Sample(int t, StreamWriter writer, bool toLog)` method, a branch in `RunBehaviour.Begin` for its CSV header and one in `RunBehaviour.Sample`, and an entry in the launcher's `-Probe` `ValidateSet`.
 

@@ -57,7 +57,7 @@ applies_to:
 | `Diagnostics.cs` | opt-in grid-mark tracing |
 | `Kit/` | the test kit |
 | `Invoke-OniTests.ps1`, `Watch-OniGame.ps1` | launcher and warden |
-| `ModConfig.ps1`, `GameMode.ps1`, `GameProcess.ps1` | helpers dot-sourced by the launcher and warden: mod config backups, the game mode and save pointer, and finding the game process (`Get-GameProcess`: `OxygenNotIncluded`, or an oni-moono `OniMoono` started with `--onitest-` arguments; `-Any` counts every `OniMoono`, for the checks that refuse a run while a game is open) |
+| `ModConfig.ps1`, `GameMode.ps1`, `GameProcess.ps1` | helpers dot-sourced by the launcher and warden: mod config backups, the game mode and save pointer, and finding the game process (`Get-GameProcess`: `OxygenNotIncluded`, or an oni-moono `OniMoono` whose command line holds `-Marker`, default `--onitest-`; `-Any` counts every `OniMoono`, for the checks that refuse a launch while a game is open). SaveRunner, WorldgenDriver and ModTest dot-source `GameProcess.ps1` from here too, by a path relative to their own folder |
 | `fixtures/` | fixture saves and their README |
 
 ## Inert Without the Argument

@@ -5,10 +5,10 @@
 
 ## Phase State
 - **Phase plan**: implementation → testing → completion
-- **Completed**: (none)
-- **Current**: implementation   (status: in-progress)
-- **Next**: testing
-- **Loaded skill**: task-plan-phase-implementation
+- **Completed**: implementation, testing, completion
+- **Current**: completion   (status: done)
+- **Next**: none — task complete
+- **Loaded skill**: task-plan-phase-completion
 - **Branch**: OM-013-onimoono-other-tools
 - **Attempts (current phase)**: 1
 
@@ -26,14 +26,23 @@
 ## Phase Handoff Log
 
 ## Progress
-- [ ] Implement in the three tools ← IN PROGRESS
-- [ ] Review
-- [ ] In-game check through Moono — ask Jeremy (one run per tool, narrowest)
-- [ ] Store: each tool's code-style/README records; parent note "Launching with oni-moono" drops the caveat
-- [ ] Completion: retro, commit, push onto PR #8's branch (one PR per repo), parent pointer bump onto PR #15's branch
+- [x] Implement (units/01-implement-report.md, 326871b): Get-GameProcess -Marker (default `--onitest-`); SaveRunner `--saverun`, WorldgenDriver `--worldgen-`; ModTest (no launch args) follows the first game started after launch; any OniMoono refuses a launch; READMEs. Kanim/Translations use the name only as a path, unchanged. Parse 0 errors; stand-ins pass, TestRunner's unchanged.
+- [x] Review (units/02-review-report.md): moderate ModTest restart race fixed (78f9ef3: follow by old Id + StartTime); helper comments generalised. Left: WorldgenDriver no open-game check before sessions 2..n (pre-existing); ModTest own launch argument (out of scope).
+- [x] In-game through Moono, unattended with Jeremy's approval (units/03-test-report.md): WorldgenDriver passed (session 1 exited: 1 result, complete; mods.json/kplayerprefs/config hashes restored; no processes left). SaveRunner followed OniMoono from 2 s to its exit at 968 s and restored mods.json, but game time ran at ~1/100 speed and the run timed out at 900 s (9 of 10 game seconds; spec omitted -Probe, so 0 rows was expected). Cause unknown; not rerun. ModTest not run (needs the game quit by hand).
+- [x] Store: code-style.md in tools/TestRunner, SaveRunner, WorldgenDriver; retro in common retrospectives/icon.md; parent testing/integration-testing.md "Launching with oni-moono"; `ks check` 0 block in both stores.
+- [x] Completion: commits pushed onto PR #8's branch; parent pointer bump onto PR #15's branch
 
 ## Open Questions / Blockers
-- What launch arguments each tool passes (needed for the command-line filter).
+- Resolved: markers `--saverun`, `--worldgen-`; ModTest passes none.
+- For Jeremy: SaveRunner on Moono runs game time at ~1/100 (first update logs `time scale 0`). Next step proposed in units/03-test-report.md: a once-per-10-s log of Time.timeScale, SpeedControlScreen.IsPaused and the deltaTime sum, then the same 10 s run on plain OxygenNotIncluded to see whether it is Moono's.
+- For Jeremy: ModTest's Moono path needs one in-game check with the game quit by hand (`Test-OniMods.ps1 -NoLocal`), ideally with one mod-change restart.
+- The SaveRunner leftover restore removed an empty worldgen-driver\config-backup folder dated 2026-10-20 (documented behaviour).
+
+## Completion Summary
+**Accomplished:** SaveRunner, WorldgenDriver and ModTest find the game they launched when it runs through oni-moono, through TestRunner's shared Get-GameProcess.
+**Files changed:** tools/TestRunner/GameProcess.ps1, tools/SaveRunner/Invoke-SaveRun.ps1, tools/WorldgenDriver/Invoke-Worldgen.ps1, tools/ModTest/Test-OniMods.ps1, their READMEs; three code-style records here, one note in the parent.
+**Tests:** stand-in process checks; WorldgenDriver passed in game on Moono; SaveRunner followed the game but timed out on slow game time; ModTest unchecked in game.
+**Follow-up work:** see Open Questions.
 
 ## Constraints
 - Never foreground or poll the game window. Never edit Steam settings.
