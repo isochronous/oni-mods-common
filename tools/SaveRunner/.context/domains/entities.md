@@ -43,6 +43,7 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 ### Patches
 **Id:** blk-4905afd4b039  
 **Tags:** harmony-patching, activation-guard, watchdog, save-files  
+
 **Description**: the Harmony patches, each a no-op unless `Runner.Active`.  
 **Location**: `Patches.cs`
 
@@ -52,13 +53,16 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 | `App_LateUpdate_Patch` | `App.LateUpdate` | four seconds after the menu: checks the file exists and calls `LoadScreen.DoLoad(path)`; also the real-time timeout watchdog |
 | `Game_OnSpawn_Patch` | `Game.OnSpawn` | adds `RunBehaviour` to the Game object once the colony is up |
 | `SaveLoader_Save_Patch` | `SaveLoader.Save(string, bool, bool)` | skips the save and returns the filename |
+| `Manager_MatchFootprint_Patch` | `KMod.Manager.MatchFootprint` | reports a match, so no "mod differences" dialog (it pauses the game) |
+| `Manager_Report_Patch` | `KMod.Manager.Report` | logs the mod events under the runner tag and clears them, so no "mod events" dialog |
+| `GameFlowManager_CheckForGameOver_Patch` | `GameFlowManager.StatesInstance.CheckForGameOver` | skips the check, so a save with no Duplicants (the TestRunner fixtures) never shows the "colony lost" screen, which pauses the game |
 | `App_Quit_Patch` | `App.Quit` | logs who quit, with a stack when it was not the runner |
 
 ### RunBehaviour
 **Id:** blk-1f9288a97c7a  
 **Tags:** probe  
 
-**Description**: a `MonoBehaviour` on the Game object for one run. Unpauses and sets the speed on its first update, and unpauses again (with a log line) whenever the game is paused during the run, since loading pauses the game and later pauses (a modal screen, an alarm, an event sequence) would hold the run until the timeout. Accumulates scaled frame time as game seconds, samples the probe once per game second, ends the run at `Runner.Seconds`.  
+**Description**: a `MonoBehaviour` on the Game object for one run. Unpauses and sets the speed on its first update (a loaded save starts paused), and unpauses again with a log line whenever the game is paused during the run, so a modal screen, an alarm or an event sequence cannot hold the run until the timeout. Accumulates scaled frame time as game seconds, samples the probe once per game second, ends the run at `Runner.Seconds`.  
 **Location**: `RunBehaviour.cs`  
 **Relationships**: owns the CSV `StreamWriter`; calls `FridgeProbe.Sample`; ends through `Runner.Finish`.
 
