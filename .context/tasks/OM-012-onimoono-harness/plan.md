@@ -5,10 +5,10 @@
 
 ## Phase State
 - **Phase plan**: implementation → testing → completion
-- **Completed**: (none)
-- **Current**: implementation   (status: in-progress)
-- **Next**: testing
-- **Loaded skill**: task-plan-phase-implementation
+- **Completed**: implementation, testing, completion
+- **Current**: completion   (status: done)
+- **Next**: none — task complete
+- **Loaded skill**: task-plan-phase-completion
 - **Branch**: OM-012-onimoono-harness
 - **Attempts (current phase)**: 1
 
@@ -27,14 +27,21 @@
 
 ## Progress
 - [x] Implement the helper and use it at every call site — units/01-implement-report.md, commit 389e3ad; parse 0 errors; stand-in process checks pass
-- [ ] Any OniMoono blocks the "game already running" checks (:216/:221/:233) ← IN PROGRESS
-- [ ] Review
-- [ ] One in-game run through Moono (FridgeThresholdsExtended suite, the one that exposed it) — ask Jeremy first
-- [ ] Update parent store note "Launching with oni-moono", bump the submodule pointer
-- [ ] Completion: retro, commit, PRs (oni-mods-common; parent ONI-Mods via PR #15's branch stack)
+- [x] Any OniMoono blocks the "game already running" checks — `Get-GameProcess -Any` at :216 :219 :221 :233 :577 (7f34780)
+- [x] Review (units/02-review-report.md): approved, no critical/moderate. Minors fixed (1d45792): one warning per unreadable OniMoono pid (warning path not exercised: WMI could not be made to fail), README rewrap. code-style.md gap landed through the write path.
+- [x] One in-game run through Moono (units/03-test-report.md, run-20261104-211549): launcher found the game, exit 0, 5/5; Player.log line 1 "Moono starting ... commit=07cbcfc" and copied to the run folder; warden logged "game exited" and restored mods.json at 21:17:15 when OniMoono quit (hash = mods.json.real = pre-run); no process left.
+- [x] Store: tools/TestRunner standards/code-style.md (Layout, Indentation); retro in common retrospectives/icon.md; parent testing/integration-testing.md "Launching with oni-moono" rewritten; `ks check` 0 block in both stores.
+- [x] Completion: commit, PR in oni-mods-common; parent pointer bump on the ONI-Mods branch
 
 ## Open Questions / Blockers
-- Resolved: nothing else finds the game by name or window; Player.log was not copied in run 5 only because the start wait threw first.
+- Resolved: nothing else in TestRunner finds the game by name or window; Player.log was not copied in run 5 only because the start wait threw first.
+- Follow-ups: SaveRunner, WorldgenDriver and ModTest still look only for OxygenNotIncluded. The warden's unreadable-command-line warning reaches no console or warden.log.
+
+## Completion Summary
+**Accomplished:** TestRunner's launcher and warden find a test game started through oni-moono, and an open Moono game refuses a run.
+**Files changed:** tools/TestRunner/GameProcess.ps1 (new), Invoke-OniTests.ps1, Watch-OniGame.ps1, README.md; two store records here, one in the parent.
+**Tests:** no automated tests for the scripts; parse checks, stand-in process checks, and one in-game run through Moono (5/5, all harness claims confirmed).
+**Follow-up work:** see Open Questions.
 
 ## Constraints
 - Never foreground or poll the game window (GUI tests never steal focus).

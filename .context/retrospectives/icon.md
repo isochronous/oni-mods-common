@@ -1,3 +1,11 @@
+### OM-012: TestRunner follows a game started through oni-moono
+**Id:** blk-aa6fccf8d4a0
+
+- **Avoid**: Nothing went wrong in this task; the failure it fixed came from OM-011 assuming the game always runs as OxygenNotIncluded. SaveRunner, WorldgenDriver and ModTest still make that assumption (found in review, out of scope; follow-up).
+- **Repeat**: Proving a process-detection change without the game first: a parse check of every script plus renamed cmd.exe stand-ins for both process names, with and without the test arguments. Then one approved in-game run that checks each claim (launcher found the game, Player.log copied, warden restored mods.json when OniMoono exited, nothing left running).
+- **Updated**: tools/TestRunner standards/code-style.md: Layout lists ModConfig.ps1, GameMode.ps1 and GameProcess.ps1 (Get-GameProcess and its -Any mode); Indentation covers every .ps1 in the tool. In the parent ONI-Mods store, testing/integration-testing.md 'Launching with oni-moono' now says runs work through Moono.
+
+
 ### OM-005: overviews and the description, coverage and tag backfills over common
 **Id:** blk-2fd7612e80b0
 

@@ -18,7 +18,7 @@ applies_to:
 **Id:** blk-48bf49a3a8d9
 
 - Tabs, one per level, in every `.cs` file, including `Kit/`.
-- Four spaces in `Invoke-OniTests.ps1` and `Watch-OniGame.ps1`; two spaces in `TestRunner.csproj` and the yaml files.
+- Four spaces in every `.ps1` in the tool; two spaces in `TestRunner.csproj` and the yaml files.
 
 ### Braces
 **Id:** blk-d5d494815e7f
@@ -57,6 +57,7 @@ applies_to:
 | `Diagnostics.cs` | opt-in grid-mark tracing |
 | `Kit/` | the test kit |
 | `Invoke-OniTests.ps1`, `Watch-OniGame.ps1` | launcher and warden |
+| `ModConfig.ps1`, `GameMode.ps1`, `GameProcess.ps1` | helpers dot-sourced by the launcher and warden: mod config backups, the game mode and save pointer, and finding the game process (`Get-GameProcess`: `OxygenNotIncluded`, or an oni-moono `OniMoono` started with `--onitest-` arguments; `-Any` counts every `OniMoono`, for the checks that refuse a run while a game is open) |
 | `fixtures/` | fixture saves and their README |
 
 ## Inert Without the Argument
