@@ -34,7 +34,7 @@
 
 ## Open Questions / Blockers
 - Resolved: markers `--saverun`, `--worldgen-`; ModTest passes none.
-- Resolved 2026-11-05: the SaveRunner timeout was a pause, not Moono. A loaded save starts paused (Game.OnSpawn), RunBehaviour unpaused only on its first update, and something paused the game again 8.4 game seconds in. RunBehaviour now unpauses whenever it finds the game paused (851e330); rerun on Moono with -TimeoutSec 180: status done, 11 samples, 71 s real time, mods.json hash unchanged. What makes the second pause is not named.
+- Resolved 2026-11-05: the SaveRunner timeout was a pause, not Moono. A loaded save starts paused (Game.OnSpawn), RunBehaviour unpaused only on its first update, and something paused the game again 8.4 game seconds in. RunBehaviour now unpauses whenever it finds the game paused (851e330); rerun on Moono with -TimeoutSec 180: status done, 11 samples, 71 s real time, mods.json hash unchanged. The second pause was the "colony lost" screen (the fixture has no Duplicants; Jeremy), and the mod events dialog pauses the same way: SaveRunner now carries TestRunner's CheckForGameOver, MatchFootprint and Report patches; rerun: done, no pause logged, 10 game s in 10 real s. Launcher `-Only` added (only SaveRunner and -With) for quick fixture runs, at Jeremy's request.
 - For Jeremy: ModTest's Moono path needs one in-game check with the game quit by hand (`Test-OniMods.ps1 -NoLocal`), ideally with one mod-change restart.
 - The SaveRunner leftover restore removed an empty worldgen-driver\config-backup folder dated 2026-10-20 (documented behaviour).
 
