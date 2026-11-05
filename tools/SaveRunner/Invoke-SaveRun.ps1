@@ -24,12 +24,16 @@
 .PARAMETER Without
   Mods to disable for the run (local folder names or Workshop item ids), e.g. -Without NoMagicFridges
   to see how a save behaves without the mod under test.
+.PARAMETER Only
+  Disable every other mod: the run has only SaveRunner and the -With mods. Much faster to boot than
+  a full loadout; use it when the save does not need the player's mods (a test fixture).
 .PARAMETER TimeoutSec
   Real seconds the whole session may take before the mod, and failing that this script, kills it.
 
 .EXAMPLE
   ./Invoke-SaveRun.ps1 'C:\...\The Aftermath Sandbox 001.sav' -Seconds 90 -Probe fridges -Label nmf
   ./Invoke-SaveRun.ps1 'C:\...\The Aftermath Sandbox 001.sav' -Seconds 90 -Probe fridges -Without NoMagicFridges -Label vanilla
+  ./Invoke-SaveRun.ps1 'C:\...\fixtures\testbed-so.sav' -Seconds 10 -TimeoutSec 180 -Only -Label smoke
 #>
 param(
     [Parameter(Mandatory)][string]$Save,
@@ -38,6 +42,7 @@ param(
     [ValidateSet('', 'fridges')][string]$Probe = '',
     [string[]]$With = @(),
     [string[]]$Without = @(),
+    [switch]$Only,
     [int]$TimeoutSec = 900,
     [string]$Label = 'run',
     [string]$OutDir = (Join-Path $PSScriptRoot 'runs'),
@@ -89,7 +94,7 @@ function Set-Mods {
             # A rebuilt local mod is left ReinstallPending (3) by the game; the boot-time reinstall
             # then blocks the main menu. Installed (1) makes the game just load it.
             if ($m.label.distribution_platform -eq 0) { $m.status = 1; $m.reinstall_path = $null }
-        }
+        } elseif ($Only) { $m.enabled = $false; $m.enabledForDlc = @() }
     }
     foreach ($id in $enable) {
         if ($seen[$id]) { continue }
@@ -116,7 +121,7 @@ try {
     Set-Mods
     $gameArgs = @('-applaunch', "$AppId", "--saverun=$saveCopy", "--saverun-seconds=$Seconds", "--saverun-speed=$Speed", "--saverun-out=$csv", "--saverun-timeout=$TimeoutSec")
     if ($Probe) { $gameArgs += "--saverun-probe=$Probe" }
-    Write-Host "Loadout: current + SaveRunner$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Without) { ' - ' + ($Without -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' })"
+    Write-Host "Loadout: $(if ($Only) { 'only' } else { 'current +' }) SaveRunner$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Without) { ' - ' + ($Without -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' })"
     Write-Host "Launching: $($gameArgs -join ' ')"
     $t0 = Get-Date
     Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
