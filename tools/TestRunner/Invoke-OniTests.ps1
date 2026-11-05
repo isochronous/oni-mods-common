@@ -213,12 +213,12 @@ function Write-PrefsRestore($Mode, $Key, [switch]$Leftover) {
 # writes it back over a restore, and a game whose launcher was killed may still be running its tests
 # on the config it backed up. A warden with no game is one whose launcher was killed while the game
 # was starting, or one finishing its restore: it owns the player's files until it exits.
-if (@(Get-GameProcess).Count -eq 0 -and (Get-Warden).Count -gt 0) {
+if (@(Get-GameProcess -Any).Count -eq 0 -and (Get-Warden).Count -gt 0) {
     Write-Host "$(Get-Date -Format HH:mm:ss) A test session's warden is still running with no game; waiting for it to finish."
     $deadline = (Get-Date).AddSeconds(200)
-    while ((Get-Warden).Count -gt 0 -and @(Get-GameProcess).Count -eq 0 -and (Get-Date) -lt $deadline) { Start-Sleep 1 }
+    while ((Get-Warden).Count -gt 0 -and @(Get-GameProcess -Any).Count -eq 0 -and (Get-Date) -lt $deadline) { Start-Sleep 1 }
 }
-if (@(Get-GameProcess).Count -eq 0) {
+if (@(Get-GameProcess -Any).Count -eq 0) {
     if (Test-Path -LiteralPath $liveDir) {
         # A live session whose game is gone and whose warden did not clear up: the leftover-backup
         # checks restore the player's loadout.
@@ -230,7 +230,7 @@ if (@(Get-GameProcess).Count -eq 0) {
 }
 
 # --- what to run -------------------------------------------------------------------------------
-$running = Get-GameProcess
+$running = Get-GameProcess -Any
 $live = Get-LiveGame
 if (-not $BuildOnly -and $running -and -not ($live -and @($running).Count -eq 1 -and @($running)[0].Id -eq $live.Id)) { throw 'The game is already running; close it first.' }
 if (-not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
@@ -574,7 +574,7 @@ if ($submitted) {
             }
             if (Test-Path -LiteralPath $liveDir) { Remove-Item -LiteralPath $liveDir -Recurse -Force -ErrorAction SilentlyContinue }
             # The game puts the config back at the end of its run; one that died did not.
-            if (-not (Get-GameProcess)) {
+            if (-not (Get-GameProcess -Any)) {
                 Restore-LeftoverConfig
                 Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs)
             }

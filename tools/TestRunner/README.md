@@ -41,7 +41,7 @@ was killed while the game was starting, as the game process that started after i
 after 150 s it restores at once. The game process is `OxygenNotIncluded`, or `OniMoono` when Steam's
 launch options start the game through oni-moono; an `OniMoono` process counts only when its command
 line holds the `--onitest-` arguments, so a Moono session started by hand is never taken for the
-test game (`GameProcess.ps1`). A launcher that gives up on the game itself ends its warden and
+test game (`GameProcess.ps1`); it still counts as an open game, which blocks a run. A launcher that gives up on the game itself ends its warden and
 restores on its own. `-KeepGame` launches a game of its own and keeps the old behaviour.
 
 **Mod settings are put back.** The shared config folder of each mod in `-Mods` and `-With`

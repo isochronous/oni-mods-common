@@ -152,3 +152,44 @@ should show:
 
 None with ICON. One Bash `sed -i` with `/c` and `&` in the replacement failed with "unknown option to
 `s'". I used Edit instead. That is my own toolchain, not ICON.
+
+## Block on open Moono
+
+Jeremy's decision: any open `OniMoono` process blocks a run, the same way an open
+`OxygenNotIncluded` does. Not committed (on top of 389e3ad).
+
+- **`GameProcess.ps1`**: `Get-GameProcess` takes a new `-Any` switch. With it, every `OniMoono`
+  process counts, whatever its command line. Without it, the `--onitest-` filter applies as before.
+- **Invoke-OniTests.ps1**: the open-game checks now use `-Any`:
+  - :216 and :219: the warden still running with no game, and the wait for it.
+  - :221: the decision to put back leftover files.
+  - :233: the refusal "The game is already running".
+  - :577: the config and prefs restore on the launcher's own restore path.
+- **What still uses the filter**: the post-launch start wait (:543), `Get-LiveGame` (:155) and the
+  warden's `Find-Game` (Watch :43/:47). These only follow the test game.
+- **Live session**: Moono's own test game is found by `Get-LiveGame` and passes :233 as the live
+  session (one process, same id). If a hand-started Moono is open as well, the count is 2 and the
+  run is refused.
+- **README.md :44**: the sentence now ends "it still counts as an open game, which blocks a run".
+
+Verification: the parse check, then the same stand-in script with the new cases.
+
+```
+parse GameProcess.ps1 : 0 error(s)
+parse Invoke-OniTests.ps1 : 0 error(s)
+parse Watch-OniGame.ps1 : 0 error(s)
+Get-GameProcess (no game): 0
+stand-ins: OxygenNotIncluded 13556, OniMoono by hand 66020
+  Get-GameProcess ids: 13556
+  -Id OxygenNotIncluded: 1; -Id hand OniMoono: 0
+  -Any ids (open-game checks): 66020,13556
+  -Any -Id hand OniMoono: 1
+  hand OniMoono alone: Get-GameProcess 0, -Any 1 (launcher :233 would refuse)
+  plus OniMoono with --onitest- 23008: Get-GameProcess ids: 23008,61956
+  warden-style (StartTime >= since, first): 23008
+  test OniMoono HasExited after kill: True; Get-GameProcess count: 0
+after cleanup: 0
+```
+
+A `sed -i` run under Git Bash changed the line ends of Invoke-OniTests.ps1 from CRLF to LF. I put
+CRLF back, and the diff is 10 lines.
