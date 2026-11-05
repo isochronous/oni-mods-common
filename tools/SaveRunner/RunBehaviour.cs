@@ -29,6 +29,8 @@ namespace SaveRunner
 					Debug.Log(Runner.Tag + "first update, time scale " + Time.timeScale);
 					Begin();
 				}
+				else
+					KeepRunning();
 				elapsed += Time.deltaTime;
 				if (elapsed >= samples)
 				{
@@ -67,6 +69,18 @@ namespace SaveRunner
 				writer.Flush();
 			}
 			Debug.Log(Runner.Tag + "running " + Runner.Seconds + " s at speed " + Runner.Speed);
+		}
+
+		// Loading pauses the game, and so can anything after it (a modal screen, an alarm, an event
+		// sequence); a run left paused only ends at the timeout.
+		private void KeepRunning()
+		{
+			SpeedControlScreen speed = SpeedControlScreen.Instance;
+			if (speed == null || !speed.IsPaused)
+				return;
+			Debug.Log(Runner.Tag + "game paused at " + elapsed.ToString("F1", CultureInfo.InvariantCulture) + " game s, unpausing");
+			for (int i = 0; i < 8 && speed.IsPaused; i++)
+				speed.Unpause(playSound: false);
 		}
 
 		private void Sample(int t)

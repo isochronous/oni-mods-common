@@ -57,7 +57,8 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 ### RunBehaviour
 **Id:** blk-1f9288a97c7a  
 **Tags:** probe  
-**Description**: a `MonoBehaviour` on the Game object for one run. Unpauses and sets the speed, accumulates scaled frame time as game seconds, samples the probe once per game second, ends the run at `Runner.Seconds`.  
+
+**Description**: a `MonoBehaviour` on the Game object for one run. Unpauses and sets the speed on its first update, and unpauses again (with a log line) whenever the game is paused during the run, since loading pauses the game and later pauses (a modal screen, an alarm, an event sequence) would hold the run until the timeout. Accumulates scaled frame time as game seconds, samples the probe once per game second, ends the run at `Runner.Seconds`.  
 **Location**: `RunBehaviour.cs`  
 **Relationships**: owns the CSV `StreamWriter`; calls `FridgeProbe.Sample`; ends through `Runner.Finish`.
 
