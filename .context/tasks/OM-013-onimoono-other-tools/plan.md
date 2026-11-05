@@ -34,7 +34,7 @@
 
 ## Open Questions / Blockers
 - Resolved: markers `--saverun`, `--worldgen-`; ModTest passes none.
-- For Jeremy: SaveRunner on Moono runs game time at ~1/100 (first update logs `time scale 0`). Next step proposed in units/03-test-report.md: a once-per-10-s log of Time.timeScale, SpeedControlScreen.IsPaused and the deltaTime sum, then the same 10 s run on plain OxygenNotIncluded to see whether it is Moono's.
+- Resolved 2026-11-05: the SaveRunner timeout was a pause, not Moono. A loaded save starts paused (Game.OnSpawn), RunBehaviour unpaused only on its first update, and something paused the game again 8.4 game seconds in. RunBehaviour now unpauses whenever it finds the game paused (851e330); rerun on Moono with -TimeoutSec 180: status done, 11 samples, 71 s real time, mods.json hash unchanged. What makes the second pause is not named.
 - For Jeremy: ModTest's Moono path needs one in-game check with the game quit by hand (`Test-OniMods.ps1 -NoLocal`), ideally with one mod-change restart.
 - The SaveRunner leftover restore removed an empty worldgen-driver\config-backup folder dated 2026-10-20 (documented behaviour).
 
