@@ -56,6 +56,8 @@ using Klei.CustomSettings;
 using ProcGen;
 ```
 
+`Invoke-Worldgen.ps1` dot-sources `../TestRunner/GameProcess.ps1` for `Get-GameProcess -Marker '--worldgen-'`: the game is `OxygenNotIncluded`, or an oni-moono `OniMoono` started with the `--worldgen-` arguments; `-Any` for the open-game refusal.
+
 ## Comments
 **Id:** blk-7d17f388ee51
 

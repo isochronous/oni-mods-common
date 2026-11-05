@@ -10,7 +10,7 @@ Use it to reproduce an in-game observation from a player's save ("food in the Fr
 dotnet build tools/SaveRunner -c Release
 ```
 
-deploys the mod to `Documents\Klei\OxygenNotIncluded\mods\local\SaveRunner`. Steam must be running and logged in; the launcher starts the game through `steam.exe -applaunch 457140`, which passes the arguments through.
+deploys the mod to `Documents\Klei\OxygenNotIncluded\mods\local\SaveRunner`. Steam must be running and logged in; the launcher starts the game through `steam.exe -applaunch 457140`, which passes the arguments through. With oni-moono's launch options the game runs as `OniMoono` instead of `OxygenNotIncluded`; the launcher follows an `OniMoono` whose command line holds the `--saverun` arguments, and refuses to start while any `OxygenNotIncluded` or `OniMoono` is open (`tools/TestRunner/GameProcess.ps1`).
 
 ## Running
 
@@ -29,4 +29,4 @@ Probes:
 
 ## How it works
 
-`Patches.cs`: a postfix on `MainMenu.OnSpawn` notes the time, and the `App.LateUpdate` postfix calls `LoadScreen.DoLoad(path)`, the Load screen's own path minus its dialogs, four seconds later (loading straight from OnSpawn tore the menu down under a popup still laying out, which threw and opened the crash dialog, and that dialog quits the game when the scene change destroys it; the mod also sets `KCrashReporter.ignoreAll` for the session so no crash dialog can end a run); a postfix on `Game.OnSpawn` adds `RunBehaviour` to the Game object, which unpauses, sets the speed, accumulates scaled frame time as game seconds, samples the probe each second and calls `Runner.Finish`, which writes the status file and `App.Quit()`s. A prefix on `SaveLoader.Save(string, bool, bool)` returns the filename without saving while a run is active. A postfix on `App.LateUpdate` is the watchdog for a load that never finishes.
+`Patches.cs`: a postfix on `MainMenu.OnSpawn` notes the time, and the `App.LateUpdate` postfix calls `LoadScreen.DoLoad(path)`, the Load screen's own path minus its dialogs, four seconds later (loading straight from OnSpawn tore the menu down under a popup still laying out, which threw and opened the crash dialog, and that dialog quits the game when the scene change destroys it; the mod also sets `KCrashReporter.ignoreAll` for the session so no crash dialog can end a run); a postfix on `Game.OnSpawn` adds `RunBehaviour` to the Game object, which unpauses (and again whenever anything pauses the game during the run), sets the speed, accumulates scaled frame time as game seconds, samples the probe each second and calls `Runner.Finish`, which writes the status file and `App.Quit()`s. A prefix on `SaveLoader.Save(string, bool, bool)` returns the filename without saving while a run is active. A postfix on `App.LateUpdate` is the watchdog for a load that never finishes.

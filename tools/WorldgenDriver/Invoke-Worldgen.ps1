@@ -49,6 +49,9 @@ $listPath = Join-Path $klei 'worldgen-driver\list.txt'
 $configRoot = Join-Path $klei 'mods\config'
 $configBackup = Join-Path $klei 'worldgen-driver\config-backup'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
+# Get-GameProcess: the game is OxygenNotIncluded, or OniMoono (oni-moono's launch options) started with
+# the --worldgen- arguments; any open OniMoono counts as a running game.
+. (Join-Path $PSScriptRoot '..\TestRunner\GameProcess.ps1')
 
 # -ModConfig entries: the mod's config folder name and the file to write there, checked before anything is touched.
 $configs = @()
@@ -68,7 +71,7 @@ $all = @($Coordinate)
 if ($ListFile) { $all += Get-Content $ListFile | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') } }
 $all = @($all | Select-Object -Unique)
 if (-not $all) { throw 'No coordinates given (positional or -ListFile).' }
-if (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue) { throw 'The game is already running; close it first.' }
+if (Get-GameProcess -Any) { throw 'The game is already running; close it first.' }
 if (-not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
 if (-not (Test-Path (Join-Path $klei 'mods\local\WorldgenDriver\WorldgenDriver.dll'))) { throw 'WorldgenDriver is not deployed; run: dotnet build tools/WorldgenDriver -c Release' }
 New-Item -ItemType Directory -Force $OutDir | Out-Null
@@ -214,7 +217,7 @@ try {
             $t0 = Get-Date
             Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
             $proc = $null
-            while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue }
+            while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess -Marker '--worldgen-' | Select-Object -First 1 }
             $launcherStatus = 'no-process'
             if ($proc) {
                 $launcherStatus = 'exited'

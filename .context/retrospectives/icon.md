@@ -1,3 +1,19 @@
+### OM-013: SaveRunner, WorldgenDriver and ModTest follow a game started through oni-moono
+**Id:** blk-062fcdde7835
+
+- **Avoid**: Copying a proof command into a test spec without reading the tool's parameters: the SaveRunner check had no -Probe, so its 'probe rows > 0' proof could never pass. Also: SaveRunner on Moono ran game time at about 1/100 speed (first update logs time scale 0), cause unknown; it was left for Jeremy instead of chasing it unattended.
+- **Repeat**: Reusing one helper with a marker parameter instead of a copy per tool, proven by stand-in processes per marker plus the earlier tool's stand-in script run unchanged. An unattended run spec with hard stop rules (one run per tool, hash mods.json before and after, stop on an unnamed failure) ran clean while Jeremy slept.
+- **Updated**: standards/code-style.md in tools/TestRunner (GameProcess.ps1 row: -Marker, shared with the other tools), tools/SaveRunner (Layout: Invoke-SaveRun.ps1 uses Get-GameProcess -Marker '--saverun') and tools/WorldgenDriver (Imports/Includes: Get-GameProcess -Marker '--worldgen-'). In the parent store, testing/integration-testing.md 'Launching with oni-moono' drops the caveat that the other tools need the launch options cleared.
+
+
+### OM-012: TestRunner follows a game started through oni-moono
+**Id:** blk-aa6fccf8d4a0
+
+- **Avoid**: Nothing went wrong in this task; the failure it fixed came from OM-011 assuming the game always runs as OxygenNotIncluded. SaveRunner, WorldgenDriver and ModTest still make that assumption (found in review, out of scope; follow-up).
+- **Repeat**: Proving a process-detection change without the game first: a parse check of every script plus renamed cmd.exe stand-ins for both process names, with and without the test arguments. Then one approved in-game run that checks each claim (launcher found the game, Player.log copied, warden restored mods.json when OniMoono exited, nothing left running).
+- **Updated**: tools/TestRunner standards/code-style.md: Layout lists ModConfig.ps1, GameMode.ps1 and GameProcess.ps1 (Get-GameProcess and its -Any mode); Indentation covers every .ps1 in the tool. In the parent ONI-Mods store, testing/integration-testing.md 'Launching with oni-moono' now says runs work through Moono.
+
+
 ### OM-005: overviews and the description, coverage and tag backfills over common
 **Id:** blk-2fd7612e80b0
 

@@ -54,9 +54,12 @@ $modsJson = Join-Path $klei 'mods\mods.json'
 $prefs = Join-Path $klei 'kplayerprefs.yaml'
 $playerLog = Join-Path $env:USERPROFILE 'AppData\LocalLow\Klei\Oxygen Not Included\Player.log'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
+# Get-GameProcess: the game is OxygenNotIncluded, or OniMoono (oni-moono's launch options) started with
+# the --saverun arguments; any open OniMoono counts as a running game.
+. (Join-Path $PSScriptRoot '..\TestRunner\GameProcess.ps1')
 
 if (-not (Test-Path -LiteralPath $Save)) { throw "Save not found: $Save" }
-if (Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue) { throw 'The game is already running; close it first.' }
+if (Get-GameProcess -Any) { throw 'The game is already running; close it first.' }
 if (-not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
 if (-not (Test-Path (Join-Path $klei 'mods\local\SaveRunner\SaveRunner.dll'))) { throw 'SaveRunner is not deployed; run: dotnet build tools/SaveRunner -c Release' }
 
@@ -118,7 +121,7 @@ try {
     $t0 = Get-Date
     Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
     $proc = $null
-    while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-Process OxygenNotIncluded -ErrorAction SilentlyContinue }
+    while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess -Marker '--saverun' | Select-Object -First 1 }
     if (-not $proc) { throw 'The game did not start within 120 s.' }
     $launcherStatus = 'exited'
     while (-not $proc.HasExited) {
