@@ -9,8 +9,9 @@ installed.
 
 The tests drive the game the way a player does where that is where the bugs live: the real
 `InterfaceTool` fed the same `OnMouseMove`/`OnLeftClickDown`/`OnLeftClickUp` calls the player
-controller makes (layer 1), with the game's own API for setup and oracles (layer 0). The design,
-including the UI and input layers still to come, is in `incubator/test-automation/PLAN.md`.
+controller makes (layer 1), the game's screens driven by the pointer events a click sends (layer 2),
+with the game's own API for setup and oracles (layer 0). The design, including the input layer
+still to come, is in `incubator/test-automation/PLAN.md`.
 
 ## Running
 
@@ -195,7 +196,17 @@ public static class WireDrags
   such as `wire.Path(...)`. Plain `yield return null` is one frame.
 - `t.World`: `Build(id, cell, orientation, element)`, `At(cell, layer)`, `Destroy(go)`,
   `LogicNetwork(cell)`, `LogicConnections(cell)`, `RevealAsteroid(world)` and `RevealActiveAsteroid()`
-  (every cell of the asteroid out of the fog of war, as the game's debug reveal does; test-only).
+  (every cell of the asteroid out of the fog of war, as the game's debug reveal does; test-only),
+  `StatusItems(go)` (the names of the status items it shows, resolved as the hover card shows them).
+- `Anims.SymbolVisible(kbac, symbol)` and `Anims.SymbolTint(kbac, symbol)` read a symbol of a
+  building's animation back: hidden or not, and the colour `SetSymbolTint` gave it (white if none).
+  A symbol the build lacks fails the test with its name. For lamps and gauges drawn by symbols.
+- `t.Screens` (layer 2): `yield return Select(go)` selects as a click on it does and waits until the
+  details screen shows it; `Deselect()`; `SideScreen<T>()` is the side screen of that type showing,
+  or null; `Find(root, name)` the nearest object of that name under the root, inactive ones too, or
+  null; `Click(go)` sends a widget pointer down, up and click, so `KButton`, `MultiToggle` and
+  `KToggle` react as to a player's click (one not interactable ignores it). A build tool clears the
+  selection as it does for a player: select again after a drag. The selection is cleared at cleanup.
 - `UtilityDragSession.PrimeBuildMenu(t)`: wakes the build menu's product screen once, as the menu
   would have, before a test drives a build tool directly (the BuildTool, say).
 - `t.Tools.UtilityTool(id, element)`: the real utility build tool; `Path(cells...)` visits each

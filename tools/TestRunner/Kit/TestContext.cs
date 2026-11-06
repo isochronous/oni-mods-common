@@ -7,7 +7,7 @@ namespace Isochronous.TestKit
 {
 	/// <summary>
 	/// What a test gets: waits (yield them), a clear rectangle to build in, the API layer (World),
-	/// the tool layer (Tools), assertions, a cleanup stack and a note log. Every wait is a
+	/// the tool layer (Tools), the screen layer (Screens), assertions, a cleanup stack and a note log. Every wait is a
 	/// <see cref="Wait"/> the driver polls once per frame with a deadline and a description, so a
 	/// test that stalls fails with what it was waiting for.
 	/// </summary>
@@ -19,6 +19,7 @@ namespace Isochronous.TestKit
 		public World World { get; }
 		public Tools Tools { get; }
 		public Dupes Dupes { get; }
+		public Screens Screens { get; }
 
 		private readonly List<System.Action> cleanups = new List<System.Action>();
 		private readonly List<Regex> allowedLogErrors = new List<Regex>();
@@ -32,6 +33,7 @@ namespace Isochronous.TestKit
 			World = new World(this);
 			Tools = new Tools(this);
 			Dupes = new Dupes(this);
+			Screens = new Screens(this);
 		}
 
 		/// <summary>

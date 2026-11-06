@@ -92,6 +92,27 @@ namespace Isochronous.TestKit
 			return Game.Instance.logicCircuitSystem.GetConnections(cell, is_physical_building: true);
 		}
 
+		/// <summary>
+		/// The names of the status items the object shows, resolved with their data as the hover card
+		/// and the details screen show them (KSelectable's status item group), in the group's order.
+		/// Fails the test when the object has no KSelectable.
+		/// </summary>
+		public List<string> StatusItems(GameObject go)
+		{
+			if (go == null)
+				throw new OniAssertException("no object to read status items from");
+			KSelectable selectable = go.GetComponent<KSelectable>();
+			if (selectable == null)
+				throw new OniAssertException(go.name + " has no KSelectable, so no status items");
+			var names = new List<string>();
+			StatusItemGroup group = selectable.GetStatusItemGroup();
+			if (group == null)
+				return names;
+			foreach (StatusItemGroup.Entry entry in group)
+				names.Add(entry.GetName());
+			return names;
+		}
+
 	}
 
 	/// <summary>Cell helpers for messages; a separate class because the game has a World type of its own that wins in a test's namespace.</summary>
