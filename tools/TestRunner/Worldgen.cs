@@ -31,7 +31,7 @@ namespace Isochronous.TestRunner
 		public static GeneratedWorld Current;
 
 		private static GeneratedWorld underway;
-		private static float lastProgress;
+		private static long lastProgressTicks;
 
 		/// <summary>"SNDST-C-100-0-0-0" is a Spaced Out cluster, "SNDST-A-100-0-0-0" a base-game one: the letter before the seed.</summary>
 		public static bool IsSpacedOut(string coordinate)
@@ -101,7 +101,7 @@ namespace Isochronous.TestRunner
 			}
 			underway = new GeneratedWorld(coordinate, test?.WorldKey);
 			Generating = true;
-			lastProgress = Time.realtimeSinceStartup;
+			lastProgressTicks = System.Diagnostics.Stopwatch.GetTimestamp();
 			KScreen destination = null;
 			try
 			{
@@ -225,13 +225,14 @@ namespace Isochronous.TestRunner
 		/// <summary>Per frame while generating: a worldgen thread with no progress report for HangSeconds is a hang, which ends the session.</summary>
 		public static void Watch()
 		{
-			if (Generating && Time.realtimeSinceStartup - lastProgress > HangSeconds)
+			if (Generating && (System.Diagnostics.Stopwatch.GetTimestamp() - lastProgressTicks) / (double)System.Diagnostics.Stopwatch.Frequency > HangSeconds)
 				Session.Finish("worldgen-hang", "no progress generating " + Pending + " for " + HangSeconds + " s");
 		}
 
+		/// <summary>Called from the worldgen thread on U60 and later: no Unity time calls here.</summary>
 		internal static void Progress()
 		{
-			lastProgress = Time.realtimeSinceStartup;
+			lastProgressTicks = System.Diagnostics.Stopwatch.GetTimestamp();
 		}
 
 		internal static void Error(string text)
