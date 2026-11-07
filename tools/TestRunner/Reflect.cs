@@ -30,6 +30,8 @@ namespace Isochronous.TestRunner
 		public static readonly FieldInfo TimelapserPreviewScreenshot = AccessTools.Field(typeof(Timelapser), "previewScreenshot");
 		/// <summary>Timelapser.previewSaveGamePath: the save whose preview image is being written, next to it.</summary>
 		public static readonly FieldInfo TimelapserPreviewSaveGamePath = AccessTools.Field(typeof(Timelapser), "previewSaveGamePath");
+		/// <summary>Timelapser.CapturePng: where U60 writes every timelapse and preview image; null before U60, where WriteToPng writes it.</summary>
+		public static readonly MethodInfo TimelapserCapturePng = AccessTools.Method(typeof(Timelapser), "CapturePng");
 		/// <summary>ColonyDestinationSelectScreen.QualitySettingChanged: the handler its OnCleanUp leaves on CustomGameSettings.OnMixingSettingChanged.</summary>
 		public static readonly MethodInfo DestinationQualitySettingChanged = AccessTools.Method(typeof(ColonyDestinationSelectScreen), "QualitySettingChanged");
 

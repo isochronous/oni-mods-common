@@ -121,6 +121,8 @@ function Save-SaveKey([string]$Prefs) {
 function Test-TestSaveKey([string]$Raw) {
     if (-not $Raw.StartsWith('present:')) { return $false }
     $path = $Raw.Substring('present:'.Length).Trim()
+    # A run that generated a world leaves the pointer blank: that is the run's, not the player's.
+    if (-not $path) { return $true }
     return ($path -match '(?i)[\\/]runs[\\/][^\\/]+[\\/]') -or ((Split-Path $path -Leaf) -ieq 'fixture.sav')
 }
 

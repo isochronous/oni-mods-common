@@ -91,11 +91,16 @@ namespace Isochronous.TestRunner
 	/// No timelapse image while a run is on. On a colony's first cycle, and every few cycles after,
 	/// the game renders each discovered asteroid to RetiredColonies\NAME\WORLD\ASTEROID_cycle_N.png in
 	/// the player's folder. The preview image the game writes next to a save goes through here too,
-	/// and is kept when that save is in the run folder.
+	/// and is kept when that save is in the run folder. From U60 on every image goes through the
+	/// private Timelapser.CapturePng, patched by Timelapser_CapturePng_Patch; a path outside the run
+	/// folder is nulled there, which makes the game release its buffer and return without writing.
+	/// This patch covers builds before U60, where WriteToPng itself writes the image.
 	/// </summary>
 	[HarmonyPatch(typeof(Timelapser), nameof(Timelapser.WriteToPng))]
 	public static class Timelapser_WriteToPng_Patch
 	{
+		public static bool Prepare() => Reflect.TimelapserCapturePng == null;
+
 		public static bool Prefix(Timelapser __instance)
 		{
 			if (!Session.Active)
@@ -105,6 +110,25 @@ namespace Isochronous.TestRunner
 				return true;
 			Debug.Log(Session.Tag + "skipped a timelapse image");
 			return false;
+		}
+	}
+
+	/// <summary>The U60 half of the timelapse skip: see Timelapser_WriteToPng_Patch.</summary>
+	[HarmonyPatch(typeof(Timelapser), "CapturePng")]
+	public static class Timelapser_CapturePng_Patch
+	{
+		public static bool Prepare() => Reflect.TimelapserCapturePng != null;
+
+		public static void Prefix(ref string path, ref string secondaryPath)
+		{
+			if (!Session.Active)
+				return;
+			if (!Session.InRunFolder(secondaryPath))
+				secondaryPath = null;
+			if (Session.InRunFolder(path))
+				return;
+			Debug.Log(Session.Tag + "skipped a timelapse image");
+			path = null;
 		}
 	}
 
