@@ -274,7 +274,7 @@ checked DLLs.
 four seconds later (SaveRunner's lesson: loading straight from OnSpawn tore the menu down under a
 popup still laying out); `Game.OnSpawn` adds `TestBehaviour` to the Game object; `SaveLoader.Save`
 is blocked outside the run folder, and `RetireColonyUtility.SaveColonySummaryData` and
-`Timelapser.WriteToPng` (but for a save's preview in the run folder) are skipped; `KInputManager.OnApplicationFocus` and
+`Timelapser.CapturePng` (`WriteToPng` before U60), but for a save's preview in the run folder, are skipped; `KInputManager.OnApplicationFocus` and
 `InterfaceTool.OnApplicationFocus` re-force the focus flags. `TestBehaviour` waits for the HUD,
 throws the switches (`Harness.cs`), finds and clears the area (`FixtureArea.cs`), then steps each
 test's enumerator by hand: an exception inside a Unity-driven coroutine cannot be caught by its
