@@ -200,6 +200,7 @@ def main():
     ap.add_argument("--halo", help="sans only: the halo colour r,g,b (default: a lighter shade of the background)")
     ap.add_argument("--fill", help="the text colour r,g,b (default: the style's)")
     ap.add_argument("--fill2", help="the second line's colour r,g,b (default: as the first)")
+    ap.add_argument("--fills", help="each line's text colour, r,g,b per line separated by \"|\" (the last colour carries on to any further lines), instead of --fill and --fill2")
     ap.add_argument("--font", help="lora, liberation, graystroke, or a font file, instead of the style's font (the look and case stay)")
     a = ap.parse_args()
 
@@ -216,6 +217,7 @@ def main():
     light = rgb(a.halo) if a.halo else scaled(mean, 1.6)  # the halo: a lighter shade of the picture
     fill = rgb(a.fill) if a.fill else style["fill"]
     fill2 = rgb(a.fill2) if a.fill2 else fill
+    fills = [rgb(v) for v in a.fills.split("|")] if a.fills else None
 
     title = a.title.upper() if style["upper"] else a.title
     lines = split_title(title, a.lines.upper() if a.lines and style["upper"] else a.lines)
@@ -246,7 +248,8 @@ def main():
             tops.append(y)
             y += m.height + gap
     for i, (m, top) in enumerate(zip(masks, tops)):
-        compose_text(canvas, m, ((full - m.width) // 2, top), style, fill2 if i > 0 else fill, tone, light, font_size)
+        line_fill = fills[min(i, len(fills) - 1)] if fills else (fill2 if i > 0 else fill)
+        compose_text(canvas, m, ((full - m.width) // 2, top), style, line_fill, tone, light, font_size)
     if not a.no_border:
         frame(canvas, tone)
     canvas.resize((SIZE, SIZE), Image.LANCZOS).save(a.out, optimize=True)
