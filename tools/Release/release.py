@@ -19,7 +19,7 @@ What it does:
   5. Tags, pushes the tag, and creates the GitHub release with <Mod>-<version>.zip attached:
      the same files inside a <Mod>/ folder, so it unzips straight into mods/Local.
   6. If the mod is on the Steam Workshop, uploads the same zip, the preview (publish/preview.gif
-     when it exists, an animated preview Steam plays on the page; else the png) and
+     when it exists, an animated preview Steam plays on the page; else a JPEG of the staged png) and
      publish/workshop-description.txt and the tags in publish/workshop-tags.txt to its item (legacy API, via tools/WorkshopUpload;
      Steam must be running as the item's owner). The item id comes from
      publish/workshop-id.txt; when that file is missing, the mod.yaml title is looked up
@@ -47,6 +47,7 @@ import shutil
 import json
 import subprocess
 import sys
+import tempfile
 import urllib.request
 import zipfile
 
@@ -56,6 +57,15 @@ sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UPLOADER = os.path.join(HERE, "..", "WorkshopUpload", "bin", "Release", "net8.0", "win-x64", "WorkshopUpload.exe")
+
+
+def workshop_jpeg(png):
+    """The Workshop preview as a JPEG in a temporary folder: the zip keeps preview.png for the
+    game's mod list, but the Workshop page has no use for a 300+ KB PNG."""
+    from PIL import Image
+    path = os.path.join(tempfile.mkdtemp(prefix="workshop-preview-"), "preview.jpg")
+    Image.open(png).convert("RGB").save(path, quality=92, optimize=True)
+    return path
 
 
 def run(*cmd, capture=False):
@@ -303,7 +313,7 @@ def main():
         if os.path.exists(animated):
             args.append(os.path.abspath(animated))
         elif os.path.exists(staged_preview):
-            args.append(os.path.abspath(staged_preview))
+            args.append(workshop_jpeg(staged_preview))
         description = os.path.join("publish", "workshop-description.txt")
         if os.path.exists(description) and description_is_ours(workshop_id, description, previous):
             args += ["--description-file", os.path.abspath(description)]

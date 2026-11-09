@@ -44,7 +44,7 @@ internal static class Program
 	{
 		if (args.Length == 0)
 		{
-			Console.Error.WriteLine("usage: WorkshopUpload info <id> | list | update <id> [zip [preview]] [options] | publish <zip> <preview> --title T [options] | download <id>");
+			Console.Error.WriteLine("usage: WorkshopUpload info <id> | list | update <id> [zip [preview]] [--preview F] [options] | publish <zip> <preview> --title T [options] | download <id>");
 			Console.Error.WriteLine("options: --title T --description-file F --changenote N --visibility public|friends|unlisted|private --tags \"tweaks,Base Game,Spaced Out!\"");
 			return 2;
 		}
@@ -145,13 +145,16 @@ internal static class Program
 	{
 		if (args.Length < 3)
 		{
-			Console.Error.WriteLine("usage: update <id> [zip [preview]] [--title T] [--description-file F] [--changenote N] [--visibility public|friends|unlisted|private] [--tags \"a,b\"]");
+			Console.Error.WriteLine("usage: update <id> [zip [preview]] [--preview F] [--title T] [--description-file F] [--changenote N] [--visibility public|friends|unlisted|private] [--tags \"a,b\"]");
 			return 2;
 		}
 		ulong id = ulong.Parse(args[1]);
 		string zipPath = !args[2].StartsWith("--") ? args[2] : null;
 		string previewPath = zipPath != null && args.Length > 3 && !args[3].StartsWith("--") ? args[3] : null;
 		var opts = ParseOptions(args);
+		// --preview F changes the preview alone, without uploading a zip.
+		if (previewPath == null && opts.TryGetValue("preview", out string previewOpt))
+			previewPath = previewOpt;
 
 		string cloudZip = zipPath != null ? UploadToCloud(zipPath) : null;
 		string cloudPreview = previewPath != null ? UploadToCloud(previewPath) : null;
