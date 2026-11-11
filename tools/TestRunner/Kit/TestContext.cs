@@ -24,6 +24,19 @@ namespace Isochronous.TestKit
 		private readonly List<System.Action> cleanups = new List<System.Action>();
 		private readonly List<Regex> allowedLogErrors = new List<Regex>();
 		internal readonly List<string> Notes = new List<string>();
+		private string[] loadErrors = new string[0];
+
+		/// <summary>
+		/// Errors and exceptions the game logged while the save this test runs on was loading (from the
+		/// load starting to the test starting), which a test cannot see as it runs. Empty for a
+		/// colony that was already up. Not counted against the test: assert on them.
+		/// </summary>
+		public IReadOnlyList<string> LoadErrors => loadErrors;
+
+		internal void SetLoadErrors(List<string> errors)
+		{
+			loadErrors = errors.ToArray();
+		}
 
 		public TestContext(string name, string id)
 		{

@@ -225,6 +225,12 @@ namespace Isochronous.TestRunner
 			var t = new TestContext(test.Name, test.Id);
 			var capture = new LogCapture();
 			capture.Begin();
+			if (Session.LoadCapture != null)
+			{
+				Session.LoadCapture.End();
+				t.SetLoadErrors(Session.LoadCapture.Errors);
+				Session.LoadCapture = null;
+			}
 			float start = Time.realtimeSinceStartup;
 			double gameStart = gameSeconds;
 			float deadline = start + (float)test.TimeoutSeconds;
