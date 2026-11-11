@@ -32,8 +32,8 @@
 ## Progress
 - [x] Investigate — unit 01 (units/01-explore-report.md)
 - [x] Repair integration-testing.md "Launching with oni-moono" — ONI-Mods 400e915 (text update for direct launch still due at completion)
-- [ ] Implement -Runtime in TestRunner and ModTest — unit 02 ← IN PROGRESS
-- [ ] Prove: one narrow TestRunner run on each runtime (Both), one ModTest check per runtime
+- [x] Implement -Runtime in TestRunner and ModTest — unit 02, common 6faceba + a82d83c; parse checks and dry runs green (units/02-implement-report.md)
+- [ ] Prove: `Invoke-OniTests.ps1 -Mods MotionSensorRange -Filter "*Defaults*" -Runtime Both -Label om014` — BLOCKED: Jeremy's own Moono game open (pids 23252, 45596, started 14:42); TestRunner refuses while a game is open. ModTest not run in game (needs a hand quit) ← NEXT
 - [ ] Completion: review, store update, retro, commit, PRs (common + ONI-Mods pointer/doc)
 
 ## Open Questions / Blockers
