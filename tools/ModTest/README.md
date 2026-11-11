@@ -4,7 +4,7 @@
 restores the normal loadout when the game exits.
 
 ```
-pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods a,b,...] [-Omit c,...] [-Only d] [-NoLocal] [-Steam id,...] [-KeepDumps] [-DryRun]
+pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods a,b,...] [-Omit c,...] [-Only d] [-NoLocal] [-Steam id,...] [-KeepDumps] [-Runtime Stock|Moono|Both] [-MoonoExe path] [-DryRun]
 ```
 
 - Backs up `Documents\Klei\OxygenNotIncluded\mods\mods.json` to `mods.json.modtest-<timestamp>`.
@@ -24,12 +24,17 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
   which a game closed before the main menu leaves and which starts the next boot in mod safe mode.
   The backup is deleted once restored. The oni-data-dump.*.json files the data-dump mod wrote during the
   session are deleted too unless `-KeepDumps` is given. Mod folders, configs and saves are never touched.
-- With oni-moono's launch options the game runs as `OniMoono` instead of `OxygenNotIncluded`. The
-  launch carries no arguments to tell the two apart, so the script refuses to start while either is
-  open (or the Restarter) and follows the one that starts after the launch
-  (`tools/TestRunner/GameProcess.ps1`).
+- `-Runtime Moono` starts oni-moono's player directly instead of Steam:
+  `OniMoono.exe --game <the game folder>` (the player is `-MoonoExe`, else `ONI_MOONO_EXE`, else
+  `F:\modding\oni-moono\player\OniMoono.exe`; Moono starts Steam itself when it is not running).
+  `-Runtime Both` runs a stock session and, once that game is closed and the loadout put back, a
+  Moono session with the same loadout. On Moono the game runs as `OniMoono` instead of
+  `OxygenNotIncluded`. The launch carries no arguments to tell a launched game from one opened by
+  hand, so the script refuses to start while either is open (or the Restarter) and follows the one
+  that starts after the launch, leaving out Moono's crash watcher, a second `OniMoono.exe` with
+  `--crash-watch` (`tools/TestRunner/GameProcess.ps1`).
 - `-Omit` leaves named mods out of the loadout without editing the list, e.g. `-Omit VentFreezeFix` to confirm a bug still reproduces without the fix.
 - `-Only` enables a single mod and nothing else, e.g. `-Only VentFreezeFix` to test it in isolation. It replaces the list and cannot be combined with `-Mods` or `-Omit`.
 - `-NoLocal` enables no local mods at all, for running only `-Steam` items. It cannot be combined with `-Mods`, `-Omit` or `-Only`.
 - `-Steam` enables subscribed Workshop items as well, by id, e.g. `-Steam 3816086407` to test alongside another author's mod. An item subscribed since the game last ran is downloaded through the Steam client (via `tools/WorkshopUpload download`), unpacked into `mods/Steam/<id>` and registered, which is what the game would do at its next launch; an unsubscribed id is skipped.
-- `-DryRun` prints the loadout and writes it to the temp folder without launching.
+- `-DryRun` prints the loadout and each session's launch command, and writes the loadout to the temp folder without launching.
