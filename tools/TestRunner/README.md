@@ -23,8 +23,9 @@ pwsh common/tools/TestRunner/Invoke-OniTests.ps1 -Mods DirectAutomationBridges -
 The launcher builds `<repo>/src/<Mod>.Tests/<Mod>.Tests.csproj` (which builds and deploys the mod
 and this harness), checks the test DLL against the game assemblies with `tools/ModCheck`, copies it
 into `runs/<label>-<stamp>/tests/`, rewrites `mods.json` so that only TestRunner, the mods under
-test and `-With` are enabled, launches the game through Steam, waits for the run's results and
-prints a line per test plus the session status. Steam must be running. Exit code 0 when every test
+test and `-With` are enabled, launches the game (through Steam, or on oni-moono with `-Runtime`, see
+below), waits for the run's results and prints a line per test plus the session status. Steam must
+be running. Exit code 0 when every test
 passed, 1 when one failed, errored or timed out, 2 when the session never produced a status (launch,
 load or crash: read `Player.log` in the run folder), 3 for build or check failures.
 
@@ -39,8 +40,8 @@ process tree and survives the launcher being killed) puts the player's `mods.jso
 exited and removes the session folder, `%LOCALAPPDATA%\IsochronousOniTests\live` (the warden's log
 is next to it). The warden finds the game by the pid the launcher writes there, or, if the launcher
 was killed while the game was starting, as the game process that started after it; with no game
-after 150 s it restores at once. The game process is `OxygenNotIncluded`, or `OniMoono` when Steam's
-launch options start the game through oni-moono; an `OniMoono` process counts only when its command
+after 150 s it restores at once. The game process is `OxygenNotIncluded`, or `OniMoono` on oni-moono
+(see "Stock or Moono" below); an `OniMoono` process counts only when its command
 line holds the `--onitest-` arguments, so a Moono session started by hand is never taken for the
 test game (`GameProcess.ps1`). A Moono session started by hand still counts as an open game and
 blocks a run. A launcher that gives up on the game itself ends its warden and restores on its own.
@@ -90,11 +91,28 @@ the first test and after every test. A building whose cells touch the area goes 
 construction, even when it sits on no object layer. Anything `t.World.Build` made in the area that
 is still standing after a clear is named in a warning in the log.
 
+**Stock or Moono.** `-Runtime Stock` (the default) launches the game through Steam
+(`steam.exe -applaunch 457140 --onitest-...`). `-Runtime Moono` starts oni-moono's player directly,
+not through Steam's launch options: `OniMoono.exe --game <the game folder> --onitest-...`, where
+`--game` names the install the launcher already uses (so Moono never asks which one) and every
+other argument is passed to the game. Moono starts Steam itself when it is not running. The player
+is `-MoonoExe`, else `ONI_MOONO_EXE`, else `F:\modding\oni-moono\player\OniMoono.exe`.
+`-Runtime Both` builds once and runs the suite on Stock, then on Moono: run folders
+`runs/<label>-<stamp>-stock` and `-moono` (a Moono run alone gets `-moono`), the stock game ended
+before the Moono one starts, each with its own `mods.json` backup, warden, `Player.log` copy and
+summary, and then a table of each test's result on both (`both.txt` in each folder, `<- differs`
+where they disagree). The exit code is the worse of the two. The runtime is part of the loadout, so
+a live game is only reused by a run on the same runtime. Every summary starts with the runtime
+`Player.log` shows: Moono writes `Moono starting: commit=<sha>` on its first line and its launch
+mode on the second, the stock game neither; a run that got the other runtime says so in a warning.
+
 Launcher options:
 
 | Option | What it does |
 |---|---|
-| `-Filter "glob[;glob]"` | Only tests whose `Assembly/Class.Method` id or display name matches. One word, no spaces (it travels through Steam's command line); `*` and `?` wildcards. Also the only way to run an `Explicit` test. |
+| `-Filter "glob[;glob]"` | Only tests whose `Assembly/Class.Method` id or display name matches. One word, no spaces (it travels through the game's command line; write a space as `?`); `*` and `?` wildcards. Also the only way to run an `Explicit` test. |
+| `-Runtime Stock\|Moono\|Both` | The game the tests run on (default `Stock`); see "Stock or Moono" below. |
+| `-MoonoExe path` | oni-moono's player (default: `ONI_MOONO_EXE`, else `F:\modding\oni-moono\player\OniMoono.exe`). |
 | `-Fixture path.sav` | Load this save instead of the testbed, e.g. a player's colony for a bug only seen there. The save is copied into the run folder and never written back. |
 | `-With Mod1,Mod2` | Enable more local mods (folder names under `mods/local`: letters, digits, `_` and `-`, with dots only between them, as for `-Mods`). |
 | `-Steam id1,id2` | Enable installed Workshop mods by item id, to test alongside another author's mod. An item downloaded to `mods\Steam\<id>` that the game has not registered yet (no start since the subscription) is registered for the run, with Steam's time-updated as its version. |

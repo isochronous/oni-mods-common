@@ -7,8 +7,9 @@
   root (the folder above this common repo), builds it (which builds and deploys the mod and the
   TestRunner harness), checks the test DLL loads against the game assemblies (tools/ModCheck), and
   copies it into a run folder. Then rewrites mods.json so that only TestRunner, the mods under test
-  and -With are enabled, launches the game through Steam with the --onitest arguments, waits for it
-  to quit on its own, restores mods.json and prints the results. The harness blocks every save to
+  and -With are enabled, launches the game with the --onitest arguments (the stock game through Steam,
+  or oni-moono's player started directly: -Runtime), waits for it to quit on its own, restores
+  mods.json and prints the results. The harness blocks every save to
   disk outside the run folder, and the colony summaries and timelapse images the game writes to
   RetiredColonies, so the fixture and the player's colonies are untouched; the summary has a line
   saying whether anything new appeared in save_files, cloud_save_files or RetiredColonies. The shared
@@ -41,10 +42,20 @@
   auto (default: the mode the player left the game in), base or spacedout. Another mode than the
   player's is set in kplayerprefs.yaml for the run and put back when the game exits (GameMode.ps1).
   A mode with no fixture save runs Worldgen and NoColony tests only.
+.PARAMETER Runtime
+  Stock (default: the game through Steam), Moono (oni-moono's player started directly, with
+  --game <the game folder> and the --onitest arguments passed to the game; Steam's launch options are
+  not used) or Both (the suite on Stock, then on Moono, from one build; run folders
+  <label>-<stamp>-stock and -moono, and a table of the two side by side). Each summary names the
+  runtime Player.log shows. Exit code: the worse of the two.
+.PARAMETER MoonoExe
+  oni-moono's player for -Runtime Moono or Both. Default: ONI_MOONO_EXE, else
+  F:\modding\oni-moono\player\OniMoono.exe.
 
 .EXAMPLE
   pwsh common/tools/TestRunner/Invoke-OniTests.ps1 -Mods DirectAutomationBridges
   pwsh common/tools/TestRunner/Invoke-OniTests.ps1 -Mods DirectAutomationBridges -Filter "*DragFromEnd*" -KeepGame
+  pwsh common/tools/TestRunner/Invoke-OniTests.ps1 -Mods DirectAutomationBridges -Runtime Both
 #>
 param(
     [Parameter(Mandatory)][string[]]$Mods,
@@ -64,7 +75,9 @@ param(
     [ValidateSet('auto', 'base', 'spacedout')][string]$Mode = 'auto',
     [string]$OutDir = (Join-Path $PSScriptRoot 'runs'),
     [string]$SteamExe = 'C:\Program Files (x86)\Steam\steam.exe',
-    [int]$AppId = 457140
+    [int]$AppId = 457140,
+    [ValidateSet('Stock', 'Moono', 'Both')][string]$Runtime = 'Stock',
+    [string]$MoonoExe = ''
 )
 $ErrorActionPreference = 'Stop'
 # Started with pwsh -File, a comma-separated argument arrives as one string: split the list parameters.
@@ -94,14 +107,6 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 . (Join-Path $PSScriptRoot 'GameProcess.ps1')
 # PLib names a mod's shared config folder after its assembly, which is the local folder name here.
 $configNames = @($Mods + $With | Select-Object -Unique)
-
-function Get-GameFolder {
-    if ($env:ONI_GAME_FOLDER -and (Test-Path $env:ONI_GAME_FOLDER)) { return $env:ONI_GAME_FOLDER }
-    foreach ($candidate in 'F:\SteamLibrary\steamapps\common\OxygenNotIncluded', 'C:\Program Files (x86)\Steam\steamapps\common\OxygenNotIncluded') {
-        if (Test-Path $candidate) { return $candidate }
-    }
-    throw 'Game folder not found; set ONI_GAME_FOLDER.'
-}
 
 function Get-DotNetStringHash {
     # Mono/.NET Framework legacy string hash; the game stores it as a local mod's label.version (hash of the folder name).
@@ -180,16 +185,6 @@ function Start-Warden([string[]]$Arguments) {
     return (Start-Process -FilePath $pwsh -WindowStyle Hidden -ArgumentList $quoted -PassThru).Id
 }
 
-# One argument as the Windows command-line parser reads it back: quoted when it holds a space, a tab
-# or a quote, or is empty; inside quotes a quote is escaped, and backslashes are doubled where they
-# come before a quote, the closing one included ("C:\dir\" would otherwise swallow it).
-function ConvertTo-CommandLineArgument([string]$Value) {
-    if ($Value -ne '' -and $Value -notmatch '[\s"]') { return $Value }
-    $escaped = [regex]::Replace($Value, '(\\*)"', [Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value * 2 + '\"' })
-    $escaped = [regex]::Replace($escaped, '(\\+)$', [Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value * 2 })
-    return '"' + $escaped + '"'
-}
-
 # The wardens running now (pwsh processes running Watch-OniGame.ps1), from any checkout of common.
 function Get-Warden {
     return @(Get-CimInstance -ClassName Win32_Process -Filter "Name = 'pwsh.exe'" -ErrorAction SilentlyContinue |
@@ -233,8 +228,12 @@ if (@(Get-GameProcess -Any).Count -eq 0) {
 $running = Get-GameProcess -Any
 $live = Get-LiveGame
 if (-not $BuildOnly -and $running -and -not ($live -and @($running).Count -eq 1 -and @($running)[0].Id -eq $live.Id)) { throw 'The game is already running; close it first.' }
-if (-not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
-$managed = Join-Path (Get-GameFolder) 'OxygenNotIncluded_Data\Managed'
+# The runtimes in the order they run: Both is the stock leg, then the Moono leg, from one build.
+$legs = if ($Runtime -eq 'Both') { @('Stock', 'Moono') } else { @($Runtime) }
+if ($legs -contains 'Stock' -and -not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
+if ($legs -contains 'Moono') { $moono = Get-MoonoExe $MoonoExe }
+$gameFolder = Get-GameFolder
+$managed = Join-Path $gameFolder 'OxygenNotIncluded_Data\Managed'
 
 $spacedOut = switch ($Mode) { 'base' { $false } 'spacedout' { $true } default { Get-PlayerSpacedOut $prefs } }
 $dlc = if ($spacedOut) { 'EXPANSION1_ID' } else { '' }
@@ -274,10 +273,17 @@ foreach ($mod in $Mods) {
 }
 
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$runDir = Join-Path $OutDir "$Label-$stamp"
-$testsDir = Join-Path $runDir 'tests'
-New-Item -ItemType Directory -Force $testsDir | Out-Null
-if ($runDir -match '\s') { throw "The run folder path must not contain spaces (it travels through Steam's command line): $runDir" }
+# A run folder per runtime: <label>-<stamp> for Stock alone, -stock and -moono for Both, -moono for Moono.
+$legDirs = [ordered]@{}
+foreach ($leg in $legs) {
+    $suffix = if ($Runtime -eq 'Both' -or $leg -eq 'Moono') { '-' + $leg.ToLowerInvariant() } else { '' }
+    $legDirs[$leg] = Join-Path $OutDir "$Label-$stamp$suffix"
+}
+foreach ($dir in $legDirs.Values) {
+    New-Item -ItemType Directory -Force (Join-Path $dir 'tests') | Out-Null
+    if ($dir -match '\s') { throw "The run folder path must not contain spaces (it travels through the game's command line): $dir" }
+}
+$runDir = $legDirs[$legs[0]]
 
 foreach ($p in $projects) {
     if (-not $NoBuild) {
@@ -298,17 +304,12 @@ foreach ($p in $projects) {
         $check = & dotnet run -c Release --project (Join-Path $commonRoot 'tools\ModCheck') -- $managed (Join-Path $checkDir "$($p.Mod).Tests.dll") 2>&1 | ForEach-Object { "$_" }
         if ($LASTEXITCODE -ne 0) { Write-Host ($check -join "`n"); Write-Host "ModCheck failed for $($p.Mod).Tests.dll"; exit 3 }
     }
-    Copy-Item -LiteralPath $p.Dll -Destination $testsDir
+    foreach ($dir in $legDirs.Values) { Copy-Item -LiteralPath $p.Dll -Destination (Join-Path $dir 'tests') }
 }
 if ($BuildOnly) { Write-Host 'Built and checked against the game assemblies (-BuildOnly: no game session).'; exit 0 }
 foreach ($mod in $Mods + 'TestRunner') {
     if (-not (Test-Path (Join-Path $klei "mods\local\$mod\$mod.dll"))) { throw "Mod $mod is not deployed to mods\local; build it first." }
 }
-# A copy under a name without spaces: the path travels through Steam's command line.
-$fixtureCopy = Join-Path $runDir 'fixture.sav'
-if (-not $noFixture) { Copy-Item -LiteralPath $Fixture -Destination $fixtureCopy }
-$resultsFile = Join-Path $runDir 'results.jsonl'
-$statusFile = "$resultsFile.status"
 
 # --- loadout -----------------------------------------------------------------------------------
 # A mods.json entry for a downloaded Workshop item the game has not registered yet, or $null: its
@@ -393,12 +394,12 @@ function Set-Mods {
     [IO.File]::WriteAllText((Join-Path $runDir 'mods.json.used'), ($json | ConvertTo-Json -Depth 10), $utf8)
 }
 
-# What the running game would have to match to take this run: the mode, the mods and Workshop
-# items enabled, the trace switch (patches made at boot), and every file of each local mod and of
-# the harness as deployed, with each mod's shared config. Test assemblies are not part of it: the
-# live game loads them fresh for every run.
+# What the running game would have to match to take this run: the runtime (stock or Moono), the
+# mode, the mods and Workshop items enabled, the trace switch (patches made at boot), and every file
+# of each local mod and of the harness as deployed, with each mod's shared config. Test assemblies
+# are not part of it: the live game loads them fresh for every run.
 function Get-LoadoutKey {
-    $parts = @("dlc=$dlc", "trace=$([bool]$Trace)", "mods=$((@($Mods) | Sort-Object) -join ',')", "with=$((@($With) | Sort-Object) -join ',')", "steam=$((@($Steam) | Sort-Object) -join ',')")
+    $parts = @("runtime=$leg", "dlc=$dlc", "trace=$([bool]$Trace)", "mods=$((@($Mods) | Sort-Object) -join ',')", "with=$((@($With) | Sort-Object) -join ',')", "steam=$((@($Steam) | Sort-Object) -join ',')")
     foreach ($m in (@('TestRunner') + $Mods + $With | Sort-Object -Unique)) {
         $roots = @((Join-Path $klei "mods\local\$m"), (Join-Path $configRoot $m))
         foreach ($root in $roots) {
@@ -447,173 +448,230 @@ function Get-PlayerEntries {
     }
     return , $set
 }
-$playerBefore = Get-PlayerEntries
 
-$t0 = Get-Date
-$launcherStatus = 'not-started'
-$loadoutKey = Get-LoadoutKey
-$submitted = $false
-$wardenStarted = $false
-$wardenPid = 0
-$proc = $null
-$requestLines = @("dir=$runDir", "save=$fixtureCopy", "filter=$Filter", "timeout=$TimeoutSec", "test-timeout=$TestTimeoutSec", "trace=$(if ($Trace) { '1' } else { '0' })", "config=$($configNames -join ';')")
+# --- one leg per runtime -------------------------------------------------------------------------
+# Each leg is a whole session: the live game it may reuse (same runtime and loadout), or a fresh game
+# with its own mods.json backup and warden, its own run folder, Player.log copy and summary.
+$legResults = @()
+foreach ($leg in $legs) {
+    $runDir = $legDirs[$leg]
+    $testsDir = Join-Path $runDir 'tests'
+    # A copy under a name without spaces: the path travels through the game's command line.
+    $fixtureCopy = Join-Path $runDir 'fixture.sav'
+    if (-not $noFixture) { Copy-Item -LiteralPath $Fixture -Destination $fixtureCopy }
+    $resultsFile = Join-Path $runDir 'results.jsonl'
+    $statusFile = "$resultsFile.status"
+    if ($legs.Count -gt 1) { Write-Host "$(Get-Date -Format HH:mm:ss) --- $leg leg ($($runDir.Split('\')[-1])) ---" }
 
-# --- a live game with this loadout takes the run -----------------------------------------------
-if (Get-LiveGame) {
-    $keyFile = Join-Path $liveDir 'key.txt'
-    $liveKey = if (Test-Path -LiteralPath $keyFile) { [IO.File]::ReadAllText($keyFile, $utf8) } else { '' }
-    $state = $(try { (Get-Content -LiteralPath (Join-Path $liveDir 'state') -Raw).Trim() } catch { '' })
-    if ($KeepGame) {
-        Stop-LiveSession '-KeepGame starts a game of its own'
-    } elseif ($liveKey -ne $loadoutKey) {
-        Stop-LiveSession 'this run needs another loadout (mods, mode, or a rebuilt mod)'
-    } elseif ($state -notlike 'idle*') {
-        Stop-LiveSession "the game is not idle ($state)"
-    } else {
-        $taken = Write-Request $runDir.Split('\')[-1] $requestLines
-        $deadline = (Get-Date).AddSeconds(5)
-        while (-not (Test-Path -LiteralPath $taken) -and (Get-Date) -lt $deadline -and (Get-LiveGame)) { Start-Sleep -Milliseconds 100 }
-        if (Test-Path -LiteralPath $taken) {
-            $submitted = $true
-            Write-Host "The running game took the run (same loadout); no restart."
-        } else {
-            Stop-LiveSession 'the game did not take the run (it was ending)'
-        }
-    }
-}
-
-if ($submitted) {
-    $launcherStatus = 'reused'
-    $game = Get-LiveGame
-    $deadline = (Get-Date).AddSeconds($TimeoutSec + 120)
-    while (-not (Test-Path -LiteralPath $statusFile) -and $game -and -not $game.HasExited -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $game.Refresh() }
-    if (-not (Test-Path -LiteralPath $statusFile)) { $launcherStatus = if ($game -and -not $game.HasExited) { 'reused, no status in time' } else { 'reused, exited' } }
-    if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force }
-} else {
-    # --- a fresh game ------------------------------------------------------------------------------
-    # A leftover backup means an earlier run died before its restore: it holds the real loadout,
-    # so put it back first instead of overwriting it.
-    $backup = "$modsJson.onitest-backup"
-    if (Test-Path $backup) {
-        Write-Warning "Leftover backup $backup from an unfinished run; restoring it before starting."
-        Copy-Item $backup $modsJson -Force
-    } else {
-        Copy-Item $modsJson $backup
-    }
-    # The game marks mods.json "mod_load_in_progress" as it boots and clears it at the main menu; a game
-    # closed before then leaves it set, and the next boot starts in mod safe mode with every mod off.
-    # A launched game closed early is the usual cause here, so neither the test loadout nor the player's
-    # loadout put back afterwards carries it.
-    $backupText = [IO.File]::ReadAllText($backup, $utf8)
-    [IO.File]::WriteAllText($backup, ($backupText -replace '("mod_load_in_progress"\s*:\s*)true', '${1}false'), $utf8)
-    # The real loadout, kept with the run, so a list lost later can be told apart from one this run lost.
-    Copy-Item $backup (Join-Path $runDir 'mods.json.real') -Force
-    # A live game ended above may have left a config backup (its warden normally puts it back); the
-    # key the new game is given must hash the player's config.
-    Restore-LeftoverConfig
+    $playerBefore = Get-PlayerEntries
+    $t0 = Get-Date
+    $launcherStatus = 'not-started'
     $loadoutKey = Get-LoadoutKey
-    try {
-        # The mode left by a live game ended above is the player's again (its warden put it back);
-        # one still switched is put back first, so the value kept below is the player's.
-        Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs) -Leftover
-        Save-SaveKey $prefs
-        if (Switch-GameMode $prefs $spacedOut) { Write-Host "Switched the game to $(if ($spacedOut) { 'Spaced Out' } else { 'the base game' }) for this run; the player's mode goes back when it exits." }
-        Set-Mods
-        $gameArgs = @('-applaunch', "$AppId", "--onitest-dir=$runDir", "--onitest-save=$fixtureCopy", "--onitest-timeout=$TimeoutSec", "--onitest-test-timeout=$TestTimeoutSec")
-        if ($Filter) { $gameArgs += "--onitest-filter=$Filter" }
-        if ($configNames) { $gameArgs += "--onitest-config=$($configNames -join ';')" }
-        if ($KeepGame) { $gameArgs += '--onitest-keep=1' }
-        if ($Trace) { $gameArgs += '--onitest-trace=1' }
-        if (-not $KeepGame) {
-            New-Item -ItemType Directory -Force (Join-Path $liveDir 'queue') | Out-Null
-            [IO.File]::WriteAllText((Join-Path $liveDir 'key.txt'), $loadoutKey, $utf8)
-            $gameArgs += "--onitest-server=$liveDir"
-        }
-        Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Steam) { ' + Workshop ' + ($Steam -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $(if ($noFixture) { 'none' } else { $Fixture })"
-        if (-not $KeepGame) {
-            # The warden starts before the game, so a launcher killed while the game is starting
-            # still leaves one: it finds the game by the pid file or as the newest game process, and
-            # restores once the game exits (or at once if no game comes up).
-            $wardenPid = Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
-                '-PidFile', $livePidFile, '-StartTimeoutSec', '150', '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs)
-            $wardenStarted = $true
-        }
-        Write-Host "Launching: $($gameArgs -join ' ')"
-        Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
-        while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess | Select-Object -First 1 }
-        if (-not $proc) { throw 'The game did not start within 120 s.' }
-        $launcherStatus = 'exited'
-        if (-not $KeepGame) {
-            # From here the warden owns the restore: the game outlives this script.
-            [IO.File]::WriteAllText($livePidFile, "$($proc.Id)", $utf8)
-            $launcherStatus = 'live'
-            while (-not (Test-Path -LiteralPath $statusFile) -and -not $proc.HasExited -and ((Get-Date) - $t0).TotalSeconds -lt ($TimeoutSec + 180)) { Start-Sleep -Milliseconds 250; $proc.Refresh() }
-            if ($proc.HasExited) { $launcherStatus = 'exited' }
+    $submitted = $false
+    $wardenStarted = $false
+    $wardenPid = 0
+    $proc = $null
+    $requestLines = @("dir=$runDir", "save=$fixtureCopy", "filter=$Filter", "timeout=$TimeoutSec", "test-timeout=$TestTimeoutSec", "trace=$(if ($Trace) { '1' } else { '0' })", "config=$($configNames -join ';')")
+
+    # --- a live game with this loadout takes the run -------------------------------------------
+    if (Get-LiveGame) {
+        $keyFile = Join-Path $liveDir 'key.txt'
+        $liveKey = if (Test-Path -LiteralPath $keyFile) { [IO.File]::ReadAllText($keyFile, $utf8) } else { '' }
+        $state = $(try { (Get-Content -LiteralPath (Join-Path $liveDir 'state') -Raw).Trim() } catch { '' })
+        if ($KeepGame) {
+            Stop-LiveSession '-KeepGame starts a game of its own'
+        } elseif ($liveKey -ne $loadoutKey) {
+            Stop-LiveSession 'this run needs another loadout (runtime, mods, mode, or a rebuilt mod)'
+        } elseif ($state -notlike 'idle*') {
+            Stop-LiveSession "the game is not idle ($state)"
         } else {
-            while (-not $proc.HasExited) { Start-Sleep 3; $proc.Refresh() }
-        }
-        Start-Sleep 1
-        if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force }
-    }
-    finally {
-        if ($wardenStarted -and -not $proc) {
-            # No game came up (or this script failed before it saw one): the restore is this script's,
-            # and the warden, still waiting for a game, must not make it a second time.
-            if ($wardenPid -gt 0) { Stop-Process -Id $wardenPid -Force -ErrorAction SilentlyContinue }
-            $wardenStarted = $false
-        }
-        if (-not $wardenStarted) {
-            Copy-Item $backup $modsJson -Force
-            # A copy keeps the backup's old date; dated now, the file shows when the loadout came back.
-            (Get-Item $modsJson).LastWriteTime = Get-Date
-            if ((Get-FileHash $modsJson).Hash -ne (Get-FileHash $backup).Hash) {
-                Write-Warning "mods.json does not match the backup after the restore; the backup is left at $backup."
+            $taken = Write-Request $runDir.Split('\')[-1] $requestLines
+            $deadline = (Get-Date).AddSeconds(5)
+            while (-not (Test-Path -LiteralPath $taken) -and (Get-Date) -lt $deadline -and (Get-LiveGame)) { Start-Sleep -Milliseconds 100 }
+            if (Test-Path -LiteralPath $taken) {
+                $submitted = $true
+                Write-Host "The running game took the run (same loadout); no restart."
             } else {
-                Remove-Item $backup -Force
-                Write-Host 'Restored mods.json.'
+                Stop-LiveSession 'the game did not take the run (it was ending)'
             }
-            if (Test-Path -LiteralPath $liveDir) { Remove-Item -LiteralPath $liveDir -Recurse -Force -ErrorAction SilentlyContinue }
-            # The game puts the config back at the end of its run; one that died did not.
-            if (-not (Get-GameProcess -Any)) {
-                Restore-LeftoverConfig
-                Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs)
-            }
-        } else {
-            Write-Host "The game stays up $([int]15) s for another run with this loadout; its warden puts mods.json back when it exits."
         }
     }
+
+    if ($submitted) {
+        $launcherStatus = 'reused'
+        $game = Get-LiveGame
+        $deadline = (Get-Date).AddSeconds($TimeoutSec + 120)
+        while (-not (Test-Path -LiteralPath $statusFile) -and $game -and -not $game.HasExited -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $game.Refresh() }
+        if (-not (Test-Path -LiteralPath $statusFile)) { $launcherStatus = if ($game -and -not $game.HasExited) { 'reused, no status in time' } else { 'reused, exited' } }
+        if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force }
+    } else {
+        # --- a fresh game --------------------------------------------------------------------------
+        # A leftover backup means an earlier run died before its restore: it holds the real loadout,
+        # so put it back first instead of overwriting it.
+        $backup = "$modsJson.onitest-backup"
+        if (Test-Path $backup) {
+            Write-Warning "Leftover backup $backup from an unfinished run; restoring it before starting."
+            Copy-Item $backup $modsJson -Force
+        } else {
+            Copy-Item $modsJson $backup
+        }
+        # The game marks mods.json "mod_load_in_progress" as it boots and clears it at the main menu; a game
+        # closed before then leaves it set, and the next boot starts in mod safe mode with every mod off.
+        # A launched game closed early is the usual cause here, so neither the test loadout nor the player's
+        # loadout put back afterwards carries it.
+        $backupText = [IO.File]::ReadAllText($backup, $utf8)
+        [IO.File]::WriteAllText($backup, ($backupText -replace '("mod_load_in_progress"\s*:\s*)true', '${1}false'), $utf8)
+        # The real loadout, kept with the run, so a list lost later can be told apart from one this run lost.
+        Copy-Item $backup (Join-Path $runDir 'mods.json.real') -Force
+        # A live game ended above may have left a config backup (its warden normally puts it back); the
+        # key the new game is given must hash the player's config.
+        Restore-LeftoverConfig
+        $loadoutKey = Get-LoadoutKey
+        try {
+            # The mode left by a live game ended above is the player's again (its warden put it back);
+            # one still switched is put back first, so the value kept below is the player's.
+            Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs) -Leftover
+            Save-SaveKey $prefs
+            if (Switch-GameMode $prefs $spacedOut) { Write-Host "Switched the game to $(if ($spacedOut) { 'Spaced Out' } else { 'the base game' }) for this run; the player's mode goes back when it exits." }
+            Set-Mods
+            $gameArgs = @("--onitest-dir=$runDir", "--onitest-save=$fixtureCopy", "--onitest-timeout=$TimeoutSec", "--onitest-test-timeout=$TestTimeoutSec")
+            if ($Filter) { $gameArgs += "--onitest-filter=$Filter" }
+            if ($configNames) { $gameArgs += "--onitest-config=$($configNames -join ';')" }
+            if ($KeepGame) { $gameArgs += '--onitest-keep=1' }
+            if ($Trace) { $gameArgs += '--onitest-trace=1' }
+            if (-not $KeepGame) {
+                New-Item -ItemType Directory -Force (Join-Path $liveDir 'queue') | Out-Null
+                [IO.File]::WriteAllText((Join-Path $liveDir 'key.txt'), $loadoutKey, $utf8)
+                $gameArgs += "--onitest-server=$liveDir"
+            }
+            Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Steam) { ' + Workshop ' + ($Steam -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $(if ($noFixture) { 'none' } else { $Fixture }); runtime $leg"
+            if (-not $KeepGame) {
+                # The warden starts before the game, so a launcher killed while the game is starting
+                # still leaves one: it finds the game by the pid file or as the newest game process, and
+                # restores once the game exits (or at once if no game comes up).
+                $wardenPid = Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
+                    '-PidFile', $livePidFile, '-StartTimeoutSec', '150', '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs)
+                $wardenStarted = $true
+            }
+            if ($leg -eq 'Moono') {
+                # Moono's player started directly: it runs the game in its own process (OniMoono, found
+                # below by the --onitest- arguments on its command line, not by the pid Start-Process gives).
+                $argLine = Get-MoonoArgumentLine $gameFolder $gameArgs
+                Write-Host "Launching: $(ConvertTo-CommandLineArgument $moono) $argLine"
+                Start-Process -FilePath $moono -ArgumentList $argLine -WorkingDirectory (Split-Path $moono -Parent) | Out-Null
+            } else {
+                $steamArgs = @('-applaunch', "$AppId") + $gameArgs
+                Write-Host "Launching: $($steamArgs -join ' ')"
+                Start-Process -FilePath $SteamExe -ArgumentList $steamArgs | Out-Null
+            }
+            while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess | Select-Object -First 1 }
+            if (-not $proc) { throw 'The game did not start within 120 s.' }
+            $launcherStatus = 'exited'
+            if (-not $KeepGame) {
+                # From here the warden owns the restore: the game outlives this script.
+                [IO.File]::WriteAllText($livePidFile, "$($proc.Id)", $utf8)
+                $launcherStatus = 'live'
+                while (-not (Test-Path -LiteralPath $statusFile) -and -not $proc.HasExited -and ((Get-Date) - $t0).TotalSeconds -lt ($TimeoutSec + 180)) { Start-Sleep -Milliseconds 250; $proc.Refresh() }
+                if ($proc.HasExited) { $launcherStatus = 'exited' }
+            } else {
+                while (-not $proc.HasExited) { Start-Sleep 3; $proc.Refresh() }
+            }
+            Start-Sleep 1
+            if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force }
+        }
+        finally {
+            if ($wardenStarted -and -not $proc) {
+                # No game came up (or this script failed before it saw one): the restore is this script's,
+                # and the warden, still waiting for a game, must not make it a second time.
+                if ($wardenPid -gt 0) { Stop-Process -Id $wardenPid -Force -ErrorAction SilentlyContinue }
+                $wardenStarted = $false
+            }
+            if (-not $wardenStarted) {
+                Copy-Item $backup $modsJson -Force
+                # A copy keeps the backup's old date; dated now, the file shows when the loadout came back.
+                (Get-Item $modsJson).LastWriteTime = Get-Date
+                if ((Get-FileHash $modsJson).Hash -ne (Get-FileHash $backup).Hash) {
+                    Write-Warning "mods.json does not match the backup after the restore; the backup is left at $backup."
+                } else {
+                    Remove-Item $backup -Force
+                    Write-Host 'Restored mods.json.'
+                }
+                if (Test-Path -LiteralPath $liveDir) { Remove-Item -LiteralPath $liveDir -Recurse -Force -ErrorAction SilentlyContinue }
+                # The game puts the config back at the end of its run; one that died did not.
+                if (-not (Get-GameProcess -Any)) {
+                    Restore-LeftoverConfig
+                    Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs)
+                }
+            } elseif ($leg -ne $legs[-1]) {
+                Write-Host "The $leg game is ended for the next leg; its warden puts mods.json back when it exits."
+            } else {
+                Write-Host "The game stays up $([int]15) s for another run with this loadout; its warden puts mods.json back when it exits."
+            }
+        }
+    }
+
+    # --- report --------------------------------------------------------------------------------
+    $results = @()
+    if (Test-Path $resultsFile) {
+        $results = @([IO.File]::ReadAllLines($resultsFile, $utf8) | Where-Object { $_.Trim() } | ForEach-Object { $_ | ConvertFrom-Json })
+    }
+    $status = if (Test-Path $statusFile) { [IO.File]::ReadAllText($statusFile, $utf8).Trim() | ConvertFrom-Json } else { $null }
+    $lines = @()
+    # What ran, by the copied Player.log's first lines, so a run that asked for one runtime and got the
+    # other (Steam's launch options still pointing at Moono, say) says so.
+    $ran = Get-LogRuntime (Join-Path $runDir 'Player.log')
+    $ranText = if (-not $ran.Runtime) { 'unknown (no Player.log)' } elseif ($ran.Runtime -eq 'Moono') { "Moono (commit $($ran.Commit)$(if ($ran.Launch) { '; launch: ' + $ran.Launch }))" } else { 'Stock' }
+    $lines += "Runtime: $leg asked; Player.log shows $ranText"
+    if ($ran.Runtime -and $ran.Runtime -ne $leg) { $lines += "WARNING: the run asked for $leg but the game ran on $($ran.Runtime)." }
+    foreach ($r in $results) {
+        $lines += ('{0,-8} {1} ({2:F1} s){3}' -f $r.status.ToUpper(), $r.id, $r.durationSeconds, $(if ($r.message) { ': ' + $r.message } else { '' }))
+        foreach ($e in $r.logErrors) { $lines += "         logged: $e" }
+    }
+    $sessionLine = if ($status) {
+        "Session $($status.status)$(if ($status.detail) { ': ' + $status.detail }); $($status.passed) passed, $($status.failed) failed, $($status.errors) errors, $($status.timeouts) timeouts, $($status.skipped) skipped of $($status.total); $($status.realSeconds) s real time$(if ($status.reloads) { "; fixture loaded again $($status.reloads) time(s)" })"
+    } else {
+        'No status file: the session never finished (launch, load or crash). See Player.log in the run folder.'
+    }
+    $lines += $sessionLine
+    $playerAfter = Get-PlayerEntries
+    $playerNew = @($playerAfter | Where-Object { -not $playerBefore.Contains($_) } | Sort-Object)
+    if ($playerNew.Count -eq 0) {
+        $lines += "Player's folders: nothing new in $(($playerFolders | ForEach-Object { Split-Path $_ -Leaf }) -join ', ')"
+    } else {
+        $lines += "Player's folders: $($playerNew.Count) new entr$(if ($playerNew.Count -eq 1) { 'y' } else { 'ies' }) since the run started (not deleted; check whether this run wrote them):"
+        $lines += @($playerNew | ForEach-Object { "         $($_.Substring($klei.Length + 1))" })
+    }
+    $lines += "Game $launcherStatus after $([int]((Get-Date) - $t0).TotalSeconds) s; results in $runDir"
+    $lines | ForEach-Object { Write-Host $_ }
+    [IO.File]::WriteAllLines((Join-Path $runDir 'summary.txt'), $lines, $utf8)
+
+    $legExit = 0
+    if (-not $status -or $status.status -ne 'done') { $legExit = 2 }
+    elseif (@($results | Where-Object { $_.status -in 'fail', 'error', 'timeout' }).Count -gt 0 -or $status.total -eq 0) { $legExit = 1 }
+    $legResults += [pscustomobject]@{ Runtime = $leg; RunDir = $runDir; Results = $results; Session = $sessionLine; Exit = $legExit }
+
+    # The next leg runs on the other runtime, which this game cannot take: end it now rather than
+    # leave the next leg to find a live game with another key.
+    if ($leg -ne $legs[-1] -and (Get-LiveGame)) { Stop-LiveSession "the $($legs[[array]::IndexOf($legs, $leg) + 1]) leg needs a game of its own" }
 }
 
-# --- report ------------------------------------------------------------------------------------
-$results = @()
-if (Test-Path $resultsFile) {
-    $results = @([IO.File]::ReadAllLines($resultsFile, $utf8) | Where-Object { $_.Trim() } | ForEach-Object { $_ | ConvertFrom-Json })
+# --- both runtimes side by side ----------------------------------------------------------------
+if ($legResults.Count -gt 1) {
+    $ids = @($legResults | ForEach-Object { $_.Results } | ForEach-Object { $_.id } | Select-Object -Unique)
+    $cell = { param($leg, $id)
+        $r = @($leg.Results | Where-Object { $_.id -eq $id }) | Select-Object -First 1
+        if ($r) { '{0} ({1:F1} s)' -f $r.status.ToUpper(), $r.durationSeconds } else { '-' }
+    }
+    $table = @('Stock and Moono side by side', ('{0,-20} {1,-20} {2}' -f $legResults[0].Runtime, $legResults[1].Runtime, 'Test'))
+    foreach ($id in $ids) {
+        $a = & $cell $legResults[0] $id; $b = & $cell $legResults[1] $id
+        $sa = ($a -split ' ')[0]; $sb = ($b -split ' ')[0]
+        $table += ('{0,-20} {1,-20} {2}{3}' -f $a, $b, $id, $(if ($sa -ne $sb) { '   <- differs' } else { '' }))
+    }
+    foreach ($l in $legResults) { $table += "$($l.Runtime): $($l.Session) ($($l.RunDir.Split('\')[-1]))" }
+    Write-Host ''
+    $table | ForEach-Object { Write-Host $_ }
+    foreach ($l in $legResults) { [IO.File]::WriteAllLines((Join-Path $l.RunDir 'both.txt'), $table, $utf8) }
 }
-$status = if (Test-Path $statusFile) { [IO.File]::ReadAllText($statusFile, $utf8).Trim() | ConvertFrom-Json } else { $null }
-$lines = @()
-foreach ($r in $results) {
-    $lines += ('{0,-8} {1} ({2:F1} s){3}' -f $r.status.ToUpper(), $r.id, $r.durationSeconds, $(if ($r.message) { ': ' + $r.message } else { '' }))
-    foreach ($e in $r.logErrors) { $lines += "         logged: $e" }
-}
-if ($status) {
-    $lines += "Session $($status.status)$(if ($status.detail) { ': ' + $status.detail }); $($status.passed) passed, $($status.failed) failed, $($status.errors) errors, $($status.timeouts) timeouts, $($status.skipped) skipped of $($status.total); $($status.realSeconds) s real time$(if ($status.reloads) { "; fixture loaded again $($status.reloads) time(s)" })"
-} else {
-    $lines += 'No status file: the session never finished (launch, load or crash). See Player.log in the run folder.'
-}
-$playerAfter = Get-PlayerEntries
-$playerNew = @($playerAfter | Where-Object { -not $playerBefore.Contains($_) } | Sort-Object)
-if ($playerNew.Count -eq 0) {
-    $lines += "Player's folders: nothing new in $(($playerFolders | ForEach-Object { Split-Path $_ -Leaf }) -join ', ')"
-} else {
-    $lines += "Player's folders: $($playerNew.Count) new entr$(if ($playerNew.Count -eq 1) { 'y' } else { 'ies' }) since the run started (not deleted; check whether this run wrote them):"
-    $lines += @($playerNew | ForEach-Object { "         $($_.Substring($klei.Length + 1))" })
-}
-$lines += "Game $launcherStatus after $([int]((Get-Date) - $t0).TotalSeconds) s; results in $runDir"
-$lines | ForEach-Object { Write-Host $_ }
-[IO.File]::WriteAllLines((Join-Path $runDir 'summary.txt'), $lines, $utf8)
 
-if (-not $status) { exit 2 }
-if ($status.status -ne 'done') { exit 2 }
-$bad = @($results | Where-Object { $_.status -in 'fail', 'error', 'timeout' }).Count
-if ($bad -gt 0 -or $status.total -eq 0) { exit 1 }
-exit 0
+exit (($legResults | ForEach-Object { $_.Exit } | Measure-Object -Maximum).Maximum)
