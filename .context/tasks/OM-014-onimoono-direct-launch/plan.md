@@ -5,10 +5,10 @@
 
 ## Phase State
 - **Phase plan**: investigation → implementation → testing → completion
-- **Completed**: (none)
-- **Current**: investigation   (status: in-progress)
-- **Next**: implementation
-- **Loaded skill**: task-plan-phase-investigation
+- **Completed**: investigation
+- **Current**: implementation   (status: in-progress)
+- **Next**: testing
+- **Loaded skill**: task-plan-phase-implementation
 - **Branch**: OM-014-onimoono-direct-launch
 - **Attempts (current phase)**: 1
 
@@ -16,6 +16,9 @@
 - Task id OM-014: common's store holds up to OM-013-onimoono-other-tools (ONI-Mods' own OM-013 is the Fan-out Gate, a separate counter, same practice as OM-012/OM-013).
 - Interface (user, 2026-11-11): `-Runtime Stock|Moono|Both`, default Stock (Steam launch, today's cost). Both runs the suite on each and reports them side by side.
 - Tools (user, 2026-11-11): TestRunner and ModTest get -Runtime. SaveRunner and WorldgenDriver keep launching through Steam.
+- Unit 01 (units/01-explore-report.md): OniMoono.dll (commit 2864d5ec) has launch modes "from Steam's launch options", "direct (--game)", "standalone"; usage `OniMoono [--game DIR] ... [Unity player args, passed to the game] [--game-arg ARG] [-- STEAM-COMMAND ...]`; sets SteamAppId 457140 itself; Steam must run (Moono starts it). Argument pass-through in direct mode unproven until a run.
+- Moono exe (user, 2026-11-11): default F:\modding\oni-moono\player\OniMoono.exe; ONI_MOONO_EXE env var or -MoonoExe overrides.
+- Taken without a user question: always pass `--game <the game folder the tools already resolve>` so launch.json's install choice never matters; Both = stock leg then Moono leg, the second runs whatever the first did, one build, run folders suffixed -stock / -moono, combined per-test table, exit code worst of the two; runtime in the loadout/session key so a live game of the other runtime is never reused (stop the live session between legs); copy Player.log per leg; report the runtime from Player.log line 1 ("Moono starting: commit=..."); ModTest Both = two sequential sessions; SaveRunner/WorldgenDriver must keep working through the shared GameProcess.ps1.
 - Branches cut from origin/main in both repos (the Fan-out Gate PRs, ONI-Mods#23 / oni-mods-common#12, are not merged yet).
 
 ## Key Files
@@ -27,9 +30,9 @@
 ## Phase Handoff Log
 
 ## Progress
-- [ ] Investigate: how OniMoono.exe is started directly (arguments, game path, Steam/app id needs, working dir), how the launchers start and recognise the game today, how ModTest follows the game, where runs/reports would show the runtime ← IN PROGRESS
-- [ ] Repair integration-testing.md "Launching with oni-moono" (protected write)
-- [ ] Implement -Runtime in TestRunner and ModTest
+- [x] Investigate — unit 01 (units/01-explore-report.md)
+- [x] Repair integration-testing.md "Launching with oni-moono" — ONI-Mods 400e915 (text update for direct launch still due at completion)
+- [ ] Implement -Runtime in TestRunner and ModTest — unit 02 ← IN PROGRESS
 - [ ] Prove: one narrow TestRunner run on each runtime (Both), one ModTest check per runtime
 - [ ] Completion: review, store update, retro, commit, PRs (common + ONI-Mods pointer/doc)
 
