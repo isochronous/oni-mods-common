@@ -27,12 +27,14 @@ namespace Isochronous.TestKit
 		private string[] loadErrors = new string[0];
 
 		/// <summary>
-		/// Errors and exceptions the game logged while the save this test runs on was loading (from the
-		/// load starting to the test starting), which a test cannot see as it runs. Empty for a
-		/// colony that was already up. Not counted against the test: assert on them.
+		/// Errors and exceptions the game logged from the start of the load of the save this test runs
+		/// on to the test starting: the load itself, then the harness's own setup and its clearing of the
+		/// fixture area. A test cannot see these as it runs. Empty for a colony that was already up. Not
+		/// counted against the test: assert on them.
 		/// </summary>
 		public IReadOnlyList<string> LoadErrors => loadErrors;
 
+		/// <param name="errors">A snapshot taken under the capture's lock (LogCapture.Snapshot).</param>
 		internal void SetLoadErrors(List<string> errors)
 		{
 			loadErrors = errors.ToArray();

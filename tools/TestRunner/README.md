@@ -218,6 +218,9 @@ public static class WireDrags
   test whatever happened; `t.AllowLogError(regex)` for an error the game is expected to log,
   because any `Error`, `Exception` or `Assert` logged during a test fails it otherwise;
   `t.Skip(reason)`.
+- `t.LoadErrors`: the errors and exceptions the game logged from the start of the save load to the
+  test starting (the load, then the harness's setup and fixture clear), which a test cannot see as it
+  runs. Empty for a colony that was already up. Not counted against the test: assert on them.
 - `t.InstantBuild(on)` turns the debug instant build off or on for the test (restored at cleanup);
   sandbox's own Instant Build setting is a separate switch, `SandboxToolParameterMenu.instance.settings.InstantBuild`.
 - `t.Dupes`, for a test that needs work done by hand (the fixture has no Duplicants):

@@ -215,6 +215,8 @@ namespace Isochronous.TestRunner
 			if (Finished)
 				return;
 			Finished = true;
+			LoadCapture?.End();
+			LoadCapture = null;
 			// Before the status line: a launcher that sees it may compute the next loadout at once.
 			RunUndo();
 			string restoreProblem = ModConfig.Restore();
@@ -336,6 +338,9 @@ namespace Isochronous.TestRunner
 		/// <summary>A fresh run in the live game: the run's settings, every count back to zero, the tests found again.</summary>
 		private static void Begin(Dictionary<string, string> fields)
 		{
+			// A capture left over from a run that ended before its first test must not carry into this one.
+			LoadCapture?.End();
+			LoadCapture = null;
 			fields.TryGetValue("dir", out Dir);
 			fields.TryGetValue("save", out SavePath);
 			Filters.Clear();
