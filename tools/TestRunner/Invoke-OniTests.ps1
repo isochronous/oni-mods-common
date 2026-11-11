@@ -229,7 +229,7 @@ $running = Get-GameProcess -Any
 $live = Get-LiveGame
 if (-not $BuildOnly -and $running -and -not ($live -and @($running).Count -eq 1 -and @($running)[0].Id -eq $live.Id)) { throw 'The game is already running; close it first.' }
 # The runtimes in the order they run: Both is the stock leg, then the Moono leg, from one build.
-$legs = if ($Runtime -eq 'Both') { @('Stock', 'Moono') } else { @($Runtime) }
+$legs = @(if ($Runtime -eq 'Both') { 'Stock', 'Moono' } else { $Runtime })
 if ($legs -contains 'Stock' -and -not (Test-Path $SteamExe)) { throw "Steam not found at $SteamExe" }
 if ($legs -contains 'Moono') { $moono = Get-MoonoExe $MoonoExe }
 $gameFolder = Get-GameFolder
