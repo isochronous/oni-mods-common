@@ -5,10 +5,10 @@
 
 ## Phase State
 - **Phase plan**: investigation → implementation → testing → completion
-- **Completed**: investigation
-- **Current**: implementation   (status: in-progress)
-- **Next**: testing
-- **Loaded skill**: task-plan-phase-implementation
+- **Completed**: investigation, implementation, testing, completion
+- **Current**: none   (status: done)
+- **Next**: none — task complete once the PRs merge
+- **Loaded skill**: task-plan-phase-completion
 - **Branch**: OM-014-onimoono-direct-launch
 - **Attempts (current phase)**: 1
 
@@ -21,11 +21,18 @@
 - Taken without a user question: always pass `--game <the game folder the tools already resolve>` so launch.json's install choice never matters; Both = stock leg then Moono leg, the second runs whatever the first did, one build, run folders suffixed -stock / -moono, combined per-test table, exit code worst of the two; runtime in the loadout/session key so a live game of the other runtime is never reused (stop the live session between legs); copy Player.log per leg; report the runtime from Player.log line 1 ("Moono starting: commit=..."); ModTest Both = two sequential sessions; SaveRunner/WorldgenDriver must keep working through the shared GameProcess.ps1.
 - SUPERSEDES "always pass `--game`" above (Jeremy, 2026-11-11): Moono gets the game folder from Steam, and Steam knows only the one install, so the runner launches OniMoono.exe with no `--game` (standalone mode, which also sets SteamAppId=457140 — the fix for the stock-game relaunch, unit 03). No install check. Add: fail the Moono leg at once if OxygenNotIncluded.exe appears.
 - Branches cut from origin/main in both repos (the Fan-out Gate PRs, ONI-Mods#23 / oni-mods-common#12, are not merged yet).
+- Game arguments to OniMoono go one per `--game-arg` (unit 06: unknown `--` options are fatal, exit 2); stdout/stderr redirected (GUI-subsystem exe).
+- Runtime of a Moono leg read from moono.log (a direct Moono launch writes no Player.log); a reused Moono session names the live session's moono.log.
+- Failed Moono launch ends only what it started (launcher, descendants, log-path match); a stray stock game is handed to a `-GamePid` warden (Jeremy, 2026-11-12: "Hand it to the warden"); ModTest waits up to 900 s, then says mods.json holds the test loadout and prints the restore command.
+- Every bug found in the task's own diff fixed in the task (Jeremy, 2026-11-12).
 
 ## Key Files
-- common/tools/TestRunner/Invoke-OniTests.ps1: launcher (Steam -applaunch 457140, line ~523 adds --onitest- args)
-- common/tools/TestRunner/GameProcess.ps1: finds OxygenNotIncluded / OniMoono processes
-- common/tools/ModTest/Test-OniMods.ps1: ModTest launcher
+- common/tools/TestRunner/Invoke-OniTests.ps1: launcher; -Runtime, -MoonoExe, Moono leg, Both table, per-leg failure, runtime line
+- common/tools/TestRunner/GameProcess.ps1: Get-GameProcess (-Any skips --crash-watch), Moono launch helpers (Get-MoonoArgumentLine, Get-MoonoStreamPaths, Wait-MoonoGame, Get-MoonoExitCode/Text, Stop-MoonoLaunch, Copy-FreshLog, Get-LogRuntime, Get-LiveMoonoLog)
+- common/tools/TestRunner/Watch-OniGame.ps1: -GamePid / -AlsoPids for a stray stock game
+- common/tools/ModTest/Test-OniMods.ps1: ModTest launcher, -Runtime
+- common/tools/TestRunner/README.md, common/tools/ModTest/README.md
+- Store: ONI-Mods .context/testing/integration-testing.md; common tools/TestRunner/.context/domains/entities.md, standards/code-style.md; common .context/domains/tooling-friction.md (new); common .context/retrospectives/icon.md
 - .context/testing/integration-testing.md (ONI-Mods root store), section "Launching with oni-moono" (blk-a24ff5debb99): documents the old launch-options route; also CORRUPTED since ce4aaf4 (#16): the file is 697 KB because one sentence was inserted between every character of the section's paragraph. Repair through the write path in this task.
 
 ## Phase Handoff Log
@@ -61,7 +68,19 @@
   - Lesson: never commit in common/ between test runs that should reuse a session.
 - [x] Unit 13 (7587e6b): reused Moono session reads/names the live moono.log (moono-log.txt in the live dir, `Get-LiveMoonoLog`); ModTest stray wait limited to 900 s; warden `-AlsoPids`; `$stockBefore` taken first. Unit 14 review: all fixed; low N1 wording (loadout-stays-in-place not said plainly; hedged "may be the player's") → fixed by manager with the triple-printed failure reason (now said once; "Moono's log: none written" not repeated after "Moono wrote no log").
 - [x] Final in-game checks 12:29–12:31 (Jeremy: "run them when ready"): reuse pair — run 2 "took the run … no restart", PASS 3.7 s, "moono.log shows Moono (commit 2fb86e60 …)", log = run 1's moono.log; Both with `-MoonoExe <scratch>\fake-moono\OniMoono.exe` (where.exe copy, exits 2 at once): stock PASS, Moono leg recorded "Leg failed before the game was found: OniMoono exited with code 2", table Stock PASS / Moono "-", exit 2; no game left; mods.json hash identical to before all runs. After the wording fix: Moono-only stand-in run prints each fact once, exit 2, mods.json unchanged.
-- [ ] Completion ← IN PROGRESS: review (units 04–05 + manager fixes since the last review: there is none for this task), testing/integration-testing.md "Launching with oni-moono" text for direct launch (ONI-Mods root store), retro, commit, PRs (common + ONI-Mods pointer/doc)
+  - Side effect (Jeremy, 12:3x): the stand-in left console windows open ("process exited with code 2"). Cause: where.exe is a console program, so each runner launch got its own console and Windows Terminal keeps a window open on a non-zero exit. The real OniMoono is GUI-subsystem and never opens one. Stand-in deleted; any future stand-in for OniMoono must be a GUI-subsystem program (or launched hidden by the test itself).
+- [x] Unit 15 review of b01ae19: correct; low finding (the "Moono's log: none written" line hidden on every failure, not only the one that says "wrote no log") → fixed f4af85d exactly as the review specified; condition checked on all four cases.
+- [x] Store: TestRunner entities (Invoke-OniTests.ps1, Business Rules) + code-style (Layout); ONI-Mods integration-testing.md "Launching with oni-moono" rewritten for direct launch (file 18 KB); retro in common icon.md.
+- [ ] Merge origin/main into the common branch (icon-merge), PRs: oni-mods-common (code) and ONI-Mods (doc + submodule pointer) ← IN PROGRESS
+
+## Review Checkpoint
+- Covers `git diff origin/main...f4af85d -- tools` (common): unit 07 over the whole diff to 5c65587; units 09, 10, 12, 14, 15 over every later code commit (c8d11ae, 4c7fad1, 38fdbf1, 039e519, 7587e6b, b01ae19); f4af85d is unit 15's specified fix. No code change after f4af85d.
+
+## Phase Handoff Log
+### Handoff: completion
+- Review: units 07/09/10/12/14/15; every finding fixed (none left open).
+- Verification: scripts parse 0 errors; in game 2026-11-12: Moono PASS, Both PASS/PASS, ModTest Moono (menu, exit 0, mods.json restored), Moono reuse (no restart, 3.7 s), failed Moono leg via stand-in (recorded, table, exit 2, mods.json hash identical).
+- Retro draft: see common .context/retrospectives/icon.md, OM-014 entry.
 - [ ] Completion: review, store update, retro, commit, PRs (common + ONI-Mods pointer/doc)
 
 ## Open Questions / Blockers

@@ -121,10 +121,11 @@ TestRunner runs a mod's in-game tests in the real game with nobody at the keyboa
 
 ### Invoke-OniTests.ps1
 **Id:** blk-5b0c52216ccc  
-**Tags:** game-launch, mod-build, mod-loadout, command-line  
-**Description**: the launcher. For each mod in `-Mods`, finds `src/<Mod>.Tests/<Mod>.Tests.csproj` (in a repo or under `mods/`), builds it, checks the test DLL with `tools/ModCheck`, copies it into the run folder, rewrites `mods.json` so only TestRunner, the mods under test, `-With` and `-Steam` are enabled, launches the game through Steam (or hands the run to a live game), waits for the status, prints a line per test and exits with its code.  
+**Tags:** game-launch, mod-build, mod-loadout, command-line
+
+**Description**: the launcher. For each mod in `-Mods`, finds `src/<Mod>.Tests/<Mod>.Tests.csproj` (in a repo or under `mods/`), builds it, checks the test DLL with `tools/ModCheck`, copies it into the run folder, rewrites `mods.json` so only TestRunner, the mods under test, `-With` and `-Steam` are enabled, launches the game (or hands the run to a live game), waits for the status, prints a line per test and exits with its code. `-Runtime Stock` (default) launches through Steam; `-Runtime Moono` starts oni-moono's `OniMoono.exe` directly in standalone mode (`--log <run>\moono.log --game-arg <each --onitest- argument>`, stdout/stderr to `moono.log.out`/`.err`); `-Runtime Both` runs a stock leg, ends that game, then a Moono leg, and prints the results side by side (run folders `-stock`, `-moono`; exit code the worse of the two). A Moono leg fails at once when OniMoono exits before the game is found or a stock game appears; it then ends only what the launch started, and the leg is recorded as failed.  
 **Location**: `Invoke-OniTests.ps1`  
-**Options**: `-Mods` (required), `-Filter`, `-Fixture`, `-With`, `-Steam`, `-TimeoutSec`, `-TestTimeoutSec`, `-KeepGame`, `-BuildOnly`, `-NoBuild`, `-NoCheck`, `-BuildArgs`, `-Label`, `-Trace`, `-OutDir`, `-SteamExe`, `-AppId`.
+**Options**: `-Mods` (required), `-Filter`, `-Fixture`, `-With`, `-Steam`, `-Runtime`, `-MoonoExe` (else `ONI_MOONO_EXE`, else `F:\modding\oni-moono\player\OniMoono.exe`), `-TimeoutSec`, `-TestTimeoutSec`, `-KeepGame`, `-BuildOnly`, `-NoBuild`, `-NoCheck`, `-BuildArgs`, `-Label`, `-Trace`, `-OutDir`, `-SteamExe`, `-AppId`.
 
 ### Watch-OniGame.ps1
 **Id:** blk-5f4f98f50aec  
@@ -155,10 +156,11 @@ TestRunner runs a mod's in-game tests in the real game with nobody at the keyboa
 - Tests run in order of assembly name, class, declaration. An `Explicit` test runs only when `-Filter` selects it.
 - Any `Error`, `Exception` or `Assert` the game logs during a test fails it unless `t.AllowLogError` allows it.
 - Each mod's tests start on a fresh load of the fixture; `[OniTest(FreshSave = true)]` loads it again before a test, after a settle of five game seconds.
-- A run is handed to a live game only when the loadout matches: the mode, the mods, `-With`, `-Steam`, `-Trace` and every file of each deployed local mod, the harness and their shared configs. Anything else ends the game and launches a new one.
+- A run is handed to a live game only when the loadout matches: the runtime, the mode, the mods, `-With`, `-Steam`, `-Trace` and every file of each deployed local mod, the harness and their shared configs. Anything else ends the game and launches a new one. The build stamps the git commit into `TestRunner.dll`, so a commit between two runs makes the second launch a new game.
 - The game stays up 15 s after a run for another; one run at a time per machine.
 - A world coordinate of the other game mode skips its tests.
 - A run needs Steam running and the game not running (apart from its own live session).
+- The runtime a run reports comes from the first lines of a game log written by this launch: `Player.log` on stock, `moono.log` on Moono (a direct Moono launch writes no `Player.log`; a reused Moono session's log is the live session's). A log written before the launch is never read or copied.
 
 ## Key Code Paths
 **Id:** blk-8a2f716a53ff  

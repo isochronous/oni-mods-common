@@ -1,3 +1,11 @@
+### OM-014: TestRunner and ModTest on stock, oni-moono or both
+**Id:** blk-8b9ccc27a1b6
+
+- **Avoid**: launching an external program from a runner without capturing its exit code, stdout/stderr and own log from the first attempt: the first real Moono run said only "Game exited after 2 s" and blamed a stale Player.log, and it took a second launch to see exit code 2 ("Unknown option", printed to a stderr a GUI-subsystem exe has nowhere to show). Never read a log older than the launch. Don't commit in `common/` between runs that should share a live game (the build stamps the commit into TestRunner.dll), and don't use a console-subsystem stand-in for a GUI program (where.exe left Windows Terminal windows open on exit code 2). A bug found in the task's own diff is fixed in the task, not noted as a minor (Jeremy, 2026-11-12).
+- **Repeat**: make the failing path explain itself before guessing a fix (exit code + log tail + stderr turned an unknown 2-second exit into one line), then read the program's own code for the cause (OniMoono's option parser; the source is on GitHub). Prove each path with the narrowest in-game run, and failure paths with a stand-in exe through `-MoonoExe`; check mods.json by hash before and after.
+- **Updated**: ONI-Mods `testing/integration-testing.md` ("Launching with oni-moono"), common tools/TestRunner `domains/entities.md` (Invoke-OniTests.ps1, Business Rules) and `standards/code-style.md` (Layout: GameProcess.ps1), common `domains/tooling-friction.md` (ks read on a packet)
+
+
 ### OM-013: SaveRunner, WorldgenDriver and ModTest follow a game started through oni-moono
 **Id:** blk-062fcdde7835
 
