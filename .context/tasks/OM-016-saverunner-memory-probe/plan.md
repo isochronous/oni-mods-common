@@ -25,10 +25,11 @@
 - tools/SaveRunner/RunBehaviour.cs, Patches.cs, Mod.cs: dev mod; probes write probe.csv
 
 ## Progress
-- [ ] Decide runtime for the runs (stock via Steam vs OniMoono) ← asking Jeremy
-- [ ] Implement memory probe + per-mod load deltas (implement unit)
-- [ ] Run 1: full mod list (-Without 2854869130,3281716506 per save-runner notes)
-- [ ] Run 2: no mods
+- [x] Decide runtime — Jeremy 2026-11-12: stock first (full vs none), then one full-mod run on OniMoono
+- [ ] Implement memory probe + per-mod load deltas (implement unit 01) ← IN PROGRESS
+- [ ] Run 1: stock, full mod list (-Without 2854869130,3281716506 per save-runner notes)
+- [ ] Run 2: stock, no mods
+- [ ] Run 3: OniMoono, full mod list (SaveRunner needs a Moono launch path — OM-014's GameProcess helpers are on an unmerged branch; decide in unit 01 report)
 - [ ] Compare, report to Jeremy; ask before any bisection
 - [ ] Completion: review, store update, retro, commit, PR
 
