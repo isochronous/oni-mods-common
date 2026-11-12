@@ -70,6 +70,19 @@ namespace SaveRunner
 		/// <summary>Opens the files, writes the first row and hooks mod loading. Called from OnLoad.</summary>
 		public static void Start(Harmony harmony)
 		{
+			try
+			{
+				StartCore(harmony);
+			}
+			catch (Exception e)
+			{
+				Fail("start", e);
+				Close();
+			}
+		}
+
+		private static void StartCore(Harmony harmony)
+		{
 			On = true;
 			gfxUsed = Recorder("Gfx Used Memory");
 			gfxReserved = Recorder("Gfx Reserved Memory");
@@ -85,7 +98,7 @@ namespace SaveRunner
 				}
 				catch (Exception e)
 				{
-					Debug.LogWarning(Runner.Tag + "memory probe cannot open its files: " + e.Message);
+					Fail("opening its files", e);
 				}
 			}
 			int before = ModsLoadedBefore();
@@ -98,6 +111,17 @@ namespace SaveRunner
 			// (Strings) marks its end instead.
 			Hook(harmony, AccessTools.Method(typeof(KMod.Manager), nameof(KMod.Manager.Load), new[] { typeof(Content) }), nameof(PassPrefix), nameof(PassPostfix), "Manager.Load");
 			Debug.Log(Runner.Tag + "memory probe on" + (before == 0 ? ", first in the load order" : ""));
+		}
+
+		private static bool warned;
+
+		/// <summary>Logs the first failure of the probe as a warning; later ones stay silent.</summary>
+		private static void Fail(string where, Exception e)
+		{
+			if (warned)
+				return;
+			warned = true;
+			Debug.LogWarning(Runner.Tag + "memory probe, " + where + ": " + e + ". The probe skips from here.");
 		}
 
 		/// <summary>The other enabled mods whose DLLs were already loaded when SaveRunner's OnLoad ran.</summary>
@@ -158,10 +182,18 @@ namespace SaveRunner
 			__state = null;
 			if (!On)
 				return;
-			Content todo = content & __instance.available_content & ~__instance.loaded_content;
-			if (todo == 0)
-				return;
-			__state = Begin(todo.ToString(), (todo & (Content.DLL | Content.Animation)) != 0);
+			try
+			{
+				Content todo = content & __instance.available_content & ~__instance.loaded_content;
+				if (todo == 0)
+					return;
+				__state = Begin(todo.ToString(), (todo & (Content.DLL | Content.Animation)) != 0);
+			}
+			catch (Exception e)
+			{
+				Fail("Mod.Load prefix", e);
+				__state = null;
+			}
 		}
 
 		public static void ModLoadPostfix(Mod __instance, LoadState __state)
@@ -173,8 +205,16 @@ namespace SaveRunner
 		public static void PostLoadPrefix(Mod __instance, out LoadState __state)
 		{
 			__state = null;
-			if (On && (__instance.loaded_content & Content.DLL) != 0)
-				__state = Begin("PostLoad", true);
+			try
+			{
+				if (On && (__instance.loaded_content & Content.DLL) != 0)
+					__state = Begin("PostLoad", true);
+			}
+			catch (Exception e)
+			{
+				Fail("Mod.PostLoad prefix", e);
+				__state = null;
+			}
 		}
 
 		public static void PostLoadPostfix(Mod __instance, LoadState __state)
@@ -185,14 +225,22 @@ namespace SaveRunner
 
 		public static void PassPrefix(Content content)
 		{
-			if (On)
-				Row("", "before-" + content, Read());
+			try
+			{
+				if (On)
+					Row("", "before-" + content, Read());
+			}
+			catch (Exception e) { Fail("Manager.Load prefix", e); }
 		}
 
 		public static void PassPostfix(Content content)
 		{
-			if (On)
-				Row("", "after-" + content, Read());
+			try
+			{
+				if (On)
+					Row("", "after-" + content, Read());
+			}
+			catch (Exception e) { Fail("Manager.Load postfix", e); }
 		}
 
 		// The texture scan allocates, so it runs before the first reading and after the second.
@@ -271,7 +319,7 @@ namespace SaveRunner
 			}
 			catch (Exception e)
 			{
-				Debug.LogWarning(Runner.Tag + "memory probe, load of " + mod?.title + ": " + e.Message);
+				Fail("load of " + mod?.title, e);
 			}
 		}
 
@@ -357,19 +405,36 @@ namespace SaveRunner
 			if (!On)
 				return;
 			On = false;
-			series?.Flush();
-			series?.Dispose();
-			series = null;
-			modLoad?.Flush();
-			modLoad?.Dispose();
-			modLoad = null;
+			Dispose(ref series);
+			Dispose(ref modLoad);
+			Dispose(ref gfxUsed);
+			Dispose(ref gfxReserved);
+			Dispose(ref systemUsed);
+		}
+
+		private static void Dispose(ref StreamWriter writer)
+		{
+			StreamWriter w = writer;
+			writer = null;
 			try
 			{
-				gfxUsed.Dispose();
-				gfxReserved.Dispose();
-				systemUsed.Dispose();
+				w?.Flush();
 			}
-			catch (Exception) { }
+			catch (Exception e) { Fail("close", e); }
+			try
+			{
+				w?.Dispose();
+			}
+			catch (Exception e) { Fail("close", e); }
+		}
+
+		private static void Dispose(ref ProfilerRecorder recorder)
+		{
+			try
+			{
+				recorder.Dispose();
+			}
+			catch (Exception e) { Fail("close", e); }
 		}
 
 		private static string Sibling(string suffix)
@@ -382,6 +447,19 @@ namespace SaveRunner
 		{
 			if (series == null)
 				return;
+			try
+			{
+				WriteRow(t, phase, r);
+			}
+			catch (Exception e)
+			{
+				Fail("writing probe.csv", e);
+				series = null;
+			}
+		}
+
+		private static void WriteRow(string t, string phase, Reading r)
+		{
 			string cycle = "";
 			try
 			{
