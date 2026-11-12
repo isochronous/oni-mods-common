@@ -64,12 +64,20 @@ function Get-MoonoExe([string]$Path = '') {
 
 # The command line that starts the game on Moono directly, not through Steam: Moono's own --log FILE
 # (a Moono option, listed before the Unity and game arguments in its usage line, so it goes first;
-# -LogPath, so a launch that dies leaves Moono's own account of it) and then only the game's own
-# arguments (the --onitest- ones). There is no --game: in standalone mode Moono gets the install from
-# Steam, which knows one, starts Steam itself if it is not running, and sets the app id.
+# -LogPath, so a launch that dies leaves Moono's own account of it) and then the game's own arguments
+# (the --onitest- ones), each behind its own --game-arg: Moono refuses any -- option it does not know
+# ("Unknown option", exit code 2, before it opens its log), and --game-arg ARG is how one reaches the
+# game unchanged. There is no --game: in standalone mode Moono gets the install from Steam, which knows
+# one, starts Steam itself if it is not running, and sets the app id.
 function Get-MoonoArgumentLine([string[]]$GameArgs = @(), [string]$LogPath = '') {
-    $all = @(if ($LogPath) { '--log'; $LogPath }) + @($GameArgs)
+    $all = @(if ($LogPath) { '--log'; $LogPath }) + @($GameArgs | ForEach-Object { '--game-arg'; $_ })
     return ($all | ForEach-Object { ConvertTo-CommandLineArgument $_ }) -join ' '
+}
+
+# Where Start-Process sends OniMoono's stdout and stderr for a launch logging to -LogPath. OniMoono has no
+# console, so a refusal it prints (an unknown option) is seen only through these files.
+function Get-MoonoStreamPaths([string]$LogPath) {
+    return [pscustomobject]@{ Out = "$LogPath.out"; Err = "$LogPath.err" }
 }
 
 # The last lines of a log, as one indented block for a message; '' when the file is missing or empty.
@@ -95,6 +103,13 @@ function Get-MoonoExitText($Process, [string]$LogPath, [string]$Before = "the ga
     $tail = Get-LogTail $LogPath
     if ($tail) { $text += "`nEnd of Moono's log ($LogPath):`n$tail" }
     elseif ($LogPath) { $text += "`nMoono wrote no log at $LogPath." }
+    if ($LogPath) {
+        $streams = Get-MoonoStreamPaths $LogPath
+        foreach ($s in @(@{ Name = 'stderr'; Path = $streams.Err }, @{ Name = 'stdout'; Path = $streams.Out })) {
+            $t = Get-LogTail $s.Path
+            if ($t) { $text += "`nOniMoono's $($s.Name) ($($s.Path)):`n$t" }
+        }
+    }
     return $text
 }
 

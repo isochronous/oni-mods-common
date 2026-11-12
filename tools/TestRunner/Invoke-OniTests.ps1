@@ -560,11 +560,12 @@ foreach ($leg in $legs) {
             if ($leg -eq 'Moono') {
                 # Moono's player started directly: it runs the game in its own process (OniMoono, found
                 # below by the --onitest- arguments on its command line, not by the pid Start-Process gives).
-                # Only the --onitest- arguments: no --game, Moono takes the install from Steam.
+                # Only the --onitest- arguments, each behind --game-arg: no --game, Moono takes the install from Steam.
                 $argLine = Get-MoonoArgumentLine $gameArgs $moonoLog
+                $streams = Get-MoonoStreamPaths $moonoLog
                 $stockBefore = Get-StockGameIds
                 Write-Host "Launching: $(ConvertTo-CommandLineArgument $moono) $argLine"
-                $launcher = Start-Process -FilePath $moono -ArgumentList $argLine -WorkingDirectory (Split-Path $moono -Parent) -PassThru
+                $launcher = Start-Process -FilePath $moono -ArgumentList $argLine -WorkingDirectory (Split-Path $moono -Parent) -PassThru -RedirectStandardOutput $streams.Out -RedirectStandardError $streams.Err
             } else {
                 $steamArgs = @('-applaunch', "$AppId") + $gameArgs
                 Write-Host "Launching: $($steamArgs -join ' ')"

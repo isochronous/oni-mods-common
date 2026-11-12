@@ -301,7 +301,8 @@ foreach ($leg in $legs) {
         if ($leg -eq 'Moono') {
             Write-Host "Launching Oxygen Not Included on Moono: $($launch.Text)"
             $stockBefore = Get-StockGameIds
-            $launcher = Start-Process -FilePath $launch.File -ArgumentList $launch.Arguments -WorkingDirectory (Split-Path $launch.File -Parent) -PassThru
+            $streams = Get-MoonoStreamPaths $launch.Log
+            $launcher = Start-Process -FilePath $launch.File -ArgumentList $launch.Arguments -WorkingDirectory (Split-Path $launch.File -Parent) -PassThru -RedirectStandardOutput $streams.Out -RedirectStandardError $streams.Err
         } else {
             Write-Host 'Launching Oxygen Not Included through Steam...'
             Start-Process $launch.File
