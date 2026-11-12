@@ -341,7 +341,15 @@ foreach ($leg in $legs) {
     finally {
         # A Moono launch that failed before the game was found: end what it started (the launcher, a game
         # still booting) before the loadout goes back.
-        if ($leg -eq 'Moono' -and -not $game) { Stop-MoonoLaunch $launcher $stockBefore $launch.Log }
+        if ($leg -eq 'Moono' -and -not $game) {
+            # A stock game that is not provably this launch's stays up (it may be the player's) and holds
+            # the loadout, so mods.json goes back only once it exits; ModTest has no warden, it waits here.
+            $stray = @(Stop-MoonoLaunch $launcher $stockBefore $launch.Log)
+            foreach ($id in $stray) {
+                Write-Host "Waiting for the stock OxygenNotIncluded (pid $id) to exit; mods.json goes back then. Close it, or press Ctrl+C and restore by hand: Copy-Item '$backup' '$modsJson'"
+                Wait-Process -Id $id -ErrorAction SilentlyContinue
+            }
+        }
         if ($game -and -not $game.HasExited) {
             Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
         } else {

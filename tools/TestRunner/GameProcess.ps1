@@ -179,16 +179,22 @@ function Wait-MoonoGame([System.Diagnostics.Process]$Launcher, [int[]]$StockBefo
 
 # Ends what a Moono launch started when it failed before the game was found, so nothing is left booting
 # under a loadout about to be put back. Only processes this launch provably started: the launcher
-# (-Launcher, from Start-Process -PassThru), every OniMoono descended from it (the game and its crash
-# watcher), and any OniMoono whose command line holds this launch's own --log file (-LogPath). A game
-# the player starts by hand meanwhile is never one of them. A stock OxygenNotIncluded that appeared
-# since -StockBefore is named, not stopped: it cannot be told apart from one the player opened.
-function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [string]$LogPath = '') {
-    $all = @(Get-CimInstance -ClassName Win32_Process -Filter "Name = 'OniMoono.exe'" -ErrorAction SilentlyContinue)
+# (-Launcher, from Start-Process -PassThru), every OniMoono and stock OxygenNotIncluded descended from it
+# (the game and its crash watcher), and any of them whose command line holds this launch's own --log file
+# (-LogPath) or this run's own --onitest- argument (-RunMarker, e.g. "--onitest-dir=<run folder>"). A game
+# the player starts by hand meanwhile is never one of them. A stock OxygenNotIncluded that appeared since
+# -StockBefore and is none of those cannot be told apart from one the player opened: it is left running and
+# its pid is returned, for the caller to hand to a warden (or wait on) that restores once it exits.
+function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [string]$LogPath = '', [string]$RunMarker = '') {
+    $procs = @(Get-CimInstance -ClassName Win32_Process -Filter "Name = 'OniMoono.exe' OR Name = 'OxygenNotIncluded.exe'" -ErrorAction SilentlyContinue)
+    # A stock game that was already running is the player's: never a candidate.
+    $all = @($procs | Where-Object { $_.Name -eq 'OniMoono.exe' -or $StockBefore -notcontains [int]$_.ProcessId })
     $ids = [System.Collections.Generic.HashSet[int]]::new()
     if ($Launcher) { [void]$ids.Add($Launcher.Id) }
-    if ($LogPath) {
-        foreach ($p in $all) { if ("$($p.CommandLine)".IndexOf($LogPath, [StringComparison]::OrdinalIgnoreCase) -ge 0) { [void]$ids.Add([int]$p.ProcessId) } }
+    foreach ($p in $all) {
+        $line = "$($p.CommandLine)"
+        if (($LogPath -and $line.IndexOf($LogPath, [StringComparison]::OrdinalIgnoreCase) -ge 0) -or
+            ($RunMarker -and $line.IndexOf($RunMarker, [StringComparison]::OrdinalIgnoreCase) -ge 0)) { [void]$ids.Add([int]$p.ProcessId) }
     }
     do {
         $grew = $false
@@ -206,9 +212,11 @@ function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [string]$LogPath
             }
         } catch { }
     }
-    foreach ($s in @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $StockBefore -notcontains $_.Id })) {
-        Write-Host "A stock OxygenNotIncluded (pid $($s.Id)) started during the failed Moono launch; it is left running, since it may be the player's. Close it before playing: it may have loaded the test loadout."
+    $left = @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $StockBefore -notcontains $_.Id -and -not $ids.Contains($_.Id) } | ForEach-Object { $_.Id })
+    foreach ($id in $left) {
+        Write-Host "A stock OxygenNotIncluded (pid $id) started during the failed Moono launch and is not provably this launch's; it is left running, since it may be the player's."
     }
+    return $left
 }
 
 # What ran, from the first lines of a Player.log: Moono writes "[engine] Moono starting: commit=<sha> ..."

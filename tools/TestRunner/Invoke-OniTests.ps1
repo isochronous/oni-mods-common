@@ -605,16 +605,28 @@ foreach ($leg in $legs) {
             }
         }
         finally {
+            $stray = @()
             if ($leg -eq 'Moono' -and -not $proc) {
                 # No game was found: what the launch started (the launcher, a game still booting) must not
                 # outlive the restore below, holding the test loadout with nothing to put the mode back.
-                Stop-MoonoLaunch $launcher $stockBefore $moonoLog
+                # A stock game that is not provably this launch's stays up (it may be the player's); its pid
+                # comes back here and the warden restores once it exits.
+                $stray = @(Stop-MoonoLaunch $launcher $stockBefore $moonoLog "--onitest-dir=$runDir")
             }
             if ($wardenStarted -and -not $proc) {
                 # No game came up (or this script failed before it saw one): the restore is this script's,
                 # and the warden, still waiting for a game, must not make it a second time.
                 if ($wardenPid -gt 0) { Stop-Process -Id $wardenPid -Force -ErrorAction SilentlyContinue }
                 $wardenStarted = $false
+            }
+            if ($stray.Count -gt 0) {
+                # A stock game is still running: it holds kplayerprefs.yaml and may write mods.json when it
+                # closes, so nothing is put back now. A warden that follows that game does it once it exits.
+                [void](Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
+                    '-GamePid', "$($stray[0])", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs))
+                $wardenStarted = $true
+                $legFailure += "`nA stock OxygenNotIncluded (pid $($stray -join ', ')) started during the launch and is left running, since it may be the player's. mods.json, the config and the game's mode and last-save pointer stay as the test run left them until it exits; a warden puts them back then."
+                Write-Host "Handed the restore to a warden that waits for pid $($stray[0])."
             }
             if (-not $wardenStarted) {
                 Copy-Item $backup $modsJson -Force
@@ -632,6 +644,8 @@ foreach ($leg in $legs) {
                     Restore-LeftoverConfig
                     Write-PrefsRestore (Restore-GameMode $prefs) (Restore-SaveKey $prefs)
                 }
+            } elseif ($stray.Count -gt 0) {
+                # Said above.
             } elseif ($leg -ne $legs[-1]) {
                 Write-Host "The $leg game is ended for the next leg; its warden puts mods.json back when it exits."
             } else {
