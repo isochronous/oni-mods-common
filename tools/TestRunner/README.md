@@ -93,11 +93,14 @@ is still standing after a clear is named in a warning in the log.
 
 **Stock or Moono.** `-Runtime Stock` (the default) launches the game through Steam
 (`steam.exe -applaunch 457140 --onitest-...`). `-Runtime Moono` starts oni-moono's player directly,
-not through Steam's launch options: `OniMoono.exe --onitest-...`. There is no `--game`: Moono gets
-the game folder from Steam, and every argument is passed to the game. Moono starts Steam itself
+not through Steam's launch options: `OniMoono.exe --log <run folder>\moono.log --onitest-...`. `--log`
+is Moono's own option (before the game's arguments in its usage line); it puts Moono's log in the run
+folder as `moono.log` for every Moono leg. There is no `--game`: Moono gets the game folder from Steam,
+and every other argument is passed to the game. Moono starts Steam itself
 when it is not running. The leg fails at once, with a message, when a stock `OxygenNotIncluded`
 starts that was not running before the launch, or when `OniMoono` exits before the game is found
-(its exit code is reported), instead of waiting out the 120 s. The player
+(its exit code and the end of `moono.log` are reported), instead of waiting out the 120 s. A Moono
+process that quits before the session writes its status is reported the same way in the summary. The player
 is `-MoonoExe`, else `ONI_MOONO_EXE`, else `F:\modding\oni-moono\player\OniMoono.exe`.
 `-Runtime Both` builds once and runs the suite on Stock, then on Moono: run folders
 `runs/<label>-<stamp>-stock` and `-moono` (a Moono run alone gets `-moono`), the stock game ended
@@ -107,6 +110,8 @@ where they disagree). The exit code is the worse of the two. The runtime is part
 a live game is only reused by a run on the same runtime. Every summary starts with the runtime
 `Player.log` shows: Moono writes `Moono starting: commit=<sha>` on its first line and its launch
 mode on the second, the stock game neither; a run that got the other runtime says so in a warning.
+A `Player.log` last written before the launch is never copied or read: the run folder has none and the
+summary says `no Player.log written by this launch`.
 
 Launcher options:
 

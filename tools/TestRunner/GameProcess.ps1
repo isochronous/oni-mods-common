@@ -62,11 +62,50 @@ function Get-MoonoExe([string]$Path = '') {
     return $exe
 }
 
-# The command line that starts the game on Moono directly, not through Steam: only the game's own
+# The command line that starts the game on Moono directly, not through Steam: Moono's own --log FILE
+# (a Moono option, listed before the Unity and game arguments in its usage line, so it goes first;
+# -LogPath, so a launch that dies leaves Moono's own account of it) and then only the game's own
 # arguments (the --onitest- ones). There is no --game: in standalone mode Moono gets the install from
 # Steam, which knows one, starts Steam itself if it is not running, and sets the app id.
-function Get-MoonoArgumentLine([string[]]$GameArgs = @()) {
-    return (@($GameArgs) | ForEach-Object { ConvertTo-CommandLineArgument $_ }) -join ' '
+function Get-MoonoArgumentLine([string[]]$GameArgs = @(), [string]$LogPath = '') {
+    $all = @(if ($LogPath) { '--log'; $LogPath }) + @($GameArgs)
+    return ($all | ForEach-Object { ConvertTo-CommandLineArgument $_ }) -join ' '
+}
+
+# The last lines of a log, as one indented block for a message; '' when the file is missing or empty.
+function Get-LogTail([string]$LogPath, [int]$Lines = 15) {
+    if (-not $LogPath -or -not (Test-Path -LiteralPath $LogPath)) { return '' }
+    $tail = @(Get-Content -LiteralPath $LogPath -Tail $Lines -ErrorAction SilentlyContinue)
+    if ($tail.Count -eq 0) { return '' }
+    return ($tail | ForEach-Object { "    $_" }) -join "`n"
+}
+
+# The exit code of a process that has exited, or $null when it cannot be read.
+function Get-ExitCodeOf([System.Diagnostics.Process]$Process) {
+    if (-not $Process) { return $null }
+    try { if ($Process.HasExited) { return $Process.ExitCode } } catch { }
+    return $null
+}
+
+# What to say when OniMoono is gone before the game's session wrote its status: the exit code and the
+# tail of Moono's log. -Process is the game process found (it may be the launcher itself).
+function Get-MoonoExitText($Process, [string]$LogPath, [string]$Before = "the game's session wrote its status") {
+    $code = Get-ExitCodeOf $Process
+    $text = "OniMoono exited with code $(if ($null -eq $code) { 'unknown' } else { $code }) before $Before."
+    $tail = Get-LogTail $LogPath
+    if ($tail) { $text += "`nEnd of Moono's log ($LogPath):`n$tail" }
+    elseif ($LogPath) { $text += "`nMoono wrote no log at $LogPath." }
+    return $text
+}
+
+# Copies a Player.log to the run folder only if it was written at or after -Since (the launch);
+# a log last written before the launch belongs to an earlier run and is never taken for this one.
+# Returns $true when copied.
+function Copy-FreshLog([string]$Source, [string]$Destination, [datetime]$Since) {
+    if (-not (Test-Path -LiteralPath $Source)) { return $false }
+    if ((Get-Item -LiteralPath $Source).LastWriteTime -lt $Since) { return $false }
+    Copy-Item -LiteralPath $Source -Destination $Destination -Force
+    return $true
 }
 
 # The pids of the stock game now running, taken before a Moono launch: any OxygenNotIncluded that
@@ -79,7 +118,7 @@ function Get-StockGameIds {
 # once it is up. Fails at once, instead of at the timeout, when a stock OxygenNotIncluded appears that was
 # not in -StockBefore (the stock game was started, so the leg would not be on Moono), or when the launcher
 # (-Launcher, from Start-Process -PassThru) exits with no game up.
-function Wait-MoonoGame([System.Diagnostics.Process]$Launcher, [int[]]$StockBefore, [int]$TimeoutSec, [scriptblock]$Find) {
+function Wait-MoonoGame([System.Diagnostics.Process]$Launcher, [int[]]$StockBefore, [int]$TimeoutSec, [scriptblock]$Find, [string]$LogPath = '') {
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     $exitSeen = $null
     while ((Get-Date) -lt $deadline) {
@@ -94,7 +133,7 @@ function Wait-MoonoGame([System.Diagnostics.Process]$Launcher, [int[]]$StockBefo
         if ($Launcher -and $Launcher.HasExited) {
             if (-not $exitSeen) { $exitSeen = Get-Date }
             elseif (((Get-Date) - $exitSeen).TotalSeconds -ge 3) {
-                throw "OniMoono exited with code $($Launcher.ExitCode) before the game started."
+                throw (Get-MoonoExitText $Launcher $LogPath 'the game started')
             }
         }
     }

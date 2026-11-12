@@ -33,7 +33,7 @@
   deleted when the game exits, along with the mods.json backup once it has been restored.
 .PARAMETER Runtime
   Stock (default: the game through Steam), Moono (oni-moono's player started directly with no
-  arguments, no --game: Moono takes the game folder from Steam; Steam's launch options are not used) or Both (a stock session, then, once that
+  arguments but its own --log (a file in %TEMP%, named when it launches), no --game: Moono takes the game folder from Steam; Steam's launch options are not used) or Both (a stock session, then, once that
   game is closed, a Moono session with the same loadout).
 .PARAMETER MoonoExe
   oni-moono's player for -Runtime Moono or Both. Default: ONI_MOONO_EXE, else
@@ -243,13 +243,15 @@ if ($skippedDisabled.Count -gt 0 -and -not $Only -and -not $NoLocal) { Write-Hos
 if ($steamFound.Count -gt 0) { Write-Host "Workshop: $(($steamFound.GetEnumerator() | ForEach-Object { "$($_.Value) ($($_.Key))" }) -join ', ')" }
 
 # The launch of each session: steam:// for the stock game; oni-moono's player started directly, with
-# no arguments (Moono takes the install from Steam), for Moono. Both: the stock session, then, once it is closed, Moono.
+# only its own --log argument (Moono takes the install from Steam), for Moono. Both: the stock session, then, once it is closed, Moono.
 $legs = if ($Runtime -eq 'Both') { @('Stock', 'Moono') } else { @($Runtime) }
 $launches = [ordered]@{}
 foreach ($leg in $legs) {
     $launches[$leg] = if ($leg -eq 'Moono') {
         $moono = Get-MoonoExe $MoonoExe
-        [pscustomobject]@{ File = $moono; Arguments = Get-MoonoArgumentLine; Text = (ConvertTo-CommandLineArgument $moono) }
+        $moonoLog = Join-Path $env:TEMP "oni-modtest.moono-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+        $moonoArgs = Get-MoonoArgumentLine -LogPath $moonoLog
+        [pscustomobject]@{ File = $moono; Arguments = $moonoArgs; Log = $moonoLog; Text = "$(ConvertTo-CommandLineArgument $moono) $moonoArgs" }
     } else {
         [pscustomobject]@{ File = "steam://rungameid/$OniAppId"; Arguments = ''; Text = "steam://rungameid/$OniAppId" }
     }
@@ -299,14 +301,14 @@ foreach ($leg in $legs) {
         if ($leg -eq 'Moono') {
             Write-Host "Launching Oxygen Not Included on Moono: $($launch.Text)"
             $stockBefore = Get-StockGameIds
-            $launcher = Start-Process -FilePath $launch.File -WorkingDirectory (Split-Path $launch.File -Parent) -PassThru
+            $launcher = Start-Process -FilePath $launch.File -ArgumentList $launch.Arguments -WorkingDirectory (Split-Path $launch.File -Parent) -PassThru
         } else {
             Write-Host 'Launching Oxygen Not Included through Steam...'
             Start-Process $launch.File
         }
         if ($leg -eq 'Moono') {
             # Fails at once if the stock game appears or OniMoono exits, instead of waiting 3 minutes.
-            $game = Wait-MoonoGame $launcher $stockBefore 180 { Get-AnyGame | Where-Object { $_.ProcessName -eq 'OniMoono' -and $_.StartTime -ge $started } }
+            $game = Wait-MoonoGame $launcher $stockBefore 180 { Get-AnyGame | Where-Object { $_.ProcessName -eq 'OniMoono' -and $_.StartTime -ge $started } } $launch.Log
         } else {
             $deadline = (Get-Date).AddSeconds(180)
             while (-not $game -and (Get-Date) -lt $deadline) {
@@ -324,6 +326,7 @@ foreach ($leg in $legs) {
             while (-not $game.HasExited) { Start-Sleep -Milliseconds 250 }
             $exited = Get-Date
             Write-Host "Game exited at $($exited.ToString('HH:mm:ss.fff'))."
+            if ($leg -eq 'Moono') { $code = Get-ExitCodeOf $game; Write-Host "OniMoono exit code $(if ($null -eq $code) { 'unknown' } else { $code }); Moono's log: $($launch.Log)" }
             # A restart after a mod change goes through the game's Restarter, which the game starts
             # before it quits, so it is there by now: follow the game it starts.
             $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1

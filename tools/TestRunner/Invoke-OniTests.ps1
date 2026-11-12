@@ -43,9 +43,10 @@
   player's is set in kplayerprefs.yaml for the run and put back when the game exits (GameMode.ps1).
   A mode with no fixture save runs Worldgen and NoColony tests only.
 .PARAMETER Runtime
-  Stock (default: the game through Steam), Moono (oni-moono's player started directly, with only
-  the --onitest arguments, no --game: Moono takes the game folder from Steam; Steam's launch options
-  are not used, and the leg fails at once if a stock OxygenNotIncluded starts or OniMoono exits) or Both (the suite on Stock, then on Moono, from one build; run folders
+  Stock (default: the game through Steam), Moono (oni-moono's player started directly, with its own
+  --log (moono.log in the run folder) and the --onitest arguments, no --game: Moono takes the game
+  folder from Steam; Steam's launch options are not used, and the leg fails at once if a stock
+  OxygenNotIncluded starts or OniMoono exits, naming its exit code and the end of moono.log) or Both (the suite on Stock, then on Moono, from one build; run folders
   <label>-<stamp>-stock and -moono, and a table of the two side by side). Each summary names the
   runtime Player.log shows. Exit code: the worse of the two.
 .PARAMETER MoonoExe
@@ -471,6 +472,9 @@ foreach ($leg in $legs) {
     $wardenStarted = $false
     $wardenPid = 0
     $proc = $null
+    # Whether the Player.log in the run folder was written by this launch, and where Moono's own log goes.
+    $logCopied = $false
+    $moonoLog = if ($leg -eq 'Moono') { Join-Path $runDir 'moono.log' } else { '' }
     $requestLines = @("dir=$runDir", "save=$fixtureCopy", "filter=$Filter", "timeout=$TimeoutSec", "test-timeout=$TestTimeoutSec", "trace=$(if ($Trace) { '1' } else { '0' })", "config=$($configNames -join ';')")
 
     # --- a live game with this loadout takes the run -------------------------------------------
@@ -503,7 +507,7 @@ foreach ($leg in $legs) {
         $deadline = (Get-Date).AddSeconds($TimeoutSec + 120)
         while (-not (Test-Path -LiteralPath $statusFile) -and $game -and -not $game.HasExited -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $game.Refresh() }
         if (-not (Test-Path -LiteralPath $statusFile)) { $launcherStatus = if ($game -and -not $game.HasExited) { 'reused, no status in time' } else { 'reused, exited' } }
-        if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force }
+        if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force; $logCopied = $true }
     } else {
         # --- a fresh game --------------------------------------------------------------------------
         # A leftover backup means an earlier run died before its restore: it holds the real loadout,
@@ -557,7 +561,7 @@ foreach ($leg in $legs) {
                 # Moono's player started directly: it runs the game in its own process (OniMoono, found
                 # below by the --onitest- arguments on its command line, not by the pid Start-Process gives).
                 # Only the --onitest- arguments: no --game, Moono takes the install from Steam.
-                $argLine = Get-MoonoArgumentLine $gameArgs
+                $argLine = Get-MoonoArgumentLine $gameArgs $moonoLog
                 $stockBefore = Get-StockGameIds
                 Write-Host "Launching: $(ConvertTo-CommandLineArgument $moono) $argLine"
                 $launcher = Start-Process -FilePath $moono -ArgumentList $argLine -WorkingDirectory (Split-Path $moono -Parent) -PassThru
@@ -568,7 +572,7 @@ foreach ($leg in $legs) {
             }
             if ($leg -eq 'Moono') {
                 # Fails at once if the stock game appears or OniMoono exits, instead of waiting 120 s.
-                $proc = Wait-MoonoGame $launcher $stockBefore 120 { Get-GameProcess | Where-Object { $_.ProcessName -eq 'OniMoono' } }
+                $proc = Wait-MoonoGame $launcher $stockBefore 120 { Get-GameProcess | Where-Object { $_.ProcessName -eq 'OniMoono' } } $moonoLog
             } else {
                 while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess | Select-Object -First 1 }
                 if (-not $proc) { throw 'The game did not start within 120 s.' }
@@ -584,7 +588,8 @@ foreach ($leg in $legs) {
                 while (-not $proc.HasExited) { Start-Sleep 3; $proc.Refresh() }
             }
             Start-Sleep 1
-            if (Test-Path $playerLog) { Copy-Item $playerLog (Join-Path $runDir 'Player.log') -Force }
+            # Only a Player.log written since this launch: an older one is an earlier run's.
+            $logCopied = Copy-FreshLog $playerLog (Join-Path $runDir 'Player.log') $t0
         }
         finally {
             if ($wardenStarted -and -not $proc) {
@@ -626,8 +631,8 @@ foreach ($leg in $legs) {
     $lines = @()
     # What ran, by the copied Player.log's first lines, so a run that asked for one runtime and got the
     # other (Steam's launch options still pointing at Moono, say) says so.
-    $ran = Get-LogRuntime (Join-Path $runDir 'Player.log')
-    $ranText = if (-not $ran.Runtime) { 'unknown (no Player.log)' } elseif ($ran.Runtime -eq 'Moono') { "Moono (commit $($ran.Commit)$(if ($ran.Launch) { '; launch: ' + $ran.Launch }))" } else { 'Stock' }
+    $ran = Get-LogRuntime $(if ($logCopied) { Join-Path $runDir 'Player.log' } else { '' })
+    $ranText = if (-not $ran.Runtime) { 'no Player.log written by this launch' } elseif ($ran.Runtime -eq 'Moono') { "Moono (commit $($ran.Commit)$(if ($ran.Launch) { '; launch: ' + $ran.Launch }))" } else { 'Stock' }
     $lines += "Runtime: $leg asked; Player.log shows $ranText"
     if ($ran.Runtime -and $ran.Runtime -ne $leg) { $lines += "WARNING: the run asked for $leg but the game ran on $($ran.Runtime)." }
     foreach ($r in $results) {
@@ -637,9 +642,16 @@ foreach ($leg in $legs) {
     $sessionLine = if ($status) {
         "Session $($status.status)$(if ($status.detail) { ': ' + $status.detail }); $($status.passed) passed, $($status.failed) failed, $($status.errors) errors, $($status.timeouts) timeouts, $($status.skipped) skipped of $($status.total); $($status.realSeconds) s real time$(if ($status.reloads) { "; fixture loaded again $($status.reloads) time(s)" })"
     } else {
-        'No status file: the session never finished (launch, load or crash). See Player.log in the run folder.'
+        "No status file: the session never finished (launch, load or crash). See $(if ($leg -eq 'Moono') { 'moono.log and ' })Player.log in the run folder."
     }
     $lines += $sessionLine
+    if ($leg -eq 'Moono') {
+        # Moono's own account: its exit code if it is gone, and the end of its log when the session never finished.
+        $moonoDone = Get-ExitCodeOf $proc
+        if ($proc -and $proc.HasExited -and -not $status) { $lines += (Get-MoonoExitText $proc $moonoLog) -split "`n" }
+        elseif ($proc -and $proc.HasExited) { $lines += "OniMoono exited with code $(if ($null -eq $moonoDone) { 'unknown' } else { $moonoDone })" }
+        $lines += "Moono's log: $(if (Test-Path -LiteralPath $moonoLog) { $moonoLog } else { 'none written' })"
+    }
     $playerAfter = Get-PlayerEntries
     $playerNew = @($playerAfter | Where-Object { -not $playerBefore.Contains($_) } | Sort-Object)
     if ($playerNew.Count -eq 0) {
