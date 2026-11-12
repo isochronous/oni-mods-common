@@ -178,22 +178,36 @@ function Wait-MoonoGame([System.Diagnostics.Process]$Launcher, [int[]]$StockBefo
 }
 
 # Ends what a Moono launch started when it failed before the game was found, so nothing is left booting
-# under a loadout about to be put back: the launcher (-Launcher, from Start-Process -PassThru), every
-# OniMoono started since -Since (the game and its crash watcher; none was open before the launch), and
-# any stock OxygenNotIncluded that was not in -StockBefore. Waits briefly for them to go.
-function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [datetime]$Since = [datetime]::MinValue) {
-    $victims = @()
-    if ($Launcher) { $victims += $Launcher }
-    $victims += @(Get-Process -Name 'OniMoono' -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -ge $Since.AddSeconds(-2) })
-    $victims += @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $StockBefore -notcontains $_.Id })
-    foreach ($v in @($victims | Group-Object Id | ForEach-Object { $_.Group[0] })) {
+# under a loadout about to be put back. Only processes this launch provably started: the launcher
+# (-Launcher, from Start-Process -PassThru), every OniMoono descended from it (the game and its crash
+# watcher), and any OniMoono whose command line holds this launch's own --log file (-LogPath). A game
+# the player starts by hand meanwhile is never one of them. A stock OxygenNotIncluded that appeared
+# since -StockBefore is named, not stopped: it cannot be told apart from one the player opened.
+function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [string]$LogPath = '') {
+    $all = @(Get-CimInstance -ClassName Win32_Process -Filter "Name = 'OniMoono.exe'" -ErrorAction SilentlyContinue)
+    $ids = [System.Collections.Generic.HashSet[int]]::new()
+    if ($Launcher) { [void]$ids.Add($Launcher.Id) }
+    if ($LogPath) {
+        foreach ($p in $all) { if ("$($p.CommandLine)".IndexOf($LogPath, [StringComparison]::OrdinalIgnoreCase) -ge 0) { [void]$ids.Add([int]$p.ProcessId) } }
+    }
+    do {
+        $grew = $false
+        foreach ($p in $all) {
+            if (-not $ids.Contains([int]$p.ProcessId) -and $ids.Contains([int]$p.ParentProcessId)) { [void]$ids.Add([int]$p.ProcessId); $grew = $true }
+        }
+    } while ($grew)
+    foreach ($id in $ids) {
+        $v = if ($Launcher -and $Launcher.Id -eq $id) { $Launcher } else { Get-Process -Id $id -ErrorAction SilentlyContinue }
         try {
-            if (-not $v.HasExited) {
-                Write-Host "Ending $($v.ProcessName) (pid $($v.Id)) left by the failed Moono launch."
-                Stop-Process -Id $v.Id -Force -ErrorAction SilentlyContinue
+            if ($v -and -not $v.HasExited) {
+                Write-Host "Ending $($v.ProcessName) (pid $id) left by the failed Moono launch."
+                Stop-Process -Id $id -Force -ErrorAction SilentlyContinue
                 [void]$v.WaitForExit(10000)
             }
         } catch { }
+    }
+    foreach ($s in @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $StockBefore -notcontains $_.Id })) {
+        Write-Host "A stock OxygenNotIncluded (pid $($s.Id)) started during the failed Moono launch; it is left running, since it may be the player's. Close it before playing: it may have loaded the test loadout."
     }
 }
 

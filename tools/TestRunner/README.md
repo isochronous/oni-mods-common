@@ -113,8 +113,10 @@ a live game is only reused by a run on the same runtime. Every summary starts wi
 mode on the second, the stock game neither; a run that got the other runtime says so in a warning.
 A `Player.log` last written before the launch is never copied or read: the run folder has none and the
 summary says `no game log written by this launch`. A Moono leg that fails before the game is found (the stock
-game started, OniMoono exited, the launch failed) ends what the launch started, is recorded in its own
-summary with exit code 2, and `-Runtime Both` goes on to the table.
+game started, OniMoono exited, the launch failed) ends what the launch started (the launcher, the
+OniMoono processes descended from it and any whose command line holds the run's `moono.log`; never a game
+opened by hand, and a stock `OxygenNotIncluded` that appeared is named but left running), is recorded in
+its own summary with exit code 2, and `-Runtime Both` goes on to the table.
 
 Launcher options:
 

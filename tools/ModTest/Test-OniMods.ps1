@@ -341,7 +341,7 @@ foreach ($leg in $legs) {
     finally {
         # A Moono launch that failed before the game was found: end what it started (the launcher, a game
         # still booting) before the loadout goes back.
-        if ($leg -eq 'Moono' -and -not $game) { Stop-MoonoLaunch $launcher $stockBefore $started }
+        if ($leg -eq 'Moono' -and -not $game) { Stop-MoonoLaunch $launcher $stockBefore $launch.Log }
         if ($game -and -not $game.HasExited) {
             Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
         } else {

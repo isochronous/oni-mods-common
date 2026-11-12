@@ -608,7 +608,7 @@ foreach ($leg in $legs) {
             if ($leg -eq 'Moono' -and -not $proc) {
                 # No game was found: what the launch started (the launcher, a game still booting) must not
                 # outlive the restore below, holding the test loadout with nothing to put the mode back.
-                Stop-MoonoLaunch $launcher $stockBefore $t0
+                Stop-MoonoLaunch $launcher $stockBefore $moonoLog
             }
             if ($wardenStarted -and -not $proc) {
                 # No game came up (or this script failed before it saw one): the restore is this script's,

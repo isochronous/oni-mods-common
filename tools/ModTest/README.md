@@ -33,8 +33,10 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
   hand, so the script refuses to start while either is open (or the Restarter) and follows the one
   that starts after the launch, leaving out Moono's crash watcher, a second `OniMoono.exe` with
   `--crash-watch` (`tools/TestRunner/GameProcess.ps1`). The Moono session fails at once if a stock
-  `OxygenNotIncluded` starts that was not running before the launch, or if `OniMoono` exits before the game is found (its exit code and the end of its log are reported); the
-  log file's path and Moono's exit code are printed when the game exits.
+  `OxygenNotIncluded` starts that was not running before the launch, or if `OniMoono` exits before the game is found (its exit code and the end of its log are reported);
+  then only what that launch started is ended (the launcher, its OniMoono descendants, any OniMoono whose
+  command line holds the launch's log file), never a game opened by hand. The log file's path and Moono's
+  exit code are printed when the game exits.
 - `-Omit` leaves named mods out of the loadout without editing the list, e.g. `-Omit VentFreezeFix` to confirm a bug still reproduces without the fix.
 - `-Only` enables a single mod and nothing else, e.g. `-Only VentFreezeFix` to test it in isolation. It replaces the list and cannot be combined with `-Mods` or `-Omit`.
 - `-NoLocal` enables no local mods at all, for running only `-Steam` items. It cannot be combined with `-Mods`, `-Omit` or `-Only`.
