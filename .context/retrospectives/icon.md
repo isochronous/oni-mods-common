@@ -1,3 +1,11 @@
+### OM-016: SaveRunner memory probe
+**Id:** blk-bbf45d46a749
+
+- **Avoid**: running a SaveRunner build from a worktree without checking which copy the game will load: the build deploys to `mods\local\SaveRunner` from whichever checkout built last, and `common/` held OM-014's checkout at the same time. Rebuilt from the worktree and compared DLL hashes before each run. Also: Steam's Play now starts the stock game, so SaveRunner cannot measure OniMoono until OM-014's direct launch lands.
+- **Repeat**: answering "is one mod eating memory" with two runs of one save, full loadout vs `-Only`, and a probe that loads first in `mods.json` and hooks `KMod.Mod.Load` for per-mod deltas: 7 minutes of game time settled it (20.7 vs 12.3 GB; eight art-heavy mods ≈ 4.1 GB; no leak) with no bisection.
+- **Updated**: tools/SaveRunner `domains/entities.md` (new "Memory probe" and "Which build a run uses" sections; RunBehaviour, FridgeProbe, Invoke-SaveRun.ps1, Files rows), `standards/code-style.md` (Layout: probes that start at boot), `domains/glossary.md` (Probe)
+
+
 ### OM-013: SaveRunner, WorldgenDriver and ModTest follow a game started through oni-moono
 **Id:** blk-062fcdde7835
 

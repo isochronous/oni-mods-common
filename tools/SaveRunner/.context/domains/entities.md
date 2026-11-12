@@ -60,21 +60,23 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 
 ### RunBehaviour
 **Id:** blk-1f9288a97c7a  
-**Tags:** probe  
+**Tags:** probe
 
 **Description**: a `MonoBehaviour` on the Game object for one run. Unpauses and sets the speed on its first update (a loaded save starts paused), and unpauses again with a log line whenever the game is paused during the run, so a modal screen, an alarm or an event sequence cannot hold the run until the timeout. Accumulates scaled frame time as game seconds, samples the probe once per game second, ends the run at `Runner.Seconds`.  
 **Location**: `RunBehaviour.cs`  
-**Relationships**: owns the CSV `StreamWriter`; calls `FridgeProbe.Sample`; ends through `Runner.Finish`.
+**Relationships**: owns the CSV `StreamWriter` for `fridges`; calls `FridgeProbe.Sample`, or `MemoryProbe.Begin`/`Sample`/`End` for `memory` (which owns its own writers); ends through `Runner.Finish`.
 
 ### FridgeProbe
 **Id:** blk-043bf2a0945a  
-**Tags:** probe  
-**Description**: the one probe, `fridges`. For every building with a `RefrigeratorController.Def` and every item in its `Storage`, writes controller state, powered state, whether No Magic Fridges' `FridgeThermostat` is on the building, the def's setpoint, the cell's temperature, element and mass, and per item its element, mass, temperature, `SimTemperatureTransfer` surface area and ground-transfer scale, whether that component is enabled, its sim handle and `deltaKJ`.  
+**Tags:** probe
+
+**Description**: the `fridges` probe. For every building with a `RefrigeratorController.Def` and every item in its `Storage`, writes controller state, powered state, whether No Magic Fridges' `FridgeThermostat` is on the building, the def's setpoint, the cell's temperature, element and mass, and per item its element, mass, temperature, `SimTemperatureTransfer` surface area and ground-transfer scale, whether that component is enabled, its sim handle and `deltaKJ`.  
 **Location**: `RunBehaviour.cs`
 
 ### Invoke-SaveRun.ps1
 **Id:** blk-3eb75b734c83  
-**Tags:** game-launch, mod-loadout, command-line  
+**Tags:** game-launch, mod-loadout, command-line
+
 **Description**: the launcher. Copies the save into the run folder, rewrites `mods.json` for the run, starts the game through Steam, waits for it to quit, restores `mods.json`, prints the status.  
 **Location**: `Invoke-SaveRun.ps1`
 
@@ -82,8 +84,8 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 |-----------|-------------|
 | `-Save` | the `.sav` to load (required) |
 | `-Seconds`, `-Speed` | game seconds (default 60) and speed 1 to 3 |
-| `-Probe` | `fridges` or none |
-| `-With`, `-Without` | mods to add or remove for the run |
+| `-Probe` | `fridges`, `memory` or none; `memory` defaults to 300 game seconds at speed 3 with a 1800 s timeout when those are not given, and moves SaveRunner to the top of the run's `mods.json` |
+| `-With`, `-Without`, `-Only` | mods to add or remove for the run; `-Only` runs SaveRunner plus `-With` alone |
 | `-TimeoutSec`, `-Label`, `-OutDir`, `-SteamExe`, `-AppId` | real-time limit (900), run-folder prefix, output root, Steam path, game app id (457140) |
 
 ### Files it reads and writes
@@ -95,7 +97,9 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 | the save | read | copied to `runs/<Label>-<stamp>/colony.sav`; the original is never opened by the game |
 | `Documents\Klei\OxygenNotIncluded\mods\mods.json` | read, write, restored | the loadout: current mods, plus SaveRunner and `-With`, minus `-Without`; backup at `mods.json.saverun-backup` |
 | `kplayerprefs.yaml` | read | tells whether the game is in Spaced Out mode so `enabledForDlc` is set to match |
-| `probe.csv` | written by the game | one row per item per game second, or one row for an empty fridge; written only when `--saverun-probe` is given (the launcher always passes `--saverun-out`) |
+| `probe.csv` | written by the game | `fridges`: one row per item per game second, or one row for an empty fridge; `memory`: one row per reading from boot to the end of the run; written only when `--saverun-probe` is given (the launcher always passes `--saverun-out`) |
+| `probe-modload.csv` | written by the game (`memory`) | one row per mod per loading pass: time and memory deltas, new textures and kanims |
+| `probe-snapshot.csv` | written by the game (`memory`) | the end-of-run census: summary, per mod, per assembly, per type, the 300 largest textures, loaded bundles |
 | `probe.csv.status` | written by the game | one JSON line when the run ends |
 | `Player.log` | copied | into the run folder after the game exits |
 
@@ -138,3 +142,20 @@ SaveRunner loads a save in the real game with nobody at the keyboard, runs the c
 
 - See also: [glossary](glossary.md)
 - Governed by: [naming conventions](../standards/naming-conventions.md)
+
+## Memory probe
+**Id:** blk-b1529432eecc
+
+`memory` measures where a modded game's memory goes. `MemoryProbe.Start` runs from `SaveRunnerMod.OnLoad`, before any other mod's DLL loads, and writes `boot` readings until the main menu; then readings around the save load and once per game second of the run; `MemorySnapshot` writes the census after `run-end-gc`. Each reading has the process commit (`PrivateUsage`, by `K32GetProcessMemoryInfo`), working set, Mono used and reserved heap, `GC.GetTotalMemory`, Unity's allocated and reserved native memory, `ProfilerRecorder` graphics counters, `Texture.currentTextureMemory` and the machine-wide commit charge and limit.
+
+The game loads mods in `mods.json` order: `KMod.Manager.Load(content)` walks the list calling `Mod.Load` one mod at a time for each pass (DLL, Strings, Translation, LayerableFiles from `Global.Awake`; Animation later from `Assets`), and the DLL pass loads a mod's assemblies and runs its `UserMod2.OnLoad`. So the launcher puts SaveRunner first for `memory`, and `MemoryProbe.Start` patches `KMod.Mod.Load`, `KMod.Mod.PostLoad` and `KMod.Manager.Load` by hand to take a reading before and after every other mod's every pass. It logs a warning if any enabled mod's DLL was loaded before it.
+
+A release player gives no per-type native or managed sizes: texture and mesh sizes in the snapshot are estimates from format, dimensions and mips; managed memory is attributed to a mod only by when it was allocated; native memory outside Unity's allocators (the sim DLL, FMOD, the graphics driver) is only the commit minus the Unity and Mono figures. Mod kanim textures stay readable, so they cost their size twice (CPU copy and GPU copy).
+
+First use (OM-016, 2026-11-12, The Aftermath v009, stock game): 156 mods 20.7 GB commit against 12.3 GB with none, flat after 150 game seconds; the Animation pass alone added 4.4 GB.
+
+## Which build a run uses
+**Id:** blk-6f03dee1de25  
+**Tags:** mod-build
+
+Building SaveRunner deploys it to `Documents\Klei\OxygenNotIncluded\mods\local\SaveRunner`, and the game loads that copy, so a run uses whichever checkout built SaveRunner last. With two checkouts (a worktree beside `common/`), rebuild from the checkout under test right before the run and compare the hash of `bin\Release\SaveRunner.dll` with the deployed `SaveRunner.dll`.
