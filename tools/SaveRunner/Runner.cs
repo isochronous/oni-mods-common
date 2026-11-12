@@ -10,7 +10,8 @@ namespace SaveRunner
 	///   --saverun=FILE            save file to load (required; a path without spaces is safest through Steam)
 	///   --saverun-seconds=N       game seconds to run after the colony has loaded (default 60)
 	///   --saverun-speed=1|2|3     game speed while running (default 1)
-	///   --saverun-probe=NAME      what to record each game second; "fridges" is the only probe so far
+	///   --saverun-probe=NAME      what to record each game second: "fridges", or "memory" (from boot
+	///                             on, with per-mod load deltas and an end-of-run snapshot; see MemoryProbe)
 	///   --saverun-out=FILE        CSV the probe writes; FILE.status gets one JSON line when the run ends
 	///   --saverun-timeout=SECONDS real time allowed for the whole run before it is called a hang (default 900)
 	/// </summary>
@@ -60,6 +61,7 @@ namespace SaveRunner
 			if (Finished)
 				return;
 			Finished = true;
+			MemoryProbe.Close();
 			string line = "{\"status\":\"" + status + "\",\"save\":" + Json(SavePath) + ",\"detail\":" + Json(detail ?? "")
 				+ ",\"realSeconds\":" + (Time.realtimeSinceStartup - StartedAt).ToString("F1", CultureInfo.InvariantCulture) + "}";
 			Debug.Log(Tag + "finished: " + line);

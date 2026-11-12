@@ -39,6 +39,8 @@ namespace SaveRunner
 				}
 				if (elapsed >= Runner.Seconds)
 				{
+					if (Runner.Probe == "memory")
+						MemoryProbe.End(samples - 1);
 					Close();
 					Runner.Finish("done", samples + " samples");
 				}
@@ -61,7 +63,10 @@ namespace SaveRunner
 				for (int i = 0; i < 8 && speed.IsPaused; i++)
 					speed.Unpause(playSound: false);
 			}
-			if (Runner.OutFile != null && Runner.Probe != null)
+			// The memory probe has had its own file open since boot.
+			if (Runner.Probe == "memory")
+				MemoryProbe.Begin();
+			else if (Runner.OutFile != null && Runner.Probe != null)
 			{
 				writer = new StreamWriter(Runner.OutFile, append: false, Encoding.UTF8);
 				if (Runner.Probe == "fridges")
@@ -87,6 +92,8 @@ namespace SaveRunner
 		{
 			if (Runner.Probe == "fridges")
 				FridgeProbe.Sample(t, writer, t % 10 == 0);
+			else if (Runner.Probe == "memory")
+				MemoryProbe.Sample(t, t % 10 == 0);
 			writer?.Flush();
 		}
 

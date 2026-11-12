@@ -48,13 +48,15 @@ One concern per file, all in the node root:
 
 | File | Holds |
 |------|-------|
-| `Mod.cs` | `SaveRunnerMod`: reads the command line at load, sets the crash-reporter flags, traces who quits |
+| `Mod.cs` | `SaveRunnerMod`: reads the command line at load, sets the crash-reporter flags, traces who quits; starts the memory probe when `--saverun-probe=memory` |
 | `Runner.cs` | `Runner`: static command-line state, `ReadCommandLine`, `Finish` |
 | `Patches.cs` | the Harmony patch classes |
-| `RunBehaviour.cs` | `RunBehaviour` (the per-frame driver) and `FridgeProbe` (the only probe) |
+| `RunBehaviour.cs` | `RunBehaviour` (the per-frame driver) and `FridgeProbe` |
+| `MemoryProbe.cs` | `MemoryProbe`: the memory time series from boot, the per-mod load hooks, process counters by P/Invoke |
+| `MemorySnapshot.cs` | `MemorySnapshot`: the end-of-run census of Unity objects, textures and bundles |
 | `Invoke-SaveRun.ps1` | the launcher; dot-sources `../TestRunner/GameProcess.ps1` for `Get-GameProcess -Marker '--saverun'` (the game is `OxygenNotIncluded`, or an oni-moono `OniMoono` started with the `--saverun` arguments; `-Any` for the open-game refusal) |
 
-A new probe is a static class beside `FridgeProbe` with a `Sample(int t, StreamWriter writer, bool toLog)` method, a branch in `RunBehaviour.Begin` for its CSV header and one in `RunBehaviour.Sample`, and an entry in the launcher's `-Probe` `ValidateSet`.
+A new probe sampled only during the run is a static class beside `FridgeProbe` with a `Sample(int t, StreamWriter writer, bool toLog)` method, a branch in `RunBehaviour.Begin` for its CSV header and one in `RunBehaviour.Sample`, and an entry in the launcher's `-Probe` `ValidateSet`. A probe that must record before the colony exists, as `memory` does from the mod's `OnLoad`, lives in its own file, owns its writers, and is closed by `Runner.Finish` so it flushes on every status.
 
 ## Inert Without the Argument
 **Id:** blk-969f0779ab20  
