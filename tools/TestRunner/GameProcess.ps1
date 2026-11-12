@@ -214,7 +214,7 @@ function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [string]$LogPath
     }
     $left = @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $StockBefore -notcontains $_.Id -and -not $ids.Contains($_.Id) } | ForEach-Object { $_.Id })
     foreach ($id in $left) {
-        Write-Host "A stock OxygenNotIncluded (pid $id) started during the failed Moono launch and is not provably this launch's; it is left running, since it may be the player's."
+        Write-Host "A stock OxygenNotIncluded (pid $id) started during the failed Moono launch. Nothing ties it to this launch, so it is left running: the runner cannot tell it from a game the player opened."
     }
     return $left
 }

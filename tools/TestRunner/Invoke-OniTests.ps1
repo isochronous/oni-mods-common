@@ -583,8 +583,8 @@ foreach ($leg in $legs) {
                     # Fails at once if the stock game appears or OniMoono exits, instead of waiting 120 s.
                     $proc = Wait-MoonoGame $launcher $stockBefore 120 { Get-GameProcess | Where-Object { $_.ProcessName -eq 'OniMoono' } } $moonoLog
                 } catch {
+                    # Reported once, in the leg's summary below.
                     $legFailure = $_.Exception.Message
-                    Write-Warning "The Moono launch failed: $legFailure"
                 }
             } else {
                 $steamArgs = @('-applaunch', "$AppId") + $gameArgs
@@ -630,7 +630,7 @@ foreach ($leg in $legs) {
                 [void](Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
                     '-GamePid', "$($stray[0])", '-AlsoPids', "$(@($stray | Select-Object -Skip 1) -join ',')", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs))
                 $wardenStarted = $true
-                $legFailure += "`nA stock OxygenNotIncluded (pid $($stray -join ', ')) started during the launch and is left running, since it may be the player's. mods.json, the config and the game's mode and last-save pointer stay as the test run left them until it exits; a warden puts them back then."
+                $legFailure += "`nA stock OxygenNotIncluded (pid $($stray -join ', ')) started during the launch. The runner cannot tell it from a game the player opened, so it is left running. Until it exits, mods.json holds the test loadout and the config, game mode and last-save pointer are the test run's; a warden puts them all back when it exits."
                 Write-Host "Handed the restore to a warden that waits for pid $($stray[0])."
             }
             if (-not $wardenStarted) {
@@ -678,7 +678,6 @@ foreach ($leg in $legs) {
         $lines += ('{0,-8} {1} ({2:F1} s){3}' -f $r.status.ToUpper(), $r.id, $r.durationSeconds, $(if ($r.message) { ': ' + $r.message } else { '' }))
         foreach ($e in $r.logErrors) { $lines += "         logged: $e" }
     }
-    if ($legFailure) { $lines += "FAILED: $legFailure" -split "`n" }
     $sessionLine = if ($legFailure -and -not $status) {
         "Leg failed before the game was found: $(($legFailure -split "`n")[0])"
     } elseif ($status) {
@@ -687,13 +686,20 @@ foreach ($leg in $legs) {
         "No status file: the session never finished (launch, load or crash). See $(if ($leg -eq 'Moono') { 'moono.log and ' })Player.log in the run folder."
     }
     $lines += $sessionLine
+    if ($legFailure) {
+        # The failure once: its first line is in the session line above when the session never started.
+        $failLines = @($legFailure -split "`n")
+        $lines += @(if ($status) { $failLines | ForEach-Object { "FAILED: $_" } } else { $failLines | Select-Object -Skip 1 })
+    }
     if ($leg -eq 'Moono') {
         # Moono's own account: its exit code if it is gone, and the end of its log when the session never finished.
         $moonoDone = Get-MoonoExitCode $proc $launcher $moonoLog
         if ($legFailure) { }
         elseif ($proc -and $proc.HasExited -and -not $status) { $lines += (Get-MoonoExitText $proc $moonoLog -Launcher $launcher) -split "`n" }
         elseif ($proc -and $proc.HasExited) { $lines += "OniMoono exited with code $(if ($null -eq $moonoDone) { 'unknown' } else { $moonoDone })" }
-        $lines += "Moono's log: $(if (Test-Path -LiteralPath $moonoLog) { $moonoLog } else { 'none written' })"
+        $logThere = Test-Path -LiteralPath $moonoLog
+        # A failed launch already said "Moono wrote no log at ..."; say it once.
+        if ($logThere -or -not $legFailure) { $lines += "Moono's log: $(if ($logThere) { $moonoLog } else { 'none written' })" }
     }
     $playerAfter = Get-PlayerEntries
     $playerNew = @($playerAfter | Where-Object { -not $playerBefore.Contains($_) } | Sort-Object)

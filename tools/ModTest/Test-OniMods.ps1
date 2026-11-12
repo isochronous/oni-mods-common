@@ -349,14 +349,14 @@ foreach ($leg in $legs) {
             $strayWaitSec = 900
             $strayEnd = (Get-Date).AddSeconds($strayWaitSec)
             foreach ($id in $stray) {
-                Write-Host "Waiting up to $strayWaitSec s for the stock OxygenNotIncluded (pid $id) to exit; mods.json goes back then. Close it, or press Ctrl+C and restore by hand: Copy-Item '$backup' '$modsJson'"
+                Write-Host "A stock OxygenNotIncluded (pid $id) started during the failed Moono launch; the runner cannot tell it from a game you opened, so it is left running. mods.json holds the test loadout until it exits (waiting up to $strayWaitSec s); your loadout goes back then. To restore now, close that game, or press Ctrl+C and run: Copy-Item '$backup' '$modsJson'"
                 $left = [math]::Max(1, [int]($strayEnd - (Get-Date)).TotalSeconds)
                 Wait-Process -Id $id -Timeout $left -ErrorAction SilentlyContinue
                 if (Get-Process -Id $id -ErrorAction SilentlyContinue) { $strayHeld = $true }
             }
         }
         if ($strayHeld) {
-            Write-Warning "A stock game (it may be the player's) is still running after $strayWaitSec s; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
+            Write-Warning "A stock OxygenNotIncluded that started during the failed Moono launch is still running after $strayWaitSec s. mods.json still holds the TEST loadout; your own loadout is in the backup. Restore it once that game has closed:`n  Copy-Item '$backup' '$modsJson'"
         } elseif ($game -and -not $game.HasExited) {
             Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
         } else {
