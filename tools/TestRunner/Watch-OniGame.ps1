@@ -13,12 +13,16 @@
   that time: it restores at once. A launcher that gave up on the game itself ends the warden and
   restores on its own.
 
+  -GamePid with -AlsoPids (comma-separated pids) is the form for stock games left running by a failed
+  Moono launch: the restore waits for every one of them.
+
   The game ends a live session itself (no run for 15 s, or a quit request). If it stops answering,
   the warden ends it: idle in its state file for over a minute, or busy past its own deadline plus
   three minutes.
 #>
 param(
     [int]$GamePid = 0,
+    [string]$AlsoPids = '',
     [Parameter(Mandatory)][string]$ModsJson,
     [Parameter(Mandatory)][string]$Backup,
     [Parameter(Mandatory)][string]$LiveDir,
@@ -85,6 +89,11 @@ while ($proc -and -not $proc.HasExited) {
     $proc.Refresh()
 }
 if ($GamePid -gt 0) { Write-Log 'game exited' }
+# More stock games left running by a failed launch (-AlsoPids, comma-separated): the restore waits for them too.
+foreach ($t in @($AlsoPids -split ',' | Where-Object { $_.Trim() -match '^\d+$' } | ForEach-Object { [int]$_.Trim() })) {
+    $other = Get-Process -Id $t -ErrorAction SilentlyContinue
+    if ($other) { Write-Log "also waiting for pid $t"; $other.WaitForExit(); Write-Log "pid $t exited" }
+}
 
 # The same restore as the launcher's: the backup back in place, dated now, checked, then removed.
 if (Test-Path -LiteralPath $Backup) {

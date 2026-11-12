@@ -4,7 +4,8 @@
 
 .DESCRIPTION
   Backs up mods.json, rewrites it so only the given local mods are enabled (for both the base game
-  and Spaced Out), launches the game through Steam, waits for it to exit, and puts the backup back.
+  and Spaced Out), launches the game (through Steam, or on oni-moono: -Runtime), waits for it to
+  exit, and puts the backup back.
   Local mods that have no mods.json entry yet (freshly built ones) get one. Nothing else is touched:
   mod folders, configs and saves stay as they are.
 
@@ -30,8 +31,16 @@
 .PARAMETER KeepDumps
   Keep the oni-data-dump.*.json files the data-dump mod writes during the session. By default they are
   deleted when the game exits, along with the mods.json backup once it has been restored.
+.PARAMETER Runtime
+  Stock (default: the game through Steam), Moono (oni-moono's player started directly with no
+  arguments but its own --log (a file in %TEMP%, named when it launches), no --game: Moono takes the game folder from Steam; Steam's launch options are not used) or Both (a stock session, then, once that
+  game is closed, a Moono session with the same loadout).
+.PARAMETER MoonoExe
+  oni-moono's player for -Runtime Moono or Both. Default: ONI_MOONO_EXE, else
+  F:\modding\oni-moono\player\OniMoono.exe.
 .PARAMETER DryRun
-  Show the resulting loadout and write it to the scratch folder instead of touching the game.
+  Show the resulting loadout and the launch command of each session, and write the loadout to the
+  scratch folder instead of touching the game.
 #>
 [CmdletBinding()]
 param(
@@ -41,7 +50,9 @@ param(
     [string[]]$Steam = @(),
     [switch]$NoLocal,
     [switch]$KeepDumps,
-    [switch]$DryRun
+    [switch]$DryRun,
+    [ValidateSet('Stock', 'Moono', 'Both')][string]$Runtime = 'Stock',
+    [string]$MoonoExe = ''
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -71,9 +82,10 @@ if (Test-Path -LiteralPath $includedFile) {
 # --- self-contained helpers -------------------------------------------------------------------
 $OniAppId    = 457140
 $ProfileLink = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Klei\OxygenNotIncluded'
-# Get-GameProcess -Any: OxygenNotIncluded or any OniMoono (oni-moono's launch options). This script
-# launches through steam:// with no arguments of its own, so the game it started is the one that
-# starts after the launch: none may be open before it.
+# Get-GameProcess -Any: OxygenNotIncluded or any OniMoono but Moono's crash watcher. This script launches
+# (through steam://, or Moono's player) with no arguments of its own, so the game it started is the one
+# that starts after the launch: none may be open before it. GameProcess.ps1 also holds Get-GameFolder,
+# Get-MoonoExe, Get-MoonoArgumentLine, Wait-MoonoGame and Stop-MoonoLaunch.
 . (Join-Path $PSScriptRoot '..\TestRunner\GameProcess.ps1')
 
 function Test-OniRunning {
@@ -230,75 +242,135 @@ if ($Omit.Count -gt 0) { Write-Host "Omitted: $($Omit -join ', ')" }
 if ($skippedDisabled.Count -gt 0 -and -not $Only -and -not $NoLocal) { Write-Host "Disabled by disabled.txt: $($skippedDisabled -join ', ')" }
 if ($steamFound.Count -gt 0) { Write-Host "Workshop: $(($steamFound.GetEnumerator() | ForEach-Object { "$($_.Value) ($($_.Key))" }) -join ', ')" }
 
+# The launch of each session: steam:// for the stock game; oni-moono's player started directly, with
+# only its own --log argument (Moono takes the install from Steam), for Moono. Both: the stock session, then, once it is closed, Moono.
+$legs = if ($Runtime -eq 'Both') { @('Stock', 'Moono') } else { @($Runtime) }
+$launches = [ordered]@{}
+foreach ($leg in $legs) {
+    $launches[$leg] = if ($leg -eq 'Moono') {
+        $moono = Get-MoonoExe $MoonoExe
+        $moonoLog = Join-Path $env:TEMP "oni-modtest.moono-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+        $moonoArgs = Get-MoonoArgumentLine -LogPath $moonoLog
+        [pscustomobject]@{ File = $moono; Arguments = $moonoArgs; Log = $moonoLog; Text = "$(ConvertTo-CommandLineArgument $moono) $moonoArgs" }
+    } else {
+        [pscustomobject]@{ File = "steam://rungameid/$OniAppId"; Arguments = ''; Text = "steam://rungameid/$OniAppId" }
+    }
+}
+
 if ($DryRun) {
     $out = Join-Path $env:TEMP 'oni-modtest.mods.json'
     [IO.File]::WriteAllText($out, $json, $utf8)
+    foreach ($leg in $legs) { Write-Host "Would launch ($leg): $($launches[$leg].Text)" }
     Write-Host "Dry run: loadout written to $out, game not launched."
     return
 }
 
-$backup = "$modsJson.modtest-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-Copy-Item -LiteralPath $modsJson -Destination $backup
-# The game marks mods.json "mod_load_in_progress" as it boots and clears it at the main menu; a game
-# closed before then leaves it set, and the next boot starts in mod safe mode with every mod off.
-# A launched game closed early is the usual cause here, so neither the test loadout nor the player's
-# loadout put back afterwards carries it.
-$backupText = [IO.File]::ReadAllText($backup, $utf8)
-[IO.File]::WriteAllText($backup, ($backupText -replace '("mod_load_in_progress"\s*:\s*)true', '${1}false'), $utf8)
-Write-Host "Backed up mods.json to $backup"
-$started = Get-Date
-# The game this run started, followed through the game's own restarts; the loadout goes back the
-# moment it exits, so a game the player launches afterwards gets the normal loadout. (Waiting for no
-# game at all held the test loadout in place for a game launched soon after, and that game ran with it.)
-$game = $null
-try {
-    [IO.File]::WriteAllText($modsJson, $json, $utf8)
-    Write-Host 'Launching Oxygen Not Included through Steam...'
-    Start-Process "steam://rungameid/$OniAppId"
-    $deadline = (Get-Date).AddSeconds(180)
-    while (-not $game -and (Get-Date) -lt $deadline) {
-        Start-Sleep 2
-        $game = Get-GameProcess -Any | Where-Object { $_.StartTime -ge $started } | Select-Object -First 1
+
+foreach ($leg in $legs) {
+    if ($leg -ne $legs[0]) {
+        # The game of the session before may take a moment to go, its crash watcher with it.
+        Write-Host "Starting the $leg session."
+        $deadline = (Get-Date).AddSeconds(30)
+        while ((Test-OniRunning) -and (Get-Date) -lt $deadline) { Start-Sleep 1 }
+        Assert-OniNotRunning
     }
-    if (-not $game) { throw 'The game did not start within 3 minutes.' }
-    Write-Host 'Game running; waiting for it to exit...'
-    while ($true) {
-        # Read while it runs: the restarted game is any other game process started since this one
-        # (none was open before the launch). Klei's Restarter starts it before this one exits, and
-        # Moono's the moment it exits, so a time taken after the exit is seen would miss it.
-        $oldId = $game.Id; $oldStart = $game.StartTime
-        while (-not $game.HasExited) { Start-Sleep -Milliseconds 250 }
-        $exited = Get-Date
-        Write-Host "Game exited at $($exited.ToString('HH:mm:ss.fff'))."
-        # A restart after a mod change goes through the game's Restarter, which the game starts
-        # before it quits, so it is there by now: follow the game it starts.
-        $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1
-        if (-not $restarter) { Start-Sleep -Milliseconds 500; $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1 }
-        if (-not $restarter) { break }
-        Write-Host 'The game is restarting itself; following it...'
-        $game = $null
-        $deadline = (Get-Date).AddSeconds(60)
-        while (-not $game -and (Get-Date) -lt $deadline) {
-            Start-Sleep 1
-            $game = Get-GameProcess -Any | Where-Object { $_.Id -ne $oldId -and $_.StartTime -ge $oldStart } | Select-Object -First 1
+    $backup = "$modsJson.modtest-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    Copy-Item -LiteralPath $modsJson -Destination $backup
+    # The game marks mods.json "mod_load_in_progress" as it boots and clears it at the main menu; a game
+    # closed before then leaves it set, and the next boot starts in mod safe mode with every mod off.
+    # A launched game closed early is the usual cause here, so neither the test loadout nor the player's
+    # loadout put back afterwards carries it.
+    $backupText = [IO.File]::ReadAllText($backup, $utf8)
+    [IO.File]::WriteAllText($backup, ($backupText -replace '("mod_load_in_progress"\s*:\s*)true', '${1}false'), $utf8)
+    Write-Host "Backed up mods.json to $backup"
+    $started = Get-Date
+    # The game this run started, followed through the game's own restarts; the loadout goes back the
+    # moment it exits, so a game the player launches afterwards gets the normal loadout. (Waiting for no
+    # game at all held the test loadout in place for a game launched soon after, and that game ran with it.)
+    $game = $null
+    $launcher = $null
+    $stockBefore = @()
+    $strayHeld = $false
+    try {
+        [IO.File]::WriteAllText($modsJson, $json, $utf8)
+        $launch = $launches[$leg]
+        if ($leg -eq 'Moono') {
+            Write-Host "Launching Oxygen Not Included on Moono: $($launch.Text)"
+            $stockBefore = Get-StockGameIds
+            $streams = Get-MoonoStreamPaths $launch.Log
+            $launcher = Start-Process -FilePath $launch.File -ArgumentList $launch.Arguments -WorkingDirectory (Split-Path $launch.File -Parent) -PassThru -RedirectStandardOutput $streams.Out -RedirectStandardError $streams.Err
+        } else {
+            Write-Host 'Launching Oxygen Not Included through Steam...'
+            Start-Process $launch.File
         }
-        if (-not $game) { break }
+        if ($leg -eq 'Moono') {
+            # Fails at once if the stock game appears or OniMoono exits, instead of waiting 3 minutes.
+            $game = Wait-MoonoGame $launcher $stockBefore 180 { Get-GameProcess -Any | Where-Object { $_.ProcessName -eq 'OniMoono' -and $_.StartTime -ge $started } } $launch.Log
+        } else {
+            $deadline = (Get-Date).AddSeconds(180)
+            while (-not $game -and (Get-Date) -lt $deadline) {
+                Start-Sleep 2
+                $game = Get-GameProcess -Any | Where-Object { $_.StartTime -ge $started } | Select-Object -First 1
+            }
+            if (-not $game) { throw 'The game did not start within 3 minutes.' }
+        }
+        Write-Host "Game running ($($game.ProcessName)); waiting for it to exit..."
+        while ($true) {
+            # Read while it runs: the restarted game is any other game process started since this one
+            # (none was open before the launch). Klei's Restarter starts it before this one exits, and
+            # Moono's the moment it exits, so a time taken after the exit is seen would miss it.
+            $oldId = $game.Id; $oldStart = $game.StartTime
+            while (-not $game.HasExited) { Start-Sleep -Milliseconds 250 }
+            $exited = Get-Date
+            Write-Host "Game exited at $($exited.ToString('HH:mm:ss.fff'))."
+            if ($leg -eq 'Moono') { $code = Get-MoonoExitCode $game $launcher $launch.Log; Write-Host "OniMoono exit code $(if ($null -eq $code) { 'unknown' } else { $code }); Moono's log: $($launch.Log)" }
+            # A restart after a mod change goes through the game's Restarter, which the game starts
+            # before it quits, so it is there by now: follow the game it starts.
+            $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $restarter) { Start-Sleep -Milliseconds 500; $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1 }
+            if (-not $restarter) { break }
+            Write-Host 'The game is restarting itself; following it...'
+            $game = $null
+            $deadline = (Get-Date).AddSeconds(60)
+            while (-not $game -and (Get-Date) -lt $deadline) {
+                Start-Sleep 1
+                $game = Get-GameProcess -Any | Where-Object { $_.Id -ne $oldId -and $_.StartTime -ge $oldStart } | Select-Object -First 1
+            }
+            if (-not $game) { break }
+        }
     }
-}
-finally {
-    if ($game -and -not $game.HasExited) {
-        Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
-    } else {
-        Copy-Item -LiteralPath $backup -Destination $modsJson -Force
-        # A copy keeps the backup's old date; dated now, the file shows when the loadout came back.
-        (Get-Item -LiteralPath $modsJson).LastWriteTime = Get-Date
-        Remove-Item -LiteralPath $backup -Force
-        Write-Host "Restored the normal loadout at $((Get-Date).ToString('HH:mm:ss.fff')); backup removed."
-        if (-not $KeepDumps) {
-            # The data-dump mod rewrites its json files on every launch; the ones from this session are single-use.
-            $dumps = @(Get-ChildItem -LiteralPath $ProfileLink -Filter 'oni-data-dump.*.json' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -gt $started })
-            foreach ($d in $dumps) { Remove-Item -LiteralPath $d.FullName -Force }
-            if ($dumps.Count -gt 0) { Write-Host "Removed $($dumps.Count) data-dump json file(s) written this session." }
+    finally {
+        # A Moono launch that failed before the game was found: end what it started (the launcher, a game
+        # still booting) before the loadout goes back.
+        if ($leg -eq 'Moono' -and -not $game) {
+            # A stock game that is not provably this launch's stays up (it may be the player's) and holds
+            # the loadout, so mods.json goes back only once it exits; ModTest has no warden, it waits here.
+            $stray = @(Stop-MoonoLaunch $launcher $stockBefore $launch.Log)
+            $strayWaitSec = 900
+            $strayEnd = (Get-Date).AddSeconds($strayWaitSec)
+            foreach ($id in $stray) {
+                Write-Host "A stock OxygenNotIncluded (pid $id) started during the failed Moono launch; the runner cannot tell it from a game you opened, so it is left running. mods.json holds the test loadout until it exits (waiting up to $strayWaitSec s); your loadout goes back then. To restore now, close that game, or press Ctrl+C and run: Copy-Item '$backup' '$modsJson'"
+                $left = [math]::Max(1, [int]($strayEnd - (Get-Date)).TotalSeconds)
+                Wait-Process -Id $id -Timeout $left -ErrorAction SilentlyContinue
+                if (Get-Process -Id $id -ErrorAction SilentlyContinue) { $strayHeld = $true }
+            }
+        }
+        if ($strayHeld) {
+            Write-Warning "A stock OxygenNotIncluded that started during the failed Moono launch is still running after $strayWaitSec s. mods.json still holds the TEST loadout; your own loadout is in the backup. Restore it once that game has closed:`n  Copy-Item '$backup' '$modsJson'"
+        } elseif ($game -and -not $game.HasExited) {
+            Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
+        } else {
+            Copy-Item -LiteralPath $backup -Destination $modsJson -Force
+            # A copy keeps the backup's old date; dated now, the file shows when the loadout came back.
+            (Get-Item -LiteralPath $modsJson).LastWriteTime = Get-Date
+            Remove-Item -LiteralPath $backup -Force
+            Write-Host "Restored the normal loadout at $((Get-Date).ToString('HH:mm:ss.fff')); backup removed."
+            if (-not $KeepDumps) {
+                # The data-dump mod rewrites its json files on every launch; the ones from this session are single-use.
+                $dumps = @(Get-ChildItem -LiteralPath $ProfileLink -Filter 'oni-data-dump.*.json' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -gt $started })
+                foreach ($d in $dumps) { Remove-Item -LiteralPath $d.FullName -Force }
+                if ($dumps.Count -gt 0) { Write-Host "Removed $($dumps.Count) data-dump json file(s) written this session." }
+            }
         }
     }
 }
