@@ -327,7 +327,7 @@ foreach ($leg in $legs) {
             while (-not $game.HasExited) { Start-Sleep -Milliseconds 250 }
             $exited = Get-Date
             Write-Host "Game exited at $($exited.ToString('HH:mm:ss.fff'))."
-            if ($leg -eq 'Moono') { $code = Get-ExitCodeOf $game; Write-Host "OniMoono exit code $(if ($null -eq $code) { 'unknown' } else { $code }); Moono's log: $($launch.Log)" }
+            if ($leg -eq 'Moono') { $code = Get-MoonoExitCode $game $launcher $launch.Log; Write-Host "OniMoono exit code $(if ($null -eq $code) { 'unknown' } else { $code }); Moono's log: $($launch.Log)" }
             # A restart after a mod change goes through the game's Restarter, which the game starts
             # before it quits, so it is there by now: follow the game it starts.
             $restarter = Get-Process -Name 'Restarter' -ErrorAction SilentlyContinue | Select-Object -First 1

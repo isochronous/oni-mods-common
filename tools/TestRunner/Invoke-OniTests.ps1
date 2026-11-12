@@ -650,8 +650,8 @@ foreach ($leg in $legs) {
     $lines += $sessionLine
     if ($leg -eq 'Moono') {
         # Moono's own account: its exit code if it is gone, and the end of its log when the session never finished.
-        $moonoDone = Get-ExitCodeOf $proc
-        if ($proc -and $proc.HasExited -and -not $status) { $lines += (Get-MoonoExitText $proc $moonoLog) -split "`n" }
+        $moonoDone = Get-MoonoExitCode $proc $launcher $moonoLog
+        if ($proc -and $proc.HasExited -and -not $status) { $lines += (Get-MoonoExitText $proc $moonoLog -Launcher $launcher) -split "`n" }
         elseif ($proc -and $proc.HasExited) { $lines += "OniMoono exited with code $(if ($null -eq $moonoDone) { 'unknown' } else { $moonoDone })" }
         $lines += "Moono's log: $(if (Test-Path -LiteralPath $moonoLog) { $moonoLog } else { 'none written' })"
     }

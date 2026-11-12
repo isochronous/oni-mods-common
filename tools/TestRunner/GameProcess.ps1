@@ -95,10 +95,29 @@ function Get-ExitCodeOf([System.Diagnostics.Process]$Process) {
     return $null
 }
 
-# What to say when OniMoono is gone before the game's session wrote its status: the exit code and the
-# tail of Moono's log. -Process is the game process found (it may be the launcher itself).
-function Get-MoonoExitText($Process, [string]$LogPath, [string]$Before = "the game's session wrote its status") {
+# OniMoono's exit code once it is gone. A process found by Get-Process carries no exit code (no handle
+# was open when it exited), so the launcher from Start-Process -PassThru answers when it is the same
+# process, and otherwise Moono's own last word in its log ("[engine] Exiting after N frames with code X").
+# $null when neither knows.
+function Get-MoonoExitCode($Process, $Launcher, [string]$LogPath = '') {
+    if ($Launcher -and (-not $Process -or $Launcher.Id -eq $Process.Id)) {
+        $code = Get-ExitCodeOf $Launcher
+        if ($null -ne $code) { return $code }
+    }
     $code = Get-ExitCodeOf $Process
+    if ($null -ne $code) { return $code }
+    if ($LogPath -and (Test-Path -LiteralPath $LogPath)) {
+        $m = Select-String -LiteralPath $LogPath -Pattern '^\[engine\] Exiting after \d+ frames with code (-?\d+)' | Select-Object -Last 1
+        if ($m) { return [int]$m.Matches[0].Groups[1].Value }
+    }
+    return $null
+}
+
+# What to say when OniMoono is gone before the game's session wrote its status: the exit code and the
+# tail of Moono's log. -Process is the game process found (it may be the launcher itself); -Launcher is
+# the Start-Process object, whose exit code is readable.
+function Get-MoonoExitText($Process, [string]$LogPath, [string]$Before = "the game's session wrote its status", $Launcher = $null) {
+    $code = Get-MoonoExitCode $Process $Launcher $LogPath
     $text = "OniMoono exited with code $(if ($null -eq $code) { 'unknown' } else { $code }) before $Before."
     $tail = Get-LogTail $LogPath
     if ($tail) { $text += "`nEnd of Moono's log ($LogPath):`n$tail" }
