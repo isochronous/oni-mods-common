@@ -8,6 +8,14 @@
     <Version>0.1.0</Version>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- AssetBundle.GetAllLoadedAssetBundles, for the memory snapshot -->
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>$(GameLibsFolder)\UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
   <Import Project="$(MSBuildThisFileDirectory)..\..\oni-mod.targets" />
 
 </Project>
