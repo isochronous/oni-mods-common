@@ -26,8 +26,8 @@
 
 ## Progress
 - [x] Decide runtime — Jeremy 2026-11-12: stock first (full vs none), then one full-mod run on OniMoono
-- [ ] Implement memory probe + per-mod load deltas (implement unit 01) ← IN PROGRESS
-- [ ] Run 1: stock, full mod list (-Without 2854869130,3281716506 per save-runner notes)
+- [x] Implement memory probe + per-mod load deltas — unit 01, commit 54dcd5a; build 0/0, ModCheck pass, parse 0 errors; untested in game (units/01-implement-report.md: outputs probe.csv / probe-modload.csv / probe-snapshot.csv; SaveRunner moved first in mods.json for -Probe memory; defaults 300 game s, speed 3, timeout 1800 s). Rebuild from the worktree before each run (a build in C:\dev\ONI-Mods\common overwrites mods\local\SaveRunner). Store docs (code-style layout, entities, glossary) out of date → completion; KMod load-order note worth a domain doc.
+- [ ] Run 1: stock, full mod list (-Without 2854869130,3281716506 per save-runner notes) ← IN PROGRESS
 - [ ] Run 2: stock, no mods
 - [ ] Run 3: OniMoono, full mod list (SaveRunner needs a Moono launch path — OM-014's GameProcess helpers are on an unmerged branch; decide in unit 01 report)
 - [ ] Compare, report to Jeremy; ask before any bisection
