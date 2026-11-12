@@ -93,9 +93,11 @@ is still standing after a clear is named in a warning in the log.
 
 **Stock or Moono.** `-Runtime Stock` (the default) launches the game through Steam
 (`steam.exe -applaunch 457140 --onitest-...`). `-Runtime Moono` starts oni-moono's player directly,
-not through Steam's launch options: `OniMoono.exe --game <the game folder> --onitest-...`, where
-`--game` names the install the launcher already uses (so Moono never asks which one) and every
-other argument is passed to the game. Moono starts Steam itself when it is not running. The player
+not through Steam's launch options: `OniMoono.exe --onitest-...`. There is no `--game`: Moono gets
+the game folder from Steam, and every argument is passed to the game. Moono starts Steam itself
+when it is not running. The leg fails at once, with a message, when a stock `OxygenNotIncluded`
+starts that was not running before the launch, or when `OniMoono` exits before the game is found
+(its exit code is reported), instead of waiting out the 120 s. The player
 is `-MoonoExe`, else `ONI_MOONO_EXE`, else `F:\modding\oni-moono\player\OniMoono.exe`.
 `-Runtime Both` builds once and runs the suite on Stock, then on Moono: run folders
 `runs/<label>-<stamp>-stock` and `-moono` (a Moono run alone gets `-moono`), the stock game ended

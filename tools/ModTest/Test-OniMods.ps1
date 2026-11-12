@@ -32,8 +32,8 @@
   Keep the oni-data-dump.*.json files the data-dump mod writes during the session. By default they are
   deleted when the game exits, along with the mods.json backup once it has been restored.
 .PARAMETER Runtime
-  Stock (default: the game through Steam), Moono (oni-moono's player started directly with --game
-  <the game folder>; Steam's launch options are not used) or Both (a stock session, then, once that
+  Stock (default: the game through Steam), Moono (oni-moono's player started directly with no
+  arguments, no --game: Moono takes the game folder from Steam; Steam's launch options are not used) or Both (a stock session, then, once that
   game is closed, a Moono session with the same loadout).
 .PARAMETER MoonoExe
   oni-moono's player for -Runtime Moono or Both. Default: ONI_MOONO_EXE, else
@@ -83,9 +83,9 @@ if (Test-Path -LiteralPath $includedFile) {
 $OniAppId    = 457140
 $ProfileLink = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Klei\OxygenNotIncluded'
 # Get-GameProcess -Any: OxygenNotIncluded or any OniMoono. This script launches (through steam://, or
-# Moono's player with only --game) with no arguments of its own, so the game it started is the one
+# Moono's player) with no arguments of its own, so the game it started is the one
 # that starts after the launch: none may be open before it. GameProcess.ps1 also holds Get-GameFolder,
-# Get-MoonoExe and Get-MoonoArgumentLine.
+# Get-MoonoExe, Get-MoonoArgumentLine and Wait-MoonoGame.
 . (Join-Path $PSScriptRoot '..\TestRunner\GameProcess.ps1')
 
 function Test-OniRunning {
@@ -243,13 +243,13 @@ if ($skippedDisabled.Count -gt 0 -and -not $Only -and -not $NoLocal) { Write-Hos
 if ($steamFound.Count -gt 0) { Write-Host "Workshop: $(($steamFound.GetEnumerator() | ForEach-Object { "$($_.Value) ($($_.Key))" }) -join ', ')" }
 
 # The launch of each session: steam:// for the stock game; oni-moono's player started directly, with
-# --game naming the install, for Moono. Both: the stock session, then, once it is closed, Moono.
+# no arguments (Moono takes the install from Steam), for Moono. Both: the stock session, then, once it is closed, Moono.
 $legs = if ($Runtime -eq 'Both') { @('Stock', 'Moono') } else { @($Runtime) }
 $launches = [ordered]@{}
 foreach ($leg in $legs) {
     $launches[$leg] = if ($leg -eq 'Moono') {
         $moono = Get-MoonoExe $MoonoExe
-        [pscustomobject]@{ File = $moono; Arguments = Get-MoonoArgumentLine (Get-GameFolder); Text = "$(ConvertTo-CommandLineArgument $moono) $(Get-MoonoArgumentLine (Get-GameFolder))" }
+        [pscustomobject]@{ File = $moono; Arguments = Get-MoonoArgumentLine; Text = (ConvertTo-CommandLineArgument $moono) }
     } else {
         [pscustomobject]@{ File = "steam://rungameid/$OniAppId"; Arguments = ''; Text = "steam://rungameid/$OniAppId" }
     }
@@ -298,17 +298,23 @@ foreach ($leg in $legs) {
         $launch = $launches[$leg]
         if ($leg -eq 'Moono') {
             Write-Host "Launching Oxygen Not Included on Moono: $($launch.Text)"
-            Start-Process -FilePath $launch.File -ArgumentList $launch.Arguments -WorkingDirectory (Split-Path $launch.File -Parent)
+            $stockBefore = Get-StockGameIds
+            $launcher = Start-Process -FilePath $launch.File -WorkingDirectory (Split-Path $launch.File -Parent) -PassThru
         } else {
             Write-Host 'Launching Oxygen Not Included through Steam...'
             Start-Process $launch.File
         }
-        $deadline = (Get-Date).AddSeconds(180)
-        while (-not $game -and (Get-Date) -lt $deadline) {
-            Start-Sleep 2
-            $game = Get-AnyGame | Where-Object { $_.StartTime -ge $started } | Select-Object -First 1
+        if ($leg -eq 'Moono') {
+            # Fails at once if the stock game appears or OniMoono exits, instead of waiting 3 minutes.
+            $game = Wait-MoonoGame $launcher $stockBefore 180 { Get-AnyGame | Where-Object { $_.ProcessName -eq 'OniMoono' -and $_.StartTime -ge $started } }
+        } else {
+            $deadline = (Get-Date).AddSeconds(180)
+            while (-not $game -and (Get-Date) -lt $deadline) {
+                Start-Sleep 2
+                $game = Get-AnyGame | Where-Object { $_.StartTime -ge $started } | Select-Object -First 1
+            }
+            if (-not $game) { throw 'The game did not start within 3 minutes.' }
         }
-        if (-not $game) { throw 'The game did not start within 3 minutes.' }
         Write-Host "Game running ($($game.ProcessName)); waiting for it to exit..."
         while ($true) {
             # Read while it runs: the restarted game is any other game process started since this one

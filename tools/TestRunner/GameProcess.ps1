@@ -62,11 +62,43 @@ function Get-MoonoExe([string]$Path = '') {
     return $exe
 }
 
-# The command line that starts the game on Moono directly, not through Steam: --game names the install
-# (so Moono never asks which one), and every other argument is passed to the game. Moono starts Steam
-# itself if it is not running, and sets the app id.
-function Get-MoonoArgumentLine([string]$GameFolder, [string[]]$GameArgs = @()) {
-    return ((@('--game', $GameFolder) + @($GameArgs)) | ForEach-Object { ConvertTo-CommandLineArgument $_ }) -join ' '
+# The command line that starts the game on Moono directly, not through Steam: only the game's own
+# arguments (the --onitest- ones). There is no --game: in standalone mode Moono gets the install from
+# Steam, which knows one, starts Steam itself if it is not running, and sets the app id.
+function Get-MoonoArgumentLine([string[]]$GameArgs = @()) {
+    return (@($GameArgs) | ForEach-Object { ConvertTo-CommandLineArgument $_ }) -join ' '
+}
+
+# The pids of the stock game now running, taken before a Moono launch: any OxygenNotIncluded that
+# appears afterwards is one Moono did not start itself.
+function Get-StockGameIds {
+    return @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
+}
+
+# Waits for the game a Moono launch starts: -Find is a script block that returns the OniMoono game process
+# once it is up. Fails at once, instead of at the timeout, when a stock OxygenNotIncluded appears that was
+# not in -StockBefore (the stock game was started, so the leg would not be on Moono), or when the launcher
+# (-Launcher, from Start-Process -PassThru) exits with no game up.
+function Wait-MoonoGame([System.Diagnostics.Process]$Launcher, [int[]]$StockBefore, [int]$TimeoutSec, [scriptblock]$Find) {
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    $exitSeen = $null
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Milliseconds 500
+        $game = & $Find | Select-Object -First 1
+        if ($game) { return $game }
+        $stock = @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $StockBefore -notcontains $_.Id })
+        if ($stock.Count -gt 0) {
+            throw "The stock game (OxygenNotIncluded, pid $($stock[0].Id)) started during the Moono launch; Moono did not start only itself. The leg is failed."
+        }
+        # The launcher may hand the game to a process of its own: its exit counts only if no game shows up within 3 s.
+        if ($Launcher -and $Launcher.HasExited) {
+            if (-not $exitSeen) { $exitSeen = Get-Date }
+            elseif (((Get-Date) - $exitSeen).TotalSeconds -ge 3) {
+                throw "OniMoono exited with code $($Launcher.ExitCode) before the game started."
+            }
+        }
+    }
+    throw "The game did not start within $TimeoutSec s."
 }
 
 # What ran, from the first lines of a Player.log: Moono writes "[engine] Moono starting: commit=<sha> ..."

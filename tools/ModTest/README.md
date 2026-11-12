@@ -25,14 +25,15 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
   The backup is deleted once restored. The oni-data-dump.*.json files the data-dump mod wrote during the
   session are deleted too unless `-KeepDumps` is given. Mod folders, configs and saves are never touched.
 - `-Runtime Moono` starts oni-moono's player directly instead of Steam:
-  `OniMoono.exe --game <the game folder>` (the player is `-MoonoExe`, else `ONI_MOONO_EXE`, else
+  `OniMoono.exe` with no arguments, no `--game`: Moono gets the game folder from Steam (the player is `-MoonoExe`, else `ONI_MOONO_EXE`, else
   `F:\modding\oni-moono\player\OniMoono.exe`; Moono starts Steam itself when it is not running).
   `-Runtime Both` runs a stock session and, once that game is closed and the loadout put back, a
   Moono session with the same loadout. On Moono the game runs as `OniMoono` instead of
   `OxygenNotIncluded`. The launch carries no arguments to tell a launched game from one opened by
   hand, so the script refuses to start while either is open (or the Restarter) and follows the one
   that starts after the launch, leaving out Moono's crash watcher, a second `OniMoono.exe` with
-  `--crash-watch` (`tools/TestRunner/GameProcess.ps1`).
+  `--crash-watch` (`tools/TestRunner/GameProcess.ps1`). The Moono session fails at once if a stock
+  `OxygenNotIncluded` starts that was not running before the launch, or if `OniMoono` exits before the game is found.
 - `-Omit` leaves named mods out of the loadout without editing the list, e.g. `-Omit VentFreezeFix` to confirm a bug still reproduces without the fix.
 - `-Only` enables a single mod and nothing else, e.g. `-Only VentFreezeFix` to test it in isolation. It replaces the list and cannot be combined with `-Mods` or `-Omit`.
 - `-NoLocal` enables no local mods at all, for running only `-Steam` items. It cannot be combined with `-Mods`, `-Omit` or `-Only`.

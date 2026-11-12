@@ -43,9 +43,9 @@
   player's is set in kplayerprefs.yaml for the run and put back when the game exits (GameMode.ps1).
   A mode with no fixture save runs Worldgen and NoColony tests only.
 .PARAMETER Runtime
-  Stock (default: the game through Steam), Moono (oni-moono's player started directly, with
-  --game <the game folder> and the --onitest arguments passed to the game; Steam's launch options are
-  not used) or Both (the suite on Stock, then on Moono, from one build; run folders
+  Stock (default: the game through Steam), Moono (oni-moono's player started directly, with only
+  the --onitest arguments, no --game: Moono takes the game folder from Steam; Steam's launch options
+  are not used, and the leg fails at once if a stock OxygenNotIncluded starts or OniMoono exits) or Both (the suite on Stock, then on Moono, from one build; run folders
   <label>-<stamp>-stock and -moono, and a table of the two side by side). Each summary names the
   runtime Player.log shows. Exit code: the worse of the two.
 .PARAMETER MoonoExe
@@ -556,16 +556,23 @@ foreach ($leg in $legs) {
             if ($leg -eq 'Moono') {
                 # Moono's player started directly: it runs the game in its own process (OniMoono, found
                 # below by the --onitest- arguments on its command line, not by the pid Start-Process gives).
-                $argLine = Get-MoonoArgumentLine $gameFolder $gameArgs
+                # Only the --onitest- arguments: no --game, Moono takes the install from Steam.
+                $argLine = Get-MoonoArgumentLine $gameArgs
+                $stockBefore = Get-StockGameIds
                 Write-Host "Launching: $(ConvertTo-CommandLineArgument $moono) $argLine"
-                Start-Process -FilePath $moono -ArgumentList $argLine -WorkingDirectory (Split-Path $moono -Parent) | Out-Null
+                $launcher = Start-Process -FilePath $moono -ArgumentList $argLine -WorkingDirectory (Split-Path $moono -Parent) -PassThru
             } else {
                 $steamArgs = @('-applaunch', "$AppId") + $gameArgs
                 Write-Host "Launching: $($steamArgs -join ' ')"
                 Start-Process -FilePath $SteamExe -ArgumentList $steamArgs | Out-Null
             }
-            while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess | Select-Object -First 1 }
-            if (-not $proc) { throw 'The game did not start within 120 s.' }
+            if ($leg -eq 'Moono') {
+                # Fails at once if the stock game appears or OniMoono exits, instead of waiting 120 s.
+                $proc = Wait-MoonoGame $launcher $stockBefore 120 { Get-GameProcess | Where-Object { $_.ProcessName -eq 'OniMoono' } }
+            } else {
+                while (-not $proc -and ((Get-Date) - $t0).TotalSeconds -lt 120) { Start-Sleep 2; $proc = Get-GameProcess | Select-Object -First 1 }
+                if (-not $proc) { throw 'The game did not start within 120 s.' }
+            }
             $launcherStatus = 'exited'
             if (-not $KeepGame) {
                 # From here the warden owns the restore: the game outlives this script.
