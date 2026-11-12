@@ -699,7 +699,7 @@ foreach ($leg in $legs) {
         elseif ($proc -and $proc.HasExited) { $lines += "OniMoono exited with code $(if ($null -eq $moonoDone) { 'unknown' } else { $moonoDone })" }
         $logThere = Test-Path -LiteralPath $moonoLog
         # A failed launch already said "Moono wrote no log at ..."; say it once.
-        if ($logThere -or -not $legFailure) { $lines += "Moono's log: $(if ($logThere) { $moonoLog } else { 'none written' })" }
+        if ($logThere -or $legFailure -notmatch 'wrote no log at') { $lines += "Moono's log: $(if ($logThere) { $moonoLog } else { 'none written' })" }
     }
     $playerAfter = Get-PlayerEntries
     $playerNew = @($playerAfter | Where-Object { -not $playerBefore.Contains($_) } | Sort-Object)
