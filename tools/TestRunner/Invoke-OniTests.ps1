@@ -630,11 +630,13 @@ foreach ($leg in $legs) {
     }
     $status = if (Test-Path $statusFile) { [IO.File]::ReadAllText($statusFile, $utf8).Trim() | ConvertFrom-Json } else { $null }
     $lines = @()
-    # What ran, by the copied Player.log's first lines, so a run that asked for one runtime and got the
-    # other (Steam's launch options still pointing at Moono, say) says so.
-    $ran = Get-LogRuntime $(if ($logCopied) { Join-Path $runDir 'Player.log' } else { '' })
-    $ranText = if (-not $ran.Runtime) { 'no Player.log written by this launch' } elseif ($ran.Runtime -eq 'Moono') { "Moono (commit $($ran.Commit)$(if ($ran.Launch) { '; launch: ' + $ran.Launch }))" } else { 'Stock' }
-    $lines += "Runtime: $leg asked; Player.log shows $ranText"
+    # What ran, by the first lines of the game's log, so a run that asked for one runtime and got the
+    # other (Steam's launch options still pointing at Moono, say) says so. A direct Moono launch writes the
+    # game's log into its --log file (moono.log) and no Player.log, so that file answers for a Moono leg.
+    $ranLog = if ($logCopied) { Join-Path $runDir 'Player.log' } elseif ($leg -eq 'Moono' -and $moonoLog -and (Test-Path -LiteralPath $moonoLog)) { $moonoLog } else { '' }
+    $ran = Get-LogRuntime $ranLog
+    $ranText = if (-not $ran.Runtime) { 'no game log written by this launch' } elseif ($ran.Runtime -eq 'Moono') { "Moono (commit $($ran.Commit)$(if ($ran.Launch) { '; launch: ' + $ran.Launch }))" } else { 'Stock' }
+    $lines += "Runtime: $leg asked; $(if ($ranLog) { Split-Path $ranLog -Leaf } else { 'the game log' }) shows $ranText"
     if ($ran.Runtime -and $ran.Runtime -ne $leg) { $lines += "WARNING: the run asked for $leg but the game ran on $($ran.Runtime)." }
     foreach ($r in $results) {
         $lines += ('{0,-8} {1} ({2:F1} s){3}' -f $r.status.ToUpper(), $r.id, $r.durationSeconds, $(if ($r.message) { ': ' + $r.message } else { '' }))
