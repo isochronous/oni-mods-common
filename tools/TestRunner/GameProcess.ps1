@@ -2,13 +2,14 @@
 # and Watch-OniGame.ps1, SaveRunner, WorldgenDriver, ModTest), each telling its game by its -Marker
 # (ModTest, which launches with no arguments, uses -Any and the start time instead).
 # The stock game runs as OxygenNotIncluded. oni-moono's player, started directly (TestRunner's and
-# ModTest's -Runtime Moono, Start-MoonoGame below) or from Steam's launch options, runs the game in its
+# ModTest's -Runtime Moono: Get-MoonoArgumentLine and Wait-MoonoGame below) or from Steam's launch options, runs the game in its
 # own process, OniMoono (its Restarter only restarts it). An OniMoono process counts
 # only when its command line holds the -Marker arguments (by default TestRunner's --onitest-), so a
 # Moono session the player started by hand is never taken for the launched game. With -Id, that
-# process if it is the game. With -Any, every OniMoono counts: the checks for an open game, before a
-# launch or a restore, use it, so a Moono game the player started blocks a run as an open
-# OxygenNotIncluded does.
+# process if it is the game. With -Any, every OniMoono counts except Moono's crash watcher (a second
+# OniMoono.exe that Moono starts next to the game with --crash-watch, which is no game): the checks for
+# an open game, before a launch or a restore, use it, so a Moono game the player started blocks a run
+# as an open OxygenNotIncluded does, and one game is one process.
 # The other launchers in tools/ dot-source this file too and pass their own arguments' prefix as
 # -Marker (SaveRunner --saverun, WorldgenDriver --worldgen-).
 # The OniMoono pids whose command line could not be read, each warned about once (the wait loops
@@ -24,7 +25,9 @@ function Get-GameProcess([int]$Id = 0, [switch]$Any, [string]$Marker = '--onites
         if ($p.ProcessName -eq 'OxygenNotIncluded') {
             $p
         } elseif ($p.ProcessName -eq 'OniMoono' -and $Any) {
-            $p
+            # A command line that cannot be read counts as a game: the check errs on the side of refusing.
+            $line = (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($p.Id)" -ErrorAction SilentlyContinue).CommandLine
+            if ("$line" -notlike '*--crash-watch*') { $p }
         } elseif ($p.ProcessName -eq 'OniMoono') {
             $line = (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($p.Id)" -ErrorAction SilentlyContinue).CommandLine
             if ($line -like "*$Marker*") { $p }
@@ -167,11 +170,31 @@ function Wait-MoonoGame([System.Diagnostics.Process]$Launcher, [int[]]$StockBefo
         if ($Launcher -and $Launcher.HasExited) {
             if (-not $exitSeen) { $exitSeen = Get-Date }
             elseif (((Get-Date) - $exitSeen).TotalSeconds -ge 3) {
-                throw (Get-MoonoExitText $Launcher $LogPath 'the game started')
+                throw (Get-MoonoExitText $Launcher $LogPath 'the game started' $Launcher)
             }
         }
     }
     throw "The game did not start within $TimeoutSec s."
+}
+
+# Ends what a Moono launch started when it failed before the game was found, so nothing is left booting
+# under a loadout about to be put back: the launcher (-Launcher, from Start-Process -PassThru), every
+# OniMoono started since -Since (the game and its crash watcher; none was open before the launch), and
+# any stock OxygenNotIncluded that was not in -StockBefore. Waits briefly for them to go.
+function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [datetime]$Since = [datetime]::MinValue) {
+    $victims = @()
+    if ($Launcher) { $victims += $Launcher }
+    $victims += @(Get-Process -Name 'OniMoono' -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -ge $Since.AddSeconds(-2) })
+    $victims += @(Get-Process -Name 'OxygenNotIncluded' -ErrorAction SilentlyContinue | Where-Object { $StockBefore -notcontains $_.Id })
+    foreach ($v in @($victims | Group-Object Id | ForEach-Object { $_.Group[0] })) {
+        try {
+            if (-not $v.HasExited) {
+                Write-Host "Ending $($v.ProcessName) (pid $($v.Id)) left by the failed Moono launch."
+                Stop-Process -Id $v.Id -Force -ErrorAction SilentlyContinue
+                [void]$v.WaitForExit(10000)
+            }
+        } catch { }
+    }
 }
 
 # What ran, from the first lines of a Player.log: Moono writes "[engine] Moono starting: commit=<sha> ..."

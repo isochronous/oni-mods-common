@@ -27,7 +27,7 @@ test and `-With` are enabled, launches the game (through Steam, or on oni-moono 
 below), waits for the run's results and prints a line per test plus the session status. Steam must
 be running. Exit code 0 when every test
 passed, 1 when one failed, errored or timed out, 2 when the session never produced a status (launch,
-load or crash: read `Player.log` in the run folder), 3 for build or check failures.
+load or crash: read `Player.log` in the run folder, or `moono.log` on a Moono leg), 3 for build or check failures.
 
 **The game stays up between runs.** After a run the game waits 15 s for another. A run whose
 loadout matches the running game's (the mode, the mods, `-With`, `-Steam`, `-Trace`, and every file
@@ -44,7 +44,8 @@ after 150 s it restores at once. The game process is `OxygenNotIncluded`, or `On
 (see "Stock or Moono" below); an `OniMoono` process counts only when its command
 line holds the `--onitest-` arguments, so a Moono session started by hand is never taken for the
 test game (`GameProcess.ps1`). A Moono session started by hand still counts as an open game and
-blocks a run. A launcher that gives up on the game itself ends its warden and restores on its own.
+blocks a run; Moono's crash watcher (a second `OniMoono` with `--crash-watch`) is not a game, so a
+live Moono game is reused like a stock one. A launcher that gives up on the game itself ends its warden and restores on its own.
 `-KeepGame` launches a game of its own and keeps the old behaviour.
 
 **Mod settings are put back.** The shared config folder of each mod in `-Mods` and `-With`
@@ -111,14 +112,16 @@ a live game is only reused by a run on the same runtime. Every summary starts wi
 `Player.log` shows: Moono writes `Moono starting: commit=<sha>` on its first line and its launch
 mode on the second, the stock game neither; a run that got the other runtime says so in a warning.
 A `Player.log` last written before the launch is never copied or read: the run folder has none and the
-summary says `no Player.log written by this launch`.
+summary says `no game log written by this launch`. A Moono leg that fails before the game is found (the stock
+game started, OniMoono exited, the launch failed) ends what the launch started, is recorded in its own
+summary with exit code 2, and `-Runtime Both` goes on to the table.
 
 Launcher options:
 
 | Option | What it does |
 |---|---|
 | `-Filter "glob[;glob]"` | Only tests whose `Assembly/Class.Method` id or display name matches. One word, no spaces (it travels through the game's command line; write a space as `?`); `*` and `?` wildcards. Also the only way to run an `Explicit` test. |
-| `-Runtime Stock\|Moono\|Both` | The game the tests run on (default `Stock`); see "Stock or Moono" below. |
+| `-Runtime Stock\|Moono\|Both` | The game the tests run on (default `Stock`); see "Stock or Moono" above. |
 | `-MoonoExe path` | oni-moono's player (default: `ONI_MOONO_EXE`, else `F:\modding\oni-moono\player\OniMoono.exe`). |
 | `-Fixture path.sav` | Load this save instead of the testbed, e.g. a player's colony for a bug only seen there. The save is copied into the run folder and never written back. |
 | `-With Mod1,Mod2` | Enable more local mods (folder names under `mods/local`: letters, digits, `_` and `-`, with dots only between them, as for `-Mods`). |

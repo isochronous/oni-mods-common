@@ -82,10 +82,10 @@ if (Test-Path -LiteralPath $includedFile) {
 # --- self-contained helpers -------------------------------------------------------------------
 $OniAppId    = 457140
 $ProfileLink = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Klei\OxygenNotIncluded'
-# Get-GameProcess -Any: OxygenNotIncluded or any OniMoono. This script launches (through steam://, or
-# Moono's player) with no arguments of its own, so the game it started is the one
+# Get-GameProcess -Any: OxygenNotIncluded or any OniMoono but Moono's crash watcher. This script launches
+# (through steam://, or Moono's player) with no arguments of its own, so the game it started is the one
 # that starts after the launch: none may be open before it. GameProcess.ps1 also holds Get-GameFolder,
-# Get-MoonoExe, Get-MoonoArgumentLine and Wait-MoonoGame.
+# Get-MoonoExe, Get-MoonoArgumentLine, Wait-MoonoGame and Stop-MoonoLaunch.
 . (Join-Path $PSScriptRoot '..\TestRunner\GameProcess.ps1')
 
 function Test-OniRunning {
@@ -265,13 +265,6 @@ if ($DryRun) {
     return
 }
 
-# A game process for the follow loops: Get-GameProcess -Any without Moono's crash watcher, a second
-# OniMoono.exe that Moono starts next to the game with --crash-watch.
-function Get-AnyGame {
-    Get-GameProcess -Any | Where-Object {
-        $_.ProcessName -ne 'OniMoono' -or ("$((Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue).CommandLine)" -notlike '*--crash-watch*')
-    }
-}
 
 foreach ($leg in $legs) {
     if ($leg -ne $legs[0]) {
@@ -295,6 +288,8 @@ foreach ($leg in $legs) {
     # moment it exits, so a game the player launches afterwards gets the normal loadout. (Waiting for no
     # game at all held the test loadout in place for a game launched soon after, and that game ran with it.)
     $game = $null
+    $launcher = $null
+    $stockBefore = @()
     try {
         [IO.File]::WriteAllText($modsJson, $json, $utf8)
         $launch = $launches[$leg]
@@ -309,12 +304,12 @@ foreach ($leg in $legs) {
         }
         if ($leg -eq 'Moono') {
             # Fails at once if the stock game appears or OniMoono exits, instead of waiting 3 minutes.
-            $game = Wait-MoonoGame $launcher $stockBefore 180 { Get-AnyGame | Where-Object { $_.ProcessName -eq 'OniMoono' -and $_.StartTime -ge $started } } $launch.Log
+            $game = Wait-MoonoGame $launcher $stockBefore 180 { Get-GameProcess -Any | Where-Object { $_.ProcessName -eq 'OniMoono' -and $_.StartTime -ge $started } } $launch.Log
         } else {
             $deadline = (Get-Date).AddSeconds(180)
             while (-not $game -and (Get-Date) -lt $deadline) {
                 Start-Sleep 2
-                $game = Get-AnyGame | Where-Object { $_.StartTime -ge $started } | Select-Object -First 1
+                $game = Get-GameProcess -Any | Where-Object { $_.StartTime -ge $started } | Select-Object -First 1
             }
             if (-not $game) { throw 'The game did not start within 3 minutes.' }
         }
@@ -338,12 +333,15 @@ foreach ($leg in $legs) {
             $deadline = (Get-Date).AddSeconds(60)
             while (-not $game -and (Get-Date) -lt $deadline) {
                 Start-Sleep 1
-                $game = Get-AnyGame | Where-Object { $_.Id -ne $oldId -and $_.StartTime -ge $oldStart } | Select-Object -First 1
+                $game = Get-GameProcess -Any | Where-Object { $_.Id -ne $oldId -and $_.StartTime -ge $oldStart } | Select-Object -First 1
             }
             if (-not $game) { break }
         }
     }
     finally {
+        # A Moono launch that failed before the game was found: end what it started (the launcher, a game
+        # still booting) before the loadout goes back.
+        if ($leg -eq 'Moono' -and -not $game) { Stop-MoonoLaunch $launcher $stockBefore $started }
         if ($game -and -not $game.HasExited) {
             Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
         } else {
