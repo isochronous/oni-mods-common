@@ -219,6 +219,16 @@ function Stop-MoonoLaunch($Launcher, [int[]]$StockBefore = @(), [string]$LogPath
     return $left
 }
 
+# The moono.log a live Moono game writes to: the launcher records its path in the live-session folder
+# (moono-log.txt) when it starts the game. '' when there is none or the file is gone.
+function Get-LiveMoonoLog([string]$LiveDir) {
+    $f = Join-Path $LiveDir 'moono-log.txt'
+    if (-not (Test-Path -LiteralPath $f)) { return '' }
+    $path = ([IO.File]::ReadAllText($f)).Trim()
+    if ($path -and (Test-Path -LiteralPath $path)) { return $path }
+    return ''
+}
+
 # What ran, from the first lines of a Player.log: Moono writes "[engine] Moono starting: commit=<sha> ..."
 # on line 1 and its launch mode on line 2; the stock game writes neither.
 function Get-LogRuntime([string]$LogPath) {

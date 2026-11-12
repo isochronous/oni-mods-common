@@ -508,6 +508,8 @@ foreach ($leg in $legs) {
     if ($submitted) {
         $launcherStatus = 'reused'
         $game = Get-LiveGame
+        # A reused Moono game keeps writing the moono.log of the run that launched it: that file is this run's account.
+        if ($leg -eq 'Moono') { $liveMoonoLog = Get-LiveMoonoLog $liveDir; if ($liveMoonoLog) { $moonoLog = $liveMoonoLog } }
         $deadline = (Get-Date).AddSeconds($TimeoutSec + 120)
         while (-not (Test-Path -LiteralPath $statusFile) -and $game -and -not $game.HasExited -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $game.Refresh() }
         if (-not (Test-Path -LiteralPath $statusFile)) { $launcherStatus = if ($game -and -not $game.HasExited) { 'reused, no status in time' } else { 'reused, exited' } }
@@ -553,6 +555,8 @@ foreach ($leg in $legs) {
             if (-not $KeepGame) {
                 New-Item -ItemType Directory -Force (Join-Path $liveDir 'queue') | Out-Null
                 [IO.File]::WriteAllText((Join-Path $liveDir 'key.txt'), $loadoutKey, $utf8)
+                # Where this game writes its log: a later run that reuses the game reads its runtime from there.
+                if ($leg -eq 'Moono') { [IO.File]::WriteAllText((Join-Path $liveDir 'moono-log.txt'), $moonoLog, $utf8) }
                 $gameArgs += "--onitest-server=$liveDir"
             }
             Write-Host "Loadout: TestRunner + $($Mods -join ', ')$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Steam) { ' + Workshop ' + ($Steam -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' }); fixture $(if ($noFixture) { 'none' } else { $Fixture }); runtime $leg"
@@ -570,9 +574,10 @@ foreach ($leg in $legs) {
                 # Only the --onitest- arguments, each behind --game-arg: no --game, Moono takes the install from Steam.
                 # A launch that fails is this leg's failure (its summary, exit code 2), not the script's.
                 try {
+                    # First: whatever fails below, a stock game that was already up is not one the launch started.
+                    $stockBefore = Get-StockGameIds
                     $argLine = Get-MoonoArgumentLine $gameArgs $moonoLog
                     $streams = Get-MoonoStreamPaths $moonoLog
-                    $stockBefore = Get-StockGameIds
                     Write-Host "Launching: $(ConvertTo-CommandLineArgument $moono) $argLine"
                     $launcher = Start-Process -FilePath $moono -ArgumentList $argLine -WorkingDirectory (Split-Path $moono -Parent) -PassThru -RedirectStandardOutput $streams.Out -RedirectStandardError $streams.Err
                     # Fails at once if the stock game appears or OniMoono exits, instead of waiting 120 s.
@@ -623,7 +628,7 @@ foreach ($leg in $legs) {
                 # A stock game is still running: it holds kplayerprefs.yaml and may write mods.json when it
                 # closes, so nothing is put back now. A warden that follows that game does it once it exits.
                 [void](Start-Warden @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Watch-OniGame.ps1'),
-                    '-GamePid', "$($stray[0])", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs))
+                    '-GamePid', "$($stray[0])", '-AlsoPids', "$(@($stray | Select-Object -Skip 1) -join ',')", '-ModsJson', $modsJson, '-Backup', $backup, '-LiveDir', $liveDir, '-ConfigRoot', $configRoot, '-Prefs', $prefs))
                 $wardenStarted = $true
                 $legFailure += "`nA stock OxygenNotIncluded (pid $($stray -join ', ')) started during the launch and is left running, since it may be the player's. mods.json, the config and the game's mode and last-save pointer stay as the test run left them until it exits; a warden puts them back then."
                 Write-Host "Handed the restore to a warden that waits for pid $($stray[0])."

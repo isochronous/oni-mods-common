@@ -45,7 +45,7 @@ after 150 s it restores at once. The game process is `OxygenNotIncluded`, or `On
 line holds the `--onitest-` arguments, so a Moono session started by hand is never taken for the
 test game (`GameProcess.ps1`). A Moono session started by hand still counts as an open game and
 blocks a run; Moono's crash watcher (a second `OniMoono` with `--crash-watch`) is not a game, so a
-live Moono game is reused like a stock one. A launcher that gives up on the game itself ends its warden and restores on its own.
+live Moono game is reused like a stock one; the launcher records the game's `moono.log` path in the session folder (`moono-log.txt`), and a run that reuses the game reads its runtime from that file and names it as "Moono's log" (the run folder gets no `moono.log` of its own). A launcher that gives up on the game itself ends its warden and restores on its own.
 `-KeepGame` launches a game of its own and keeps the old behaviour.
 
 **Mod settings are put back.** The shared config folder of each mod in `-Mods` and `-With`
@@ -115,7 +115,7 @@ A `Player.log` last written before the launch is never copied or read: the run f
 summary says `no game log written by this launch`. A Moono leg that fails before the game is found (the stock
 game started, OniMoono exited, the launch failed) ends what the launch started (the launcher, the
 OniMoono and stock `OxygenNotIncluded` processes descended from it and any whose command line holds the run's `moono.log` or `--onitest-dir`; never a game
-opened by hand: a stock `OxygenNotIncluded` that appeared and is none of those is left running, and a warden follows it and puts mods.json, the config and the prefs back once it exits), is recorded in
+opened by hand: a stock `OxygenNotIncluded` that appeared and is none of those is left running, and a warden follows it (all of them, if there are several) and puts mods.json, the config and the prefs back once it exits), is recorded in
 its own summary with exit code 2, and `-Runtime Both` goes on to the table.
 
 Launcher options:

@@ -290,6 +290,7 @@ foreach ($leg in $legs) {
     $game = $null
     $launcher = $null
     $stockBefore = @()
+    $strayHeld = $false
     try {
         [IO.File]::WriteAllText($modsJson, $json, $utf8)
         $launch = $launches[$leg]
@@ -345,12 +346,18 @@ foreach ($leg in $legs) {
             # A stock game that is not provably this launch's stays up (it may be the player's) and holds
             # the loadout, so mods.json goes back only once it exits; ModTest has no warden, it waits here.
             $stray = @(Stop-MoonoLaunch $launcher $stockBefore $launch.Log)
+            $strayWaitSec = 900
+            $strayEnd = (Get-Date).AddSeconds($strayWaitSec)
             foreach ($id in $stray) {
-                Write-Host "Waiting for the stock OxygenNotIncluded (pid $id) to exit; mods.json goes back then. Close it, or press Ctrl+C and restore by hand: Copy-Item '$backup' '$modsJson'"
-                Wait-Process -Id $id -ErrorAction SilentlyContinue
+                Write-Host "Waiting up to $strayWaitSec s for the stock OxygenNotIncluded (pid $id) to exit; mods.json goes back then. Close it, or press Ctrl+C and restore by hand: Copy-Item '$backup' '$modsJson'"
+                $left = [math]::Max(1, [int]($strayEnd - (Get-Date)).TotalSeconds)
+                Wait-Process -Id $id -Timeout $left -ErrorAction SilentlyContinue
+                if (Get-Process -Id $id -ErrorAction SilentlyContinue) { $strayHeld = $true }
             }
         }
-        if ($game -and -not $game.HasExited) {
+        if ($strayHeld) {
+            Write-Warning "A stock game (it may be the player's) is still running after $strayWaitSec s; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
+        } elseif ($game -and -not $game.HasExited) {
             Write-Warning "The game is still running; mods.json NOT restored. Restore by hand when it closes:`n  Copy-Item '$backup' '$modsJson'"
         } else {
             Copy-Item -LiteralPath $backup -Destination $modsJson -Force
