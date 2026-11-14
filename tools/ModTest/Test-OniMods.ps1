@@ -21,6 +21,9 @@
 .PARAMETER NoLocal
   Enable no local mods at all, only the -Steam items, e.g. -NoLocal -Steam 3816086407 to see how a
   Workshop mod behaves on its own. Cannot be combined with -Mods, -Omit or -Only.
+.PARAMETER NoIncluded
+  Leave out the Workshop items in included.txt, for a run that must see the game with nothing
+  but the mods asked for, e.g. a data dump.
 .PARAMETER Steam
   Workshop item ids to enable as well, e.g. -Steam 3816086407. The item must be subscribed. One the
   game has not registered yet (subscribed since its last launch) is downloaded through the Steam
@@ -40,6 +43,7 @@ param(
     [string]$Only,
     [string[]]$Steam = @(),
     [switch]$NoLocal,
+    [switch]$NoIncluded,
     [switch]$KeepDumps,
     [switch]$DryRun
 )
@@ -63,7 +67,7 @@ $Steam = @(Split-List $Steam)
 # Workshop items always enabled for a session (quality-of-life mods: a wider zoom out, sandbox
 # tools): included.txt next to this script, one item id per line, # for comments.
 $includedFile = Join-Path $PSScriptRoot 'included.txt'
-if (Test-Path -LiteralPath $includedFile) {
+if (-not $NoIncluded -and (Test-Path -LiteralPath $includedFile)) {
     $included = @(Get-Content -LiteralPath $includedFile | ForEach-Object { ($_ -replace '#.*$', '').Trim() } | Where-Object { $_ })
     foreach ($id in $included) { if ($Steam -notcontains $id) { $Steam += $id } }
 }
