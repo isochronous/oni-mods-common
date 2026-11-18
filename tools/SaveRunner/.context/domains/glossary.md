@@ -30,9 +30,10 @@ Terms a newcomer to SaveRunner needs. Entity detail is in [entities](entities.md
 
 ### Probe
 **Id:** blk-4e73227a1e2f  
-**Tags:** probe  
-**Definition**: a named recorder sampled once per game second during a run. `fridges` is the only one.  
-**Used in**: `--saverun-probe`, `RunBehaviour`, `FridgeProbe`.
+**Tags:** probe
+
+**Definition**: a named recorder sampled during a run: `fridges` (fridge contents, once per game second) and `memory` (process, Mono, Unity and texture memory from boot, per-mod load deltas, an end-of-run census).  
+**Used in**: `--saverun-probe`, `RunBehaviour`, `FridgeProbe`, `MemoryProbe`.
 
 ### Game seconds and real seconds
 **Id:** blk-dd09f79f5775  

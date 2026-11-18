@@ -13,12 +13,14 @@
 .PARAMETER Save
   The .sav file to load.
 .PARAMETER Seconds
-  Game seconds to run after the colony has loaded (default 60).
+  Game seconds to run after the colony has loaded (default 60; 300 with -Probe memory).
 .PARAMETER Speed
-  Game speed 1 to 3 while running (default 1).
+  Game speed 1 to 3 while running (default 1; 3 with -Probe memory).
 .PARAMETER Probe
   What the mod records once per game second: 'fridges' (every item in every fridge-controller
-  building) or nothing.
+  building), 'memory' (process, managed and Unity memory from boot on, what each mod adds as it
+  loads, and an end-of-run snapshot of what the memory is made of; SaveRunner is moved to the top of
+  mods.json so it loads before every other mod) or nothing.
 .PARAMETER With
   Extra mods to enable for the run (local folder names or Workshop item ids).
 .PARAMETER Without
@@ -28,18 +30,21 @@
   Disable every other mod: the run has only SaveRunner and the -With mods. Much faster to boot than
   a full loadout; use it when the save does not need the player's mods (a test fixture).
 .PARAMETER TimeoutSec
-  Real seconds the whole session may take before the mod, and failing that this script, kills it.
+  Real seconds the whole session may take before the mod, and failing that this script, kills it
+  (default 900; 1800 with -Probe memory).
 
 .EXAMPLE
   ./Invoke-SaveRun.ps1 'C:\...\The Aftermath Sandbox 001.sav' -Seconds 90 -Probe fridges -Label nmf
   ./Invoke-SaveRun.ps1 'C:\...\The Aftermath Sandbox 001.sav' -Seconds 90 -Probe fridges -Without NoMagicFridges -Label vanilla
   ./Invoke-SaveRun.ps1 'C:\...\fixtures\testbed-so.sav' -Seconds 10 -TimeoutSec 180 -Only -Label smoke
+  ./Invoke-SaveRun.ps1 'C:\...\The Aftermath v009.sav' -Probe memory -Without 2854869130,3281716506 -Label mem-full
+  ./Invoke-SaveRun.ps1 'C:\...\The Aftermath v009.sav' -Probe memory -Only -Label mem-none
 #>
 param(
     [Parameter(Mandatory)][string]$Save,
     [int]$Seconds = 60,
     [ValidateRange(1, 3)][int]$Speed = 1,
-    [ValidateSet('', 'fridges')][string]$Probe = '',
+    [ValidateSet('', 'fridges', 'memory')][string]$Probe = '',
     [string[]]$With = @(),
     [string[]]$Without = @(),
     [switch]$Only,
@@ -53,6 +58,13 @@ $ErrorActionPreference = 'Stop'
 # Started with pwsh -File, a comma-separated argument arrives as one string: split the list parameters.
 $With = @($With | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $Without = @($Without | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+# A memory run: half a cycle at speed 3 shows growth after the load without holding the PC for long,
+# and a full loadout takes minutes to boot before the run starts.
+if ($Probe -eq 'memory') {
+    if (-not $PSBoundParameters.ContainsKey('Seconds')) { $Seconds = 300 }
+    if (-not $PSBoundParameters.ContainsKey('Speed')) { $Speed = 3 }
+    if (-not $PSBoundParameters.ContainsKey('TimeoutSec')) { $TimeoutSec = 1800 }
+}
 
 $klei = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Klei\OxygenNotIncluded'
 $modsJson = Join-Path $klei 'mods\mods.json'
@@ -104,6 +116,12 @@ function Set-Mods {
             status = 1; enabled = $true; enabledForDlc = @($dlc); crash_count = 0; reinstall_path = $null; staticID = "Isochronous.$id"
         }
     }
+    # The game loads mods in mods.json order; the memory probe starts in SaveRunner's OnLoad, so
+    # SaveRunner goes first and every other mod loads while it is measuring.
+    if ($Probe -eq 'memory') {
+        $first = @($json.mods | Where-Object { $_.label.id -eq 'SaveRunner' -and $_.label.distribution_platform -eq 0 })
+        $json.mods = $first + @($json.mods | Where-Object { $first -notcontains $_ })
+    }
     [IO.File]::WriteAllText($modsJson, ($json | ConvertTo-Json -Depth 10), $utf8)
 }
 
@@ -122,6 +140,7 @@ try {
     $gameArgs = @('-applaunch', "$AppId", "--saverun=$saveCopy", "--saverun-seconds=$Seconds", "--saverun-speed=$Speed", "--saverun-out=$csv", "--saverun-timeout=$TimeoutSec")
     if ($Probe) { $gameArgs += "--saverun-probe=$Probe" }
     Write-Host "Loadout: $(if ($Only) { 'only' } else { 'current +' }) SaveRunner$(if ($With) { ' + ' + ($With -join ', ') })$(if ($Without) { ' - ' + ($Without -join ', ') }); mode $(if ($spacedOut) { 'Spaced Out' } else { 'base game' })"
+    if ($Probe -eq 'memory') { Write-Host "Memory probe: SaveRunner loads first; $Seconds game s at speed $Speed, timeout $TimeoutSec s" }
     Write-Host "Launching: $($gameArgs -join ' ')"
     $t0 = Get-Date
     Start-Process -FilePath $SteamExe -ArgumentList $gameArgs | Out-Null
