@@ -225,6 +225,12 @@ namespace Isochronous.TestRunner
 			var t = new TestContext(test.Name, test.Id);
 			var capture = new LogCapture();
 			capture.Begin();
+			if (Session.LoadCapture != null)
+			{
+				Session.LoadCapture.End();
+				t.SetLoadErrors(Session.LoadCapture.Snapshot());
+				Session.LoadCapture = null;
+			}
 			float start = Time.realtimeSinceStartup;
 			double gameStart = gameSeconds;
 			float deadline = start + (float)test.TimeoutSeconds;
@@ -388,6 +394,13 @@ namespace Isochronous.TestRunner
 		public void End()
 		{
 			Application.logMessageReceivedThreaded -= OnLog;
+		}
+
+		/// <summary>A copy of the errors so far, taken under the lock the callback adds under.</summary>
+		public List<string> Snapshot()
+		{
+			lock (sync)
+				return new List<string>(Errors);
 		}
 
 		private void OnLog(string condition, string stackTrace, LogType type)

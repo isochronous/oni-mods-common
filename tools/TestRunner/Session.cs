@@ -61,6 +61,8 @@ namespace Isochronous.TestRunner
 		public static bool SaveIsFresh;
 		/// <summary>How many times the fixture was loaded again for a [OniTest(FreshSave = true)] test.</summary>
 		public static int Reloads;
+		/// <summary>Errors the game logs while a save loads, from the load starting in Continue to the next test starting; handed to that test as TestContext.LoadErrors.</summary>
+		internal static LogCapture LoadCapture;
 		public static int Passed, Failed, Errors, Timeouts, Skipped;
 
 		private static StreamWriter results;
@@ -213,6 +215,8 @@ namespace Isochronous.TestRunner
 			if (Finished)
 				return;
 			Finished = true;
+			LoadCapture?.End();
+			LoadCapture = null;
 			// Before the status line: a launcher that sees it may compute the next loadout at once.
 			RunUndo();
 			string restoreProblem = ModConfig.Restore();
@@ -334,6 +338,9 @@ namespace Isochronous.TestRunner
 		/// <summary>A fresh run in the live game: the run's settings, every count back to zero, the tests found again.</summary>
 		private static void Begin(Dictionary<string, string> fields)
 		{
+			// A capture left over from a run that ended before its first test must not carry into this one.
+			LoadCapture?.End();
+			LoadCapture = null;
 			fields.TryGetValue("dir", out Dir);
 			fields.TryGetValue("save", out SavePath);
 			Filters.Clear();
@@ -457,6 +464,9 @@ namespace Isochronous.TestRunner
 				return;
 			}
 			Debug.Log(Tag + "loading " + SavePath);
+			LoadCapture?.End();
+			LoadCapture = new LogCapture();
+			LoadCapture.Begin();
 			LoadScreen.DoLoad(SavePath);
 		}
 

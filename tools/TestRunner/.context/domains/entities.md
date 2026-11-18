@@ -111,13 +111,15 @@ TestRunner runs a mod's in-game tests in the real game with nobody at the keyboa
 |------|------|---------|
 | `OniTestAttribute`, `LayerAttribute` | `Attributes.cs` | mark tests and set their options (`Timeout`, `FreshSave`, `KeepSave`, `Explicit`, `Boxed`, `NoColony`, `Worldgen`) |
 | `OniAssertException`, `SkipException` | `Attributes.cs` | thrown by `t.Assert` and `t.Skip` |
-| `TestContext` | `TestContext.cs` | `Assert`, `World`, `Tools`, `Dupes`, waits (`Frames`, `WaitGameSeconds`, `WaitRealSeconds`, `WaitUntil`), `Rect`, `Area`, `Log`, `Cleanup`, `AllowLogError`, `Skip`, `Speed`, `InstantBuild`, `ResearchAll`, `Screenshot`, `Press`, `PointAt`, `LookAt`, `Generated` |
+| `TestContext` | `TestContext.cs` | `Assert`, `World`, `Tools`, `Dupes`, waits (`Frames`, `WaitGameSeconds`, `WaitRealSeconds`, `WaitUntil`), `Rect`, `Area`, `Log`, `Cleanup`, `AllowLogError`, `Skip`, `Speed`, `InstantBuild`, `ResearchAll`, `Screenshot`, `Press`, `PointAt`, `LookAt`, `Generated`, `LoadErrors` |
 | `Wait` and its subclasses, `CellRect` | `TestContext.cs` | what a test yields; a rectangle of cells |
 | `OniAssert` | `OniAssert.cs` | `True`, `False`, `Eq`, `NotEq`, `Null`, `NotNull`, `Has`, `Lacks`, `Fail` |
 | `World`, `Cells` | `World.cs` | `Build`, `At`, `Destroy`, `LogicNetwork`, `LogicConnections` at layer 0; cell descriptions |
 | `Tools`, `UtilityDragSession` | `Tools.cs` | the real utility build tool at layer 1: `Path`, `Sweep`, `PreviewTint`, `PreviewValid` |
 | `Dupes` | `Dupes.cs` | `Box`, `ClearBox`, `Spawn`, `Grant`, `GrantAll`, `Drop`, `Remove`, `RemoveAll` |
 | `SaveFile` | `SaveFile.cs` | `Capture` and `Restore` a building through the game's own save and load |
+
+`LoadErrors` (IReadOnlyList<string>): the errors and exceptions the game logged from the start of the save load to the test starting (the load, then the harness's setup and fixture clear), captured by `Session.LoadCapture` and handed over by `SetLoadErrors`; empty for a colony that was already up, and not counted against the test.
 
 ### Invoke-OniTests.ps1
 **Id:** blk-5b0c52216ccc  
