@@ -36,6 +36,10 @@ namespace SaveRunner
 			// game build costs a warning, not the mod.
 			TracePatch(harmony, AccessTools.Method(typeof(App), "Restart"), "App.Restart");
 			TracePatch(harmony, AccessTools.Method(typeof(UnityEngine.Application), "Quit", new System.Type[0]), "Application.Quit");
+			// The memory probe measures from here on, so it needs SaveRunner first in mods.json:
+			// every mod after it loads under its hooks.
+			if (Runner.Probe == "memory")
+				MemoryProbe.Start(harmony);
 		}
 
 		private static void TracePatch(Harmony harmony, System.Reflection.MethodInfo target, string name)

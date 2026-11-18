@@ -29,6 +29,7 @@ namespace SaveRunner
 			if (!Runner.Active || !Runner.Started || Runner.Finished)
 				return;
 			Debug.Log(Runner.Tag + "colony loaded after " + (Time.realtimeSinceStartup - Runner.StartedAt).ToString("F0") + " s real time");
+			MemoryProbe.Loaded();
 			RunBehaviour run = __instance.gameObject.AddComponent<RunBehaviour>();
 			Debug.Log(Runner.Tag + "runner attached to " + __instance.gameObject.name + " (active " + __instance.gameObject.activeInHierarchy + ", component " + (run != null) + ")");
 		}
@@ -138,9 +139,11 @@ namespace SaveRunner
 					return;
 				}
 				Debug.Log(Runner.Tag + "loading " + Runner.SavePath);
+				MemoryProbe.Loading();
 				LoadScreen.DoLoad(Runner.SavePath);
 				return;
 			}
+			MemoryProbe.MenuTick();
 			if (Time.realtimeSinceStartup - Runner.StartedAt > Runner.TimeoutSeconds)
 				Runner.Finish("timeout", "no end of run after " + Runner.TimeoutSeconds + " s real time");
 		}
