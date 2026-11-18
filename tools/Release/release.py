@@ -217,6 +217,11 @@ def main():
     ap.add_argument("--changenote", help="Workshop change note (default: the CHANGELOG.md section, or --notes)")
     a = ap.parse_args()
 
+    unpublished = os.path.join("publish", "unpublished.txt")
+    if os.path.exists(unpublished):
+        sys.exit("publish/unpublished.txt: this mod is not for publishing ("
+                 + (open(unpublished, encoding="utf-8").read().strip() or "personal mod") + ")")
+
     # The mod's own project; a src/<Mod>.Tests project beside it is the in-game test suite.
     projects = [p for p in glob.glob(os.path.join("src", "*", "*.csproj")) if not p.endswith(".Tests.csproj")]
     if len(projects) != 1:
