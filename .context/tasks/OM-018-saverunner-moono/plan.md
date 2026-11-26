@@ -27,7 +27,7 @@
 ## Progress
 - [x] Implement -Runtime for Save Runner — e27db56 (units/01-implement-report.md): -Runtime/-MoonoExe/-DryRun, standalone launch (no --game, per OM-014), waits on the launched OniMoono, Player.log copied only when fresh, runtime read from moono.log; Get-LogRuntime fix (launch line moved to line 4 in Moono f005cd6c, now scans first 10 lines). Dry runs and parse checks pass; no real run yet (game open).
 - [x] Test: real Moono run 2026-11-26 15:01 (runs/om017-moono-20261126-150108), Jeremy's go: newest autosave Cycle 993, -Seconds 30, -Without MPM. Output: "Restored mods.json." / "Runtime: Moono asked; moono.log shows Moono (commit 287fc57d...; launch: standalone...)" / "OniMoono exit code 0" / "Game exited after 154 s; status done, 31 samples, realSeconds 97.3". OM-017 diagnostic lines (105) in moono.log.
-- [ ] Completion: review unit, decision note on OM-014, retro, PR ← NEXT on a small save (or Jeremy's newest save for OM-017) with his game closed; confirm Player.log line 1 is "Moono starting", probe output written, game closed, mods.json restored
+- [ ] Completion: review unit, decision note on OM-014, retro, PR ← NEXT
 
 ## Open Questions / Blockers
 - Jeremy's game must be closed before any run.
