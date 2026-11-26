@@ -25,8 +25,8 @@
 ## Phase Handoff Log
 
 ## Progress
-- [ ] Implement -Runtime for Save Runner (and any GameProcess.ps1 changes), README updated ← IN PROGRESS
-- [ ] Test: one short Moono run on a small save (or Jeremy's newest save for OM-017) with his game closed; confirm Player.log line 1 is "Moono starting", probe output written, game closed, mods.json restored
+- [x] Implement -Runtime for Save Runner — e27db56 (units/01-implement-report.md): -Runtime/-MoonoExe/-DryRun, standalone launch (no --game, per OM-014), waits on the launched OniMoono, Player.log copied only when fresh, runtime read from moono.log; Get-LogRuntime fix (launch line moved to line 4 in Moono f005cd6c, now scans first 10 lines). Dry runs and parse checks pass; no real run yet (game open).
+- [ ] Test: one short Moono run ← IN PROGRESS (waiting for Jeremy to close his game) on a small save (or Jeremy's newest save for OM-017) with his game closed; confirm Player.log line 1 is "Moono starting", probe output written, game closed, mods.json restored
 - [ ] Completion: review, decision note on OM-014, retro, PR in oni-mods-common
 
 ## Open Questions / Blockers
