@@ -187,7 +187,7 @@ try {
         # The game is an OniMoono with the --saverun arguments (in standalone mode the launcher itself, so it
         # goes first). Fails at once if the stock game appears or OniMoono exits with no game up.
         try {
-            $proc = Wait-MoonoGame $launcher $stockBefore 120 { Get-GameProcess -Marker '--saverun' | Where-Object { $_.ProcessName -eq 'OniMoono' } | Sort-Object { $_.Id -ne $launcher.Id } } $moonoLog
+            $proc = Wait-MoonoGame $launcher $stockBefore 120 { Get-GameProcess -Marker ([WildcardPattern]::Escape("--saverun-out=$csv")) | Where-Object { $_.ProcessName -eq 'OniMoono' -and "$((Get-CimInstance Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue).CommandLine)" -notlike '*--crash-watch*' } | Sort-Object { $_.Id -ne $launcher.Id } } $moonoLog
         } catch {
             $launchFailure = $_.Exception.Message
         }
@@ -206,6 +206,8 @@ try {
             if (((Get-Date) - $t0).TotalSeconds -gt ($TimeoutSec + 180)) { Stop-Process -Id $proc.Id -Force; $launcherStatus = 'killed'; break }
             $proc.Refresh()
         }
+        # Moono's crash watcher is the game's child and outlives a killed game.
+        if ($Runtime -eq 'Moono' -and $launcherStatus -like 'killed*') { [void](Stop-MoonoLaunch $launcher $stockBefore $moonoLog "--saverun-out=$csv") }
         Start-Sleep 3
     }
     # Only a Player.log written since this launch: an older one is an earlier run's. A Moono launch writes none.
@@ -236,7 +238,7 @@ finally {
 $status = if (Test-Path $statusFile) { [IO.File]::ReadAllText($statusFile, $utf8).Trim() } else { '(no status file: the run never finished)' }
 $rows = if (Test-Path $csv) { @([IO.File]::ReadAllLines($csv, $utf8)).Count - 1 } else { 0 }
 # What ran, from line 1 of the game's log: Player.log for a stock run, moono.log (the game's log on a direct Moono launch) otherwise.
-$ranLog = if ($logCopied) { Join-Path $runDir 'Player.log' } elseif ($moonoLog -and (Test-Path -LiteralPath $moonoLog)) { $moonoLog } else { '' }
+$ranLog = if ($Runtime -eq 'Moono' -and $moonoLog -and (Test-Path -LiteralPath $moonoLog)) { $moonoLog } elseif ($logCopied) { Join-Path $runDir 'Player.log' } else { '' }
 $ran = Get-LogRuntime $ranLog
 $ranText = if ($ran.Runtime -eq 'Moono') { "Moono (commit $($ran.Commit)$(if ($ran.Launch) { '; launch: ' + $ran.Launch }))" } else { 'Stock' }
 Write-Host $(if ($ran.Runtime) { "Runtime: $Runtime asked; $(Split-Path $ranLog -Leaf) shows $ranText" } else { "Runtime: $Runtime asked; no game log written by this launch" })
@@ -247,3 +249,4 @@ if ($Runtime -eq 'Moono') {
     else { $code = Get-MoonoExitCode $proc $launcher $moonoLog; Write-Host "OniMoono exit code $(if ($null -eq $code) { 'unknown' } else { $code }); Moono's log: $moonoLog" }
 }
 Write-Host ("Game {0} after {1} s; status {2}; {3} probe row(s) in {4}" -f $launcherStatus, [int]((Get-Date) - $t0).TotalSeconds, $status, $rows, $runDir)
+if ($launchFailure) { exit 1 }
