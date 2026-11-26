@@ -137,5 +137,5 @@ pwsh -ExecutionPolicy Bypass -File common/tools/ModTest/Test-OniMods.ps1 [-Mods 
 `tools/SaveRunner` is a dev mod plus `Invoke-SaveRun.ps1` that load a save with nobody at the keyboard, run it for a while with every save to disk blocked, record a probe once per game second and quit: run it once with the mod under test and once with `-Without <Mod>` and compare the two `probe.csv` files. The player's own loadout stays enabled, so a report reproduces with their mods. Mod Profile Manager restarts the game on a changed loadout and has to be left out with `-Without 2854869130,3281716506`. Details and the probes in `tools/SaveRunner/README.md`.
 
 ```
-pwsh -File common/tools/SaveRunner/Invoke-SaveRun.ps1 -Save <file.sav> -Seconds 90 -Probe fridges [-With ...] [-Without ...] -Label <name>
+pwsh -File common/tools/SaveRunner/Invoke-SaveRun.ps1 -Save <file.sav> -Seconds 90 -Probe fridges [-With ...] [-Without ...] [-Runtime Stock|Moono] [-DryRun] -Label <name>
 ```
