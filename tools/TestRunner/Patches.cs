@@ -44,6 +44,17 @@ namespace Isochronous.TestRunner
 		}
 	}
 
+	/// <summary>The game's crash dialog, which the harness never wants open, is named in the log when it opens.</summary>
+	[HarmonyPatch(typeof(KCrashReporter), nameof(KCrashReporter.ShowDialog))]
+	public static class KCrashReporter_ShowDialog_Patch
+	{
+		public static void Prefix(string error)
+		{
+			if (Session.Active)
+				Debug.Log(Session.Tag + "crash dialog for: " + error + " (terminateOnError " + KCrashReporter.terminateOnError + ")");
+		}
+	}
+
 	/// <summary>
 	/// No save written while a run is on (a new colony's first save, autosave, save on quit) except
 	/// under the run directory, where a round-trip test may save.

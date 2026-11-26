@@ -47,6 +47,9 @@ namespace Isochronous.TestRunner
 			UnityEngine.Application.quitting += () => Debug.Log(Session.Tag + "Application quitting");
 			TracePatch(harmony, AccessTools.Method(typeof(App), "Restart"), "App.Restart");
 			TracePatch(harmony, AccessTools.Method(typeof(UnityEngine.Application), "Quit", new System.Type[0]), "Application.Quit");
+			// The game's own quits (crash dialogs, boot checks) call App.QuitCode directly. Application.Quit(int)
+			// is a native call: a Harmony patch on it stops the quit itself, so it is never patched.
+			TracePatch(harmony, AccessTools.Method(typeof(App), nameof(App.QuitCode), new[] { typeof(int) }), "App.QuitCode");
 		}
 
 		private static void TracePatch(Harmony harmony, System.Reflection.MethodInfo target, string name)

@@ -1,8 +1,8 @@
 # The process of the game a tool launched, for the launchers in tools/ (TestRunner's Invoke-OniTests.ps1
 # and Watch-OniGame.ps1, SaveRunner, WorldgenDriver, ModTest), each telling its game by its -Marker
 # (ModTest, which launches with no arguments, uses -Any and the start time instead).
-# The stock game runs as OxygenNotIncluded. oni-moono's player, started directly (TestRunner's and
-# ModTest's -Runtime Moono: Get-MoonoArgumentLine and Wait-MoonoGame below) or from Steam's launch options, runs the game in its
+# The stock game runs as OxygenNotIncluded. oni-moono's player, started directly (TestRunner's,
+# ModTest's and SaveRunner's -Runtime Moono: Get-MoonoArgumentLine and Wait-MoonoGame below) or from Steam's launch options, runs the game in its
 # own process, OniMoono (its Restarter only restarts it). An OniMoono process counts
 # only when its command line holds the -Marker arguments (by default TestRunner's --onitest-), so a
 # Moono session the player started by hand is never taken for the launched game. With -Id, that
@@ -230,12 +230,14 @@ function Get-LiveMoonoLog([string]$LiveDir) {
 }
 
 # What ran, from the first lines of a Player.log: Moono writes "[engine] Moono starting: commit=<sha> ..."
-# on line 1 and its launch mode on line 2; the stock game writes neither.
+# on line 1 and its "[engine] launch: <mode>" line among the next few (line 2 up to commit 2fb86e60, line 4
+# by f005cd6c); the stock game writes neither.
 function Get-LogRuntime([string]$LogPath) {
-    $head = @(if ($LogPath -and (Test-Path -LiteralPath $LogPath)) { Get-Content -LiteralPath $LogPath -TotalCount 2 })
+    $head = @(if ($LogPath -and (Test-Path -LiteralPath $LogPath)) { Get-Content -LiteralPath $LogPath -TotalCount 10 })
     if ($head.Count -eq 0) { return [pscustomobject]@{ Runtime = ''; Commit = ''; Launch = ''; Line1 = '' } }
     $m = [regex]::Match($head[0], 'Moono starting: commit=(\w+)')
     if (-not $m.Success) { return [pscustomobject]@{ Runtime = 'Stock'; Commit = ''; Launch = ''; Line1 = $head[0] } }
-    $launch = if ($head.Count -gt 1 -and $head[1] -match 'launch: (.+)$') { $Matches[1] } else { '' }
+    $launchLine = @($head | Select-Object -Skip 1 | Where-Object { $_ -match '^\[engine\] launch: ' }) | Select-Object -First 1
+    $launch = if ($launchLine -match 'launch: (.+)$') { $Matches[1] } else { '' }
     return [pscustomobject]@{ Runtime = 'Moono'; Commit = $m.Groups[1].Value; Launch = $launch; Line1 = $head[0] }
 }
